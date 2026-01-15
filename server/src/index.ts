@@ -67,17 +67,20 @@ app.get('/', (_req, res) => {
 });
 
 // -------------------- JWT (Token) --------------------
-
 // ✅ Prod’da ENV’den ver: JWT_SECRET
-const JWT_SECRET: string = String(process.env.JWT_SECRET || 'dev-secret-change-me');
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30d';
+// Not: TS overload sapmasın diye tipe netlik veriyoruz.
+const JWT_SECRET: string = (process.env.JWT_SECRET ?? 'dev-secret-change-me').toString();
+const JWT_EXPIRES_IN: string = (process.env.JWT_EXPIRES_IN ?? '30d').toString();
 
 type JwtPayload = {
   sub: number; // userId
 };
 
 function signToken(userId: number) {
-  return jwt.sign({ sub: userId } as JwtPayload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  // jsonwebtoken type overloadları bazen “callback” overload’una kayabiliyor.
+  // Bunu engellemek için options tipini açıkça veriyoruz.
+  const options: jwt.SignOptions = { expiresIn: JWT_EXPIRES_IN as any };
+  return jwt.sign({ sub: userId } as JwtPayload, JWT_SECRET, options);
 }
 
 // req içine authUserId ekleyelim
