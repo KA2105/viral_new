@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="viral_icon_set">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/viral_icon_set.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

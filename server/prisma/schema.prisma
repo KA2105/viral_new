@@ -1,0 +1,148 @@
+// server/prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+
+  // 🔑 Cihaz kimliği (anon login)
+  deviceId        String    @unique
+
+  // 🌍 Onboarding / ayarlar
+  language        String?   // örn: "tr", "en", "de"
+
+  // 👤 Profil alanları (backend profil modeli)
+  fullName        String?   // "Kazım Arslan"
+  handle          String?   @unique // "kazimarslan" (UI'da @ ile gösterilir)
+  bio             String?
+  website         String?
+  avatarUri       String?
+
+  email           String?   @unique
+  phone           String?   @unique
+  isPhoneVerified Boolean   @default(false)
+
+  // 🔐 Şifre hash (email/phone login için)
+  passwordHash    String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // 🔗 İlişkiler
+  tasks           Task[]
+  posts           Post[]
+
+  // 👥 Focus Ağı ilişkileri
+  sentFriendRequests     FriendRequest[] @relation("FriendRequestsSent")
+  receivedFriendRequests FriendRequest[] @relation("FriendRequestsReceived")
+}
+
+model Task {
+  id               Int       @id @default(autoincrement())
+
+  // 🔗 Sahip kullanıcı
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int
+
+  // Ana bilgiler
+  title            String
+  description      String?
+  category         String    @default("Genel")   // TaskCategory
+  priority         String    @default("Orta")    // TaskPriority
+  origin           String    @default("self")    // 'self' | 'given' | 'legacy'
+  templateId       String?                       // TASK_TEMPLATES id
+
+  // Durum
+  status           String    @default("pending") // 'pending' | 'done' | 'skipped' | 'expired'
+  done             Boolean   @default(false)
+
+  // Zaman alanları
+  ts               DateTime  @default(now())     // oluşturulma
+  dueDate          DateTime?
+  timeOfDay        String?                       // 'sabah' | 'öğlen' | 'akşam' | 'özel'
+
+  // Tekrar / planlama
+  repeatType       String    @default("none")    // TaskRepeatType
+  repeatDaysOfWeek String?                       // JSON string: örn "[1,3,5]"
+  repeatStartDate  DateTime?
+  repeatEndDate    DateTime?
+
+  // Tamamlanma & edit bilgisi
+  completedAt      DateTime?
+  lastEditAt       DateTime?
+  editsTodayCount  Int       @default(0)
+
+  // Grup görevleri / Pro
+  isGroupTask       Boolean   @default(false)
+  assignedByUserId  Int?
+  assignedToUserIds String?                     // JSON string: örn '["u1","u2"]'
+  requiresPro       Boolean   @default(false)
+
+  // Audit
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Post {
+  id           Int       @id @default(autoincrement())
+
+  // Kart bilgileri
+  taskTitle    String?
+  note         String?
+  author       String?    // şimdilik string; ileride User ile tam bağlarız
+
+  // Mod ve hedefler
+  isFreePost   Boolean   @default(true)
+  shareTargets String?   // JSON string: ['Instagram','X', ...]
+
+  // Video bilgisi (şimdilik sadece URI metni)
+  videoUri     String?
+
+  // Zaman
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // 🔗 İsteğe bağlı User ilişkisi
+  userId       Int?
+  user         User?     @relation(fields: [userId], references: [id])
+}
+
+// ✅ Arkadaş istekleri
+model FriendRequest {
+  id         Int      @id @default(autoincrement())
+
+  fromUser   User     @relation("FriendRequestsSent", fields: [fromUserId], references: [id], onDelete: Cascade)
+  fromUserId Int
+
+  toUser     User     @relation("FriendRequestsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+  toUserId   Int
+
+  status     String   @default("pending") // 'pending' | 'accepted' | 'declined' | 'cancelled'
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([toUserId, status])
+  @@index([fromUserId, status])
+  @@unique([fromUserId, toUserId, status], name: "uniq_active_request")
+}
+
+// ✅ Arkadaşlık (kanonik çift: küçük id -> büyük id)
+model Friendship {
+  id        Int      @id @default(autoincrement())
+
+  user1Id   Int
+  user2Id   Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([user1Id, user2Id], name: "uniq_friendship_pair")
+  @@index([user1Id])
+  @@index([user2Id])
+}

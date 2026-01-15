@@ -1,0 +1,687 @@
+{
+ "common": {
+  "appName": "Viral",
+  "ok": "OK",
+  "cancel": "Cancel",
+   "close": "Close",
+  "continue": "Continue",
+  "hide": "Hide",
+  "show": "Show",
+  "save": "Save",
+  "saving": "Saving...",
+  "loading": "Loading...",
+  "warning": "Warning",
+  "error": "Error",
+  "success": "Success"
+},
+"onboarding": {
+  "language": {
+    "title": "Select Language",
+    "subtitle": "Choose your language to continue",
+    "hint": "You can change language later from Profile screen."
+  },
+  "buttons": {
+    "skip": "Skip",
+    "next": "Next",
+    "start": "Start"
+  }
+},
+    "profile": {
+    "title": "Profile",
+    "languageButton": "Language",
+    "languageHint": "Choose app language",
+    "defaultUser": "User",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "Full name",
+    "handleLabel": "Username",
+    "handlePlaceholder": "@user",
+    "bioLabel": "About (bio)",
+    "bioPlaceholder": "Briefly introduce yourself...",
+    "websiteLabel": "Link (optional)",
+    "websitePlaceholder": "https://",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "example@mail.com",
+    "phoneLabel": "Phone",
+    "phonePlaceholder": "5x xx xx xx",
+    "phoneHint": "No need to add a leading 0. Country code is on the left.",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Your password",
+    "passwordConfirmLabel": "Password (again)",
+    "passwordConfirmPlaceholder": "Type the password again",
+    "passwordHint": "Password must be at least 8 characters, and include upper/lowercase letters, numbers and symbols.",
+    "logout": "Log out",
+    "loadingProfile": "Loading profile...",
+    "alert": {
+      "warning": "Warning",
+      "error": "Error",
+      "success": "Success",
+      "passwordRequired": "Password and confirmation are required.",
+      "passwordMismatch": "Password and confirmation must match.",
+      "saveFailed": "Profile could not be updated.",
+      "saveSuccess": "Your profile information has been updated."
+    },
+    "verify": {
+      "sectionTitle": "Phone verification",
+      "statusVerified": "Phone verified",
+      "statusNotVerified": "Phone not verified",
+      "codeSentTitle": "Verification code sent",
+      "codeSentDev": "Simulation (dev): Code {{code}}",
+      "codeSentText": "A verification code was sent to your phone (simulation).",
+      "enterCode": "Please enter the verification code.",
+      "verifyFailed": "Code could not be verified.",
+      "verifySuccess": "Your phone number has been verified.",
+      "sendCodeButton": "Send code (simulation)",
+      "codePlaceholder": "Verification code",
+      "confirmButton": "Verify code"
+    },
+    "personalSection": {
+      "title": "Personal information",
+      "hide": "Hide",
+      "showEdit": "Show / Edit"
+    },
+    "avatar": {
+      "label": "Profile photo",
+      "readError": "Selected image could not be read.",
+      "pickError": "There was a problem selecting profile photo. Please try again.",
+      "change": "Change photo",
+      "choose": "Choose photo"
+    },
+    "onboarding": {
+      "restartTitle": "Restart intro tour",
+      "restartMessage": "You are about to restart the short intro tour. Continue?",
+      "restartConfirm": "Yes, start",
+      "readyTitle": "Ready 🎉",
+      "readyMessage": "The onboarding will open again in a moment. At the end of the tour, you’ll return to the app.",
+      "restartButton": "Restart onboarding"
+    },
+    "invite": {
+      "button": "Invite my friends",
+      "title": "Find me on Viral",
+      "usernameLabel": "Username",
+      "profileLinkLabel": "Profile link",
+      "appLinkLabel": "Viral app link",
+      "platformQuestion": "Which platform do you want to share on?",
+      "defaultUsername": "Viral user",
+      "shareLine1": "Find me on Viral! 👋",
+      "shareUsername": "Username: {{username}}",
+      "shareProfile": "Profile: {{link}}",
+      "shareApp": "App link: {{link}}",
+      "shareVia": "(I’m sharing this message via {{platform}})"
+    },
+    "accounts": {
+      "sectionTitle": "Account connections",
+      "toggleButton": "Connect / remove account",
+      "summary": "{{count}} connected account(s)",
+      "connected": "Connected",
+      "connect": "Connect",
+      "account": "Account",
+      "connectedFlash": "Your {{label}} account has been connected to Viral.",
+      "disconnectedFlash": "Your {{label}} account has been removed from Viral.",
+      "manage": "manage your account",
+      "bind": "connect your account",
+      "hintConnected": "You can remove this account from Viral or update its connection.",
+      "hintDisconnected": "To connect this account to Viral, enter the profile or page URL.",
+      "linkPlaceholder": "https://...",
+      "removeButton": "Remove account"
+    },
+    "feedStats": {
+      "sectionTitle": "Feed statistics",
+      "totalCards": "Total cards",
+      "visibleCards": "Visible cards",
+      "totalLikes": "Total likes",
+      "videoCards": "Cards with video"
+    },
+    "activities": {
+      "sectionTitle": "Recent activities",
+      "empty": "There is no card associated with your name yet. When you add task cards or videos to the feed, you’ll see their summaries here.",
+      "badgeTaskCard": "Task card",
+      "badgeVideo": "Video",
+      "noSharePlanned": "No planned share"
+    },
+    "taskStats": {
+      "sectionTitle": "Task statistics",
+      "totalTasks": "Total tasks",
+      "completed": "Completed"
+    },
+    "account": {
+      "sectionTitle": "Account",
+      "instagramLogs": "View Instagram share logs"
+    },
+    "section": {
+      "hide": "Hide",
+      "show": "Show"
+    }
+  },
+  "upload": {
+    "screenTitleTask": "Create task card",
+    "screenTitleFree": "Create share card",
+    "mode": {
+      "task": "Task share",
+      "free": "Free share",
+      "taskDescription": "You can select one of the tasks you completed and share it as a card.",
+      "freeDescription": "You are currently creating a free share card without choosing a task.",
+      "toggleHideTasks": "Hide",
+      "toggleShowTasks": "Show list",
+      "noCompletedTasksInline": "You don’t have any completed tasks yet. First complete a task from the Tasks screen.",
+      "noCompletedTasksTitle": "No tasks found",
+      "noCompletedTasksBody": "There are no completed tasks at the moment. To switch to task mode, complete a task first."
+    },
+    "fields": {
+      "cardTitleLabel": "Card title",
+      "cardTitlePlaceholder": "Write a title (optional)",
+      "cardDescriptionLabel": "Card description",
+      "cardDescriptionPlaceholder": "Task description or free share text... (optional)"
+    },
+    "video": {
+      "label": "Video (optional)",
+      "hint": "In the free version videos can be up to 30 seconds. The app currently supports videos up to 3 minutes.",
+      "pick": "Choose video",
+      "change": "Change video",
+      "notSelected": "No video selected yet",
+      "selectedFallback": "Video selected",
+      "tooLongTitle": "Video is too long",
+      "tooLongBody": "Currently only videos up to 3 minutes are supported. Please shorten your video and try again.",
+      "overFreeLimitTitle": "Video is longer than 30 seconds",
+      "overFreeLimitBody": "In the free version, the video you want to send must be shorter than 30 seconds. You’ll be able to explore the Pro option for longer videos.",
+      "overFreeLimitCancel": "Cancel",
+      "overFreeLimitPro": "I’m curious about Pro",
+      "proInfoTitle": "Viral Pro",
+      "proInfoBody": "You are currently at the planning stage of Pro features. As you get closer to launch, you’ll detail Pro and long-video support. 🚀",
+      "pickErrorTitle": "Video could not be selected",
+      "pickErrorBody": "An error occurred while selecting video. Please try again."
+    },
+    "share": {
+      "plannedLabel": "Planned share",
+      "freePostTip": "You can also share without a task. Freely share your videos, moments and anything you like; they’ll appear as independent cards in the feed.",
+      "platformNotConnectedTitle": "{{platform}} account not connected",
+      "platformNotConnectedBody": "To share on {{platform}}, you must connect your {{platform}} account to Viral.",
+      "platformNotConnectedCancel": "Do not connect my account",
+      "platformNotConnectedConnect": "Connect my {{platform}} account to Viral",
+      "goProfileTitle": "Go to profile screen",
+      "goProfileBody": "Go to the “Profile” tab and connect your {{platform}} account from the “Account connections” section."
+    },
+    "preview": {
+      "label": "Preview",
+      "taskPrefix": "Completed task: ",
+      "freePrefix": "Share ready: ",
+      "freeBadge": "Free share card",
+      "taskBadge": "Task card",
+      "contentLabelTask": "Content",
+      "contentLabelFree": "Share content",
+      "plannedLabel": "Planned share:",
+      "videoLabel": "📹 Video: {{label}}",
+      "videoFallback": "selected video",
+      "noTaskSelected": "No task selected"
+    },
+    "submit": {
+      "creating": "Creating...",
+      "task": "Create task card",
+      "free": "Create card"
+    },
+    "alerts": {
+      "missingContentTitle": "Warning",
+      "missingContentBody": "Select a task or add a title / description / video before creating the card.",
+      "successTitle": "Success",
+      "successTaskBody": "Task card has been shared in the feed.",
+      "successFreeBody": "Your free share card has been added to the feed."
+    }
+  },
+  "tasks": {
+    "screenTitle": "Tasks",
+    "statsLine": "Active: {{active}} · Completed: {{completed}}",
+    "todayCard": {
+      "label": "Today’s task",
+      "doneButton": "Completed"
+    },
+    "levelCard": {
+      "label": "Level",
+      "streak": "🔥 Streak: {{count}} day(s)",
+      "completedToday": "🎯 Completed today: {{count}}",
+      "longestStreak": "🏅 Longest streak: {{count}} day(s)"
+    },
+    "modes": {
+      "givenTitle": "Request a task",
+      "selfTitle": "Add task",
+      "givenDescription": "Request a surprise task; Viral chooses one for you.",
+      "selfDescription": "You can add tasks for yourself on this page."
+    },
+    "self": {
+      "inputPlaceholder": "e.g. 20 min focus",
+      "scheduleQuestion": "When will you do this task?",
+      "repeatQuestion": "Will this task repeat?",
+      "reminderLabel": "Reminder",
+      "reminderOn": "On",
+      "reminderOff": "Off",
+      "addButton": "Add",
+      "backToFeedButton": "← Feed"
+    },
+    "scheduleOptions": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This week"
+    },
+    "repeatOptions": {
+      "none": "One-time",
+      "daily": "Daily",
+      "weekly": "Weekly"
+    },
+    "categories": {
+      "general": "General",
+      "school": "School",
+      "work": "Work",
+      "health": "Health",
+      "family": "Family",
+      "social": "Social"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "templates": {
+      "focus-25min": {
+        "title": "Focus for 25 minutes",
+        "description": "Silence your phone and focus on a single task for 25 minutes."
+      },
+      "focus-deep-clean": {
+        "title": "Mini desk / workspace clean-up",
+        "description": "Collect unnecessary items on your desk; create a 10-minute “fresh start” effect."
+      },
+      "focus-inbox-zero": {
+        "title": "Lighten your inbox",
+        "description": "Delete or archive at least 5 unnecessary emails today."
+      },
+      "focus-no-scroll-20min": {
+        "title": "20-minute “no scroll” rule",
+        "description": "Spend 20 minutes without scrolling any social media feed."
+      },
+      "health-steps-6000": {
+        "title": "Take 6000 steps today",
+        "description": "Plan short walks outside; reach at least 6000 steps in total."
+      },
+      "health-water-6": {
+        "title": "Drink at least 6 glasses of water",
+        "description": "Spread your water intake throughout the day and track it."
+      },
+      "health-stretch-10": {
+        "title": "10-minute stretch break",
+        "description": "Do simple stretch exercises for your neck, shoulders and lower back."
+      },
+      "health-walk-sunset": {
+        "title": "Evening mini walk",
+        "description": "Take a 15-minute fresh-air walk around sunset."
+      },
+      "work-priority-task": {
+        "title": "Finish your most important task",
+        "description": "Choose today’s most important task, break it into smaller steps and complete it."
+      },
+      "work-no-meeting-30": {
+        "title": "30-minute meeting-free block",
+        "description": "Create a 30-minute silent focus block in your calendar and avoid scheduling meetings in it."
+      },
+      "work-feedback-ask": {
+        "title": "Ask for feedback",
+        "description": "Ask a teammate for brief feedback on a piece of work you did."
+      },
+      "work-small-win-share": {
+        "title": "Note today’s small win",
+        "description": "Write down in one sentence the work / progress that made you happiest today."
+      },
+      "school-25min-study": {
+        "title": "25 minutes of study / review",
+        "description": "Focus on only one subject; study 25 minutes without touching your phone."
+      },
+      "school-question-solve": {
+        "title": "Solve at least 10 questions",
+        "description": "Solve at least 10 new questions today from a subject you choose."
+      },
+      "school-notes-clean": {
+        "title": "Organize your notes",
+        "description": "Clean up one topic in your notebook / digital notes and add headings."
+      },
+      "school-share-tip": {
+        "title": "Send a study tip to a friend",
+        "description": "Share a study technique you use (Pomodoro, colorful notes, etc.) with a friend."
+      },
+      "family-call-parent": {
+        "title": "Short chat with family",
+        "description": "Have at least a 5-minute sincere conversation with a parent or family member."
+      },
+      "family-eat-together": {
+        "title": "Eat together",
+        "description": "Have a meal with your family at the same table without phones."
+      },
+      "family-thank-message": {
+        "title": "Send a thank-you message",
+        "description": "Write a short “I’m glad you’re here” message to someone from your family."
+      },
+      "social-message-friend": {
+        "title": "Send a message to a friend",
+        "description": "Ask “How are you?” to someone you haven’t spoken to for a long time."
+      },
+      "social-comment-support": {
+        "title": "Leave a supportive comment",
+        "description": "Write a sincere, supportive comment on a friend’s post."
+      },
+      "social-share-win": {
+        "title": "Share today’s “small win”",
+        "description": "Get ready to save a moment that made you happy today as a card."
+      },
+      "social-new-connection": {
+        "title": "Create a new connection",
+        "description": "Send a short hello message to someone you’ve followed for a long time but never written to."
+      },
+      "social-phone-free-coffee": {
+        "title": "Phone-free coffee / tea break",
+        "description": "Spend a 15-minute coffee break with a friend or alone without your phone."
+      },
+      "viral-plan-card": {
+        "title": "Plan a Viral card",
+        "description": "Think of a card idea for a moment, note or goal you want to share today and write its title."
+      },
+      "viral-gratitude-3": {
+        "title": "Be grateful for 3 things",
+        "description": "Write down 3 things you are grateful for today as short notes; you can turn them into a card if you like."
+      },
+      "viral-before-after": {
+        "title": "Find a before / after photo idea",
+        "description": "Find something you can show “before–after”, such as desk organization, screen clean-up or a walking route."
+      }
+    },
+    "meta": {
+      "createdAt": "Created",
+      "completedAt": "Completed",
+      "originGiven": "Task given to you",
+      "originSelf": "Task to yourself",
+      "priorityPrefix": "Priority: {{priority}}",
+      "timePrefix": "Time: {{when}}",
+      "repeatPrefix": "Repeat: {{repeat}}"
+    },
+    "request": {
+      "areaTitle": "Get today’s task as a surprise.",
+      "areaSubtitle": "Press the button and Viral chooses a ready task for you.",
+      "buttonIdle": "Give me today’s task",
+      "buttonHasTask": "Today’s task is ready 👇",
+      "cardTitlePrefix": "Today’s task: ",
+      "doButton": "Done ✓",
+      "changeButton": "Change",
+      "changeUsedLabel": "You’ve used your change for today"
+    },
+    "requestAlerts": {
+      "noMoreChangesTitle": "Your limit for today is reached",
+      "noMoreChangesBody": "You can change the ready task at most once per day. You can get a new task tomorrow. 🙌",
+      "alreadyChangedBody": "You have already changed today’s task once."
+    },
+    "completeRequested": {
+      "alertTitle": "Congratulations 🎉",
+      "alertBody": "You completed today’s task!\n\nLevel: {{level}}\nCompleted today: {{completedToday}}\nStreak: {{streak}} day(s)",
+      "ok": "OK",
+      "createCard": "Create card"
+    },
+    "sections": {
+      "activeTitle": "Active tasks",
+      "activeEmpty": "There are no active tasks at the moment. You can add a new task.",
+      "completedTitle": "Completed tasks",
+      "completedEmpty": "No tasks have been completed yet.",
+      "completedToggleShow": "Show",
+      "completedToggleHide": "Hide",
+      "completedClear": "Clear",
+      "completedReactivate": "Activate again",
+      "completedCreateCard": "Create card",
+      "completedShowMore": "Showing last 3 tasks – View all",
+      "completedShowLess": "You’re viewing all – Show only last 3"
+    },
+    "buttons": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "alerts": {
+      "clearCompletedTitle": "Clear completed tasks",
+      "clearCompletedBody": "All completed tasks will be deleted. Active tasks will remain.\n\nAre you sure?",
+      "clearCancel": "Cancel",
+      "clearConfirm": "Yes, delete",
+      "deleteTaskTitle": "Delete task",
+      "deleteTaskBody": "Do you want to remove this task only from the Tasks screen, or also delete the cards created from this task in the Feed?",
+      "deleteCancel": "Cancel",
+      "deleteOnlyTask": "Delete only from task list",
+      "deleteTaskAndCards": "Delete task and its cards"
+    },
+    "edit": {
+      "title": "Edit task",
+      "placeholder": "Task title",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "completeModal": {
+      "title": "Task completed 🎉",
+      "text": "If you want, you can share this task as a card in the Feed.",
+      "later": "Later",
+      "createCard": "Create card"
+    },
+    "completeCardPrefix": "Task completed: ",
+    "pro": {
+      "title": "Assign a task to a friend (Pro)",
+      "body": "Coming soon: you’ll be able to assign tasks to people from your friends list and send them notifications. This feature will be for Viral Pro users.",
+      "button": "I’m curious about Pro",
+      "alertTitle": "Viral Pro",
+      "alertBody": "You are in the planning phase for Pro features. As the app gets closer to launch, you’ll clarify the details. 🚀"
+    }
+  },
+  "sharePanel": {
+  "title": "Share",
+  "shareTitle": "Share",
+
+  "infoText": "You can share on external platforms using your connected accounts. Platforms may open their own share screens.",
+  "shareBody": "You can share on external platforms using your connected accounts.",
+
+  "noAccounts": "You haven't connected any accounts yet.\nPlease connect accounts before sharing.",
+  "connectButton": "Connect Accounts",
+  "cancel": "Cancel",
+
+  "shareAll": "Share on all accounts",
+  "shareAllButton": "Share on all accounts",
+
+  "connectFallbackTitle": "Connect your accounts",
+  "connectFallbackBody": "You can add external accounts from the \"Connect Accounts\" section in your profile.",
+
+  "infoTitle": "About external sharing",
+  "infoBody": "You see a summary below to share cards created on Viral to your connected accounts. In this version, sharing is informational; you must open the relevant app for actual sharing.",
+
+  "shareAllTitle": "Share on all accounts",
+  "shareAllBody": "We assume you shared on your connected accounts. Sharing is simulated in this version."
+},
+  "share": {
+    "requireAccounts": {
+      "title": "Connect your accounts",
+      "desc": "To share on external platforms, you must connect your accounts first.",
+      "desc2": "You can add your external accounts from the \"Connect my accounts\" section on your profile screen.",
+      "connectButton": "Connect my accounts",
+      "cancelButton": "Cancel",
+      "okButton": "OK"
+    }
+  },
+  "nav": {
+    "feed": "Feed",
+    "upload": "Upload",
+    "tasks": "Tasks",
+    "profile": "Profile",
+    "logout": "Log out"
+  },
+  "feed": {
+    "guestName": "guest",
+    "headerTitle": "Feed",
+    "headerSub": "Hi, {{name}} 👋",
+    "headerTagline": "Your tasks, videos and shares — all meet here.",
+    "focusNetwork": {
+      "button": "Go to Focus Network"
+    },
+    "filters": {
+      "all": "All",
+      "mine": "Mine",
+      "tasks": "Task cards",
+      "video": "Video",
+      "external": "External activity"
+    },
+    "refreshBanner": "Feed refreshed.",
+    "empty": {
+      "loading": "Loading feed...",
+      "noPosts": "There are no shares yet.",
+      "cta": "Create your first task / video"
+    },
+    "post": {
+      "genericTitle": "Share",
+      "genericName": "Post"
+    },
+    "badges": {
+      "taskCard": "Task card"
+     },
+     "external": {
+    "badge": "External share"
+     },
+    "labels": {
+      "descriptionPrefix": "Description:"
+    },
+    "share": {
+      "planned": "Scheduled sharing: {{targets}}",
+      "last": "Last share: {{date}} ({{targets}})",
+      "alsoSharedOn": "Also shared on:",
+      "defaultText": "Viral post",
+      "shareText": "Share text for {{platform}}:\n{{text}}",
+      "simulationTitle": "Share (simulation)",
+      "simulationMessage": "We assume that a share was made on {{platform}}.",
+      "errorTitle": "Share",
+      "errorMessage": "Sharing was cancelled or an error occurred.",
+      "choose": "Choose share",
+      "previewTitle": "Share preview",
+      "previewFallback": "Share text",
+      "simulateButton": "Share (simulation)",
+      "plannedShort": "Planned",
+      "noAccountsTitle": "Connect your accounts first",
+      "noAccountsBody": "To share on external platforms, you need to connect your accounts first.",
+      "goProfileTitle": "Connect your accounts",
+      "goProfileBody": "On the Profile screen, use the “Connect my accounts” section to add your external accounts."
+    },
+    "video": {
+      "info": "📹 A video is planned with this card.",
+      "watch": "Watch video",
+      "sheetTitlePrefix": "Card with video:"
+    },
+    "comments": {
+      "offLabel": "Comments turned off",
+      "cta": "Write a comment",
+      "count": "{{count}} comment(s)",
+      "title": "Comments",
+      "toggleOpen": "Open comments",
+      "toggleClose": "Close comments",
+      "empty": "No comments yet. Be the first one 🙂",
+      "disabledTitle": "Comments turned off",
+      "disabledMessage": "Comments are turned off for this post.",
+      "disabledInfo": "Comments are turned off for this post. You can only view existing comments.",
+      "placeholder": "Write a comment...",
+      "replyPlaceholder": "Reply to {{author}}...",
+      "replyingTo": "You’re replying to: {{author}}",
+      "send": "Send",
+      "actionsTitle": "Comment actions",
+      "deleteQuestion": "Delete this comment?",
+      "delete": "Delete comment",
+      "reply": "Reply"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "markAll": "Mark all as read",
+      "empty": "You don’t have any notifications yet. As you comment and play with settings, your notifications will appear here.",
+      "commentsToggle": "You {{state}} comments for the post titled “{{title}}”.",
+      "stateClosed": "turned off",
+      "stateOpened": "turned on",
+      "close": "Close",
+      "addedComment": "You added a comment to the post titled “{{title}}”."
+    },
+    "freeVideo": {
+      "title": "Video",
+      "message": "What do you want to do with this video?",
+      "delete": "Delete video"
+    },
+    "postActions": {
+  "title": "Post actions",
+  "message": "What would you like to do with this post?",
+  "archive": "Archive card",
+  "delete": "Delete card"
+  },
+    "time": {
+      "justNow": "just now",
+      "minutesAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} h ago",
+      "yesterday": "yesterday",
+      "daysAgo": "{{count}} day(s) ago"
+    }
+  },
+      "common__dup": {
+    "warning": "Warning",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "show": "Show",
+    "hide": "Hide",
+    "saving": "Saving...",
+    "loading": "Loading..."
+  },
+  "auth": {
+  "switch": {
+    "title": "Switch user",
+    "body": "Fields will be cleared. Email/phone + password are required to sign in."
+  },
+  "welcome": {
+    "title": "Welcome 👋",
+    "subtitle": "Registration form for real users."
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Sign in with your email/phone and password.",
+    "identifierPlaceholder": "Email or Phone",
+    "passwordPlaceholder": "Your password",
+    "loginButton": "Sign in",
+    "loading": "Signing in...",
+    "forgotPassword": "Forgot password?",
+    "newHere": "New here? Create an account",
+    "haveAccount": "Already have an account? Sign in",
+    "switchUser": "Switch user",
+    "backToLogin": "← Back to login"
+   },
+  "register": {
+    "subtitle": "Registration form for real users.",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "Full name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "example@mail.com",
+    "phoneLabel": "Phone",
+    "phonePlaceholder": "5xx xxx xx xx",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Your password",
+    "passwordConfirmLabel": "Password (confirm)",
+    "passwordConfirmPlaceholder": "Confirm password",
+    "passwordHint": "Password must be at least 8 characters and include upper/lowercase letters, a number, and a symbol.",
+    "submit": "Create account",
+    "haveAccount": "Already have an account? Sign in",
+    "cta": "Already have an account? Sign in"
+  },
+  "forgot": {
+    "title": "Forgot password",
+    "subtitle": "You can receive a verification code using your registered email address or phone number.",
+    "email": "Email",
+    "phone": "Phone",
+    "channelEmail": "Email",
+    "channelPhone": "Phone",
+    "emailPlaceholder": "Your registered email address",
+    "sendCode": "Send verification code",
+    "verifyTitle": "Verify code",
+    "verifySubtitle": "Enter the verification code and your new password.",
+    "codePlaceholder": "Verification code",
+    "newPasswordPlaceholder": "New password",
+    "newPasswordConfirmPlaceholder": "New password (confirm)",
+    "updateButton": "Update password",
+    "backToLogin": "← Back to login"
+  }
+ }
+}
+

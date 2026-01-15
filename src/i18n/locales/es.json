@@ -1,0 +1,687 @@
+{
+ "common": {
+  "appName": "Viral",
+  "ok": "OK",
+  "cancel": "Cancelar",
+   "close": "Cerrar",
+  "continue": "Continuar",
+  "hide": "Ocultar",
+  "show": "Mostrar",
+  "save": "Guardar",
+  "saving": "Guardando...",
+  "loading": "Cargando...",
+  "warning": "Advertencia",
+  "error": "Error",
+  "success": "Éxito"
+},
+"onboarding": {
+  "language": {
+    "title": "Seleccionar idioma",
+    "subtitle": "Elige tu idioma para continuar",
+    "hint": "Puedes cambiar el idioma más tarde en la pantalla de Perfil."
+  },
+  "buttons": {
+    "skip": "Saltar",
+    "next": "Siguiente",
+    "start": "Empezar"
+  }
+},
+  "profile": {
+    "title": "Perfil",
+    "languageButton": "Idioma",
+    "languageHint": "Selecciona el idioma de la aplicación",
+    "defaultUser": "Usuario",
+    "fullNameLabel": "Nombre completo",
+    "fullNamePlaceholder": "Nombre completo",
+    "handleLabel": "Nombre de usuario",
+    "handlePlaceholder": "@usuario",
+    "bioLabel": "Acerca de (bio)",
+    "bioPlaceholder": "Preséntate brevemente...",
+    "websiteLabel": "Enlace (opcional)",
+    "websitePlaceholder": "https://",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "ejemplo@mail.com",
+    "phoneLabel": "Teléfono",
+    "phonePlaceholder": "5x xx xx xx",
+    "phoneHint": "No necesitas agregar un 0 al inicio. El código del país está a la izquierda.",
+    "passwordLabel": "Contraseña",
+    "passwordPlaceholder": "Tu contraseña",
+    "passwordConfirmLabel": "Contraseña (repetir)",
+    "passwordConfirmPlaceholder": "Escribe la contraseña nuevamente",
+    "passwordHint": "La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas/minúsculas, números y símbolos.",
+    "logout": "Cerrar sesión",
+    "loadingProfile": "Cargando perfil...",
+    "alert": {
+      "warning": "Advertencia",
+      "error": "Error",
+      "success": "Éxito",
+      "passwordRequired": "La contraseña y su confirmación son obligatorias.",
+      "passwordMismatch": "La contraseña y su confirmación deben coincidir.",
+      "saveFailed": "No se pudo actualizar el perfil.",
+      "saveSuccess": "Tu información de perfil ha sido actualizada."      
+    },
+    "verify": {
+      "sectionTitle": "Verificación telefónica",
+      "statusVerified": "Teléfono verificado",
+      "statusNotVerified": "Teléfono no verificado",
+      "codeSentTitle": "Código enviado",
+      "codeSentDev": "Simulación (dev): Código {{code}}",
+      "codeSentText": "Se envió un código de verificación a tu teléfono (simulación).",
+      "enterCode": "Introduce el código de verificación.",
+      "verifyFailed": "No se pudo verificar el código.",
+      "verifySuccess": "Tu número telefónico ha sido verificado.",
+      "sendCodeButton": "Enviar código (simulación)",
+      "codePlaceholder": "Código de verificación",
+      "confirmButton": "Verificar código"
+    },
+    "personalSection": {
+      "title": "Información personal",
+      "hide": "Ocultar",
+      "showEdit": "Mostrar / Editar"
+    },
+    "avatar": {
+      "label": "Foto de perfil",
+      "readError": "No se pudo leer la imagen seleccionada.",
+      "pickError": "Hubo un problema al seleccionar la foto. Intenta nuevamente.",
+      "change": "Cambiar foto",
+      "choose": "Elegir foto"
+    },
+    "onboarding": {
+      "restartTitle": "Reiniciar introducción",
+      "restartMessage": "Estás a punto de reiniciar la introducción breve. ¿Continuar?",
+      "restartConfirm": "Sí, reiniciar",
+      "readyTitle": "Listo 🎉",
+      "readyMessage": "La introducción se abrirá nuevamente en un momento. Al finalizar volverás a la app.",
+      "restartButton": "Reiniciar introducción"
+    },
+    "invite": {
+      "button": "Invitar a mis amigos",
+      "title": "Encuéntrame en Viral",
+      "usernameLabel": "Nombre de usuario",
+      "profileLinkLabel": "Enlace del perfil",
+      "appLinkLabel": "Enlace de la aplicación Viral",
+      "platformQuestion": "¿En qué plataforma quieres compartir?",
+      "defaultUsername": "Usuario de Viral",
+      "shareLine1": "¡Encuéntrame en Viral! 👋",
+      "shareUsername": "Usuario: {{username}}",
+      "shareProfile": "Perfil: {{link}}",
+      "shareApp": "Enlace a la app: {{link}}",
+      "shareVia": "(Estoy compartiendo este mensaje vía {{platform}})"
+    },
+    "accounts": {
+      "sectionTitle": "Cuentas vinculadas",
+      "toggleButton": "Vincular / quitar cuenta",
+      "summary": "{{count}} cuenta(s) vinculada(s)",
+      "connected": "Vinculada",
+      "connect": "Vincular",
+      "account": "Cuenta",
+      "connectedFlash": "Tu cuenta {{label}} ha sido vinculada a Viral.",
+      "disconnectedFlash": "Tu cuenta {{label}} ha sido quitada de Viral.",
+      "manage": "administrar tu cuenta",
+      "bind": "vincular tu cuenta",
+      "hintConnected": "Puedes quitar esta cuenta de Viral o actualizar su vínculo.",
+      "hintDisconnected": "Para vincular esta cuenta a Viral, escribe el enlace del perfil o la página.",
+      "linkPlaceholder": "https://...",
+      "removeButton": "Quitar cuenta"
+    },
+    "feedStats": {
+      "sectionTitle": "Estadísticas del feed",
+      "totalCards": "Tarjetas totales",
+      "visibleCards": "Tarjetas visibles",
+      "totalLikes": "Total de me gusta",
+      "videoCards": "Tarjetas con video"
+    },
+    "activities": {
+      "sectionTitle": "Actividades recientes",
+      "empty": "Aún no tienes tarjetas asociadas. Cuando agregues tarjetas de tareas o videos al feed, verás el resumen aquí.",
+      "badgeTaskCard": "Tarjeta de tarea",
+      "badgeVideo": "Con video",
+      "noSharePlanned": "Sin compartir programado"
+    },
+    "taskStats": {
+      "sectionTitle": "Estadísticas de tareas",
+      "totalTasks": "Total de tareas",
+      "completed": "Completadas"
+    },
+    "account": {
+      "sectionTitle": "Cuenta",
+      "instagramLogs": "Ver registros de publicaciones de Instagram"
+    },
+    "section": {
+      "hide": "Ocultar",
+      "show": "Mostrar"
+    }
+  },
+  "upload": {
+    "screenTitleTask": "Crear tarjeta de tarea",
+    "screenTitleFree": "Crear tarjeta de publicación",
+    "mode": {
+      "task": "Publicación de tarea",
+      "free": "Publicación libre",
+      "taskDescription": "Puedes elegir una de tus tareas completadas y compartirla como tarjeta.",
+      "freeDescription": "Estás creando una tarjeta de publicación libre sin seleccionar una tarea.",
+      "toggleHideTasks": "Ocultar",
+      "toggleShowTasks": "Mostrar lista",
+      "noCompletedTasksInline": "Aún no tienes tareas completadas. Completa una desde la sección Tareas.",
+      "noCompletedTasksTitle": "No se encontraron tareas",
+      "noCompletedTasksBody": "Actualmente no hay tareas completadas. Para usar el modo tarea, completa una tarea primero."
+    },
+    "fields": {
+      "cardTitleLabel": "Título de la tarjeta",
+      "cardTitlePlaceholder": "Escribe un título (opcional)",
+      "cardDescriptionLabel": "Descripción de la tarjeta",
+      "cardDescriptionPlaceholder": "Descripción de la tarea o texto de publicación libre... (opcional)"
+    },
+    "video": {
+      "label": "Video (opcional)",
+      "hint": "En la versión gratuita, los videos pueden durar máximo 30 segundos. Actualmente la app soporta videos hasta 3 minutos.",
+      "pick": "Elegir video",
+      "change": "Cambiar video",
+      "notSelected": "Aún no se ha seleccionado un video",
+      "selectedFallback": "Video seleccionado",
+      "tooLongTitle": "Video demasiado largo",
+      "tooLongBody": "Por ahora solo se admiten videos de hasta 3 minutos. Acorta tu video e inténtalo de nuevo.",
+      "overFreeLimitTitle": "Video mayor a 30 segundos",
+      "overFreeLimitBody": "En la versión gratuita, el video debe durar menos de 30 segundos. Para videos más largos, podrás explorar la versión Pro.",
+      "overFreeLimitCancel": "Cancelar",
+      "overFreeLimitPro": "Me interesa Pro",
+      "proInfoTitle": "Viral Pro",
+      "proInfoBody": "Aún estás planificando las funciones Pro. Cerca del lanzamiento, detallarás el soporte de videos largos. 🚀",
+      "pickErrorTitle": "No se pudo seleccionar el video",
+      "pickErrorBody": "Hubo un error al seleccionar el video. Intenta nuevamente."
+    },
+    "share": {
+      "plannedLabel": "Compartir programado",
+      "freePostTip": "Puedes compartir sin tareas. Comparte libremente tus videos, recuerdos y todo lo que quieras; aparecerán como tarjetas independientes en el feed.",
+      "platformNotConnectedTitle": "La cuenta {{platform}} no está vinculada",
+      "platformNotConnectedBody": "Para publicar en {{platform}}, debes vincular tu cuenta a Viral.",
+      "platformNotConnectedCancel": "No vincular mi cuenta",
+      "platformNotConnectedConnect": "Vincular mi cuenta de {{platform}} a Viral",
+      "goProfileTitle": "Ir al Perfil",
+      "goProfileBody": "Ve a la pestaña “Perfil” y vincula tu cuenta {{platform}} en “Cuentas vinculadas”."
+    },
+    "preview": {
+      "label": "Vista previa",
+      "taskPrefix": "Tarea completada: ",
+      "freePrefix": "Publicación lista: ",
+      "freeBadge": "Tarjeta libre",
+      "taskBadge": "Tarjeta de tarea",
+      "contentLabelTask": "Contenido",
+      "contentLabelFree": "Contenido de la publicación",
+      "plannedLabel": "Programado:",
+      "videoLabel": "📹 Video: {{label}}",
+      "videoFallback": "video elegido",
+      "noTaskSelected": "No se ha seleccionado una tarea"
+    },
+    "submit": {
+      "creating": "Creando...",
+      "task": "Crear tarjeta de tarea",
+      "free": "Crear tarjeta"
+    },
+    "alerts": {
+      "missingContentTitle": "Advertencia",
+      "missingContentBody": "Selecciona una tarea o agrega título / descripción / video antes de crear la tarjeta.",
+      "successTitle": "Éxito",
+      "successTaskBody": "La tarjeta de tarea fue añadida al feed.",
+      "successFreeBody": "Tu tarjeta libre fue añadida al feed."
+    }
+  },
+  "tasks": {
+    "screenTitle": "Tareas",
+    "statsLine": "Activas: {{active}} · Completadas: {{completed}}",
+    "todayCard": {
+      "label": "Tarea de hoy",
+      "doneButton": "Completada"
+    },
+    "levelCard": {
+      "label": "Nivel",
+      "streak": "🔥 Racha: {{count}} día(s)",
+      "completedToday": "🎯 Completadas hoy: {{count}}",
+      "longestStreak": "🏅 Racha más larga: {{count}} día(s)"
+    },
+    "modes": {
+      "givenTitle": "Pedir tarea",
+      "selfTitle": "Agregar tarea",
+      "givenDescription": "Pide una tarea sorpresa; Viral elegirá una para ti.",
+      "selfDescription": "Aquí puedes agregar tus propias tareas."
+    },
+    "self": {
+      "inputPlaceholder": "ej. 20 min de enfoque",
+      "scheduleQuestion": "¿Cuándo realizarás esta tarea?",
+      "repeatQuestion": "¿Esta tarea se repetirá?",
+      "reminderLabel": "Recordatorio",
+      "reminderOn": "Activado",
+      "reminderOff": "Desactivado",
+      "addButton": "Agregar",
+      "backToFeedButton": "← Feed"
+    },
+    "scheduleOptions": {
+      "today": "Hoy",
+      "tomorrow": "Mañana",
+      "thisWeek": "Esta semana"
+    },
+    "repeatOptions": {
+      "none": "Única",
+      "daily": "Diaria",
+      "weekly": "Semanal"
+    },
+    "categories": {
+      "general": "General",
+      "school": "Escuela",
+      "work": "Trabajo",
+      "health": "Salud",
+      "family": "Familia",
+      "social": "Social"
+    },
+    "priorities": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta"
+    },
+    "templates": {
+      "focus-25min": {
+        "title": "Concéntrate durante 25 minutos",
+        "description": "Pon tu teléfono en silencio y concéntrate en una sola tarea por 25 minutos."
+      },
+      "focus-deep-clean": {
+        "title": "Mini limpieza del área de trabajo",
+        "description": "Ordena lo innecesario de tu escritorio para un efecto de «nuevo comienzo» de 10 minutos."
+      },
+      "focus-inbox-zero": {
+        "title": "Aligerar tu bandeja de entrada",
+        "description": "Elimina o archiva al menos 5 correos innecesarios hoy."
+      },
+      "focus-no-scroll-20min": {
+        "title": "20 minutos sin redes",
+        "description": "Pasa 20 minutos sin desplazarte por ninguna red social."
+      },
+      "health-steps-6000": {
+        "title": "Caminar 6000 pasos",
+        "description": "Planifica caminatas cortas para llegar a al menos 6000 pasos."
+      },
+      "health-water-6": {
+        "title": "Beber al menos 6 vasos de agua",
+        "description": "Distribuye tu consumo de agua a lo largo del día."
+      },
+      "health-stretch-10": {
+        "title": "Estiramiento de 10 minutos",
+        "description": "Realiza estiramientos simples de cuello, hombros y espalda."
+      },
+      "health-walk-sunset": {
+        "title": "Caminata al atardecer",
+        "description": "Da una caminata de 15 minutos cerca del atardecer."
+      },
+      "work-priority-task": {
+        "title": "Termina tu tarea más importante",
+        "description": "Elige tu tarea principal del día, divídela en pasos y complétala."
+      },
+      "work-no-meeting-30": {
+        "title": "30 minutos sin reuniones",
+        "description": "Reserva 30 minutos de enfoque sin reuniones."
+      },
+      "work-feedback-ask": {
+        "title": "Pedir retroalimentación",
+        "description": "Pide a un colega un breve comentario sobre tu trabajo."
+      },
+      "work-small-win-share": {
+        "title": "Comparte tu pequeño logro",
+        "description": "Escribe en una frase lo que más te alegró hoy."
+      },
+      "school-25min-study": {
+        "title": "25 minutos de estudio",
+        "description": "Enfócate en una sola materia durante 25 minutos."
+      },
+      "school-question-solve": {
+        "title": "Resolver al menos 10 preguntas",
+        "description": "Resuelve 10 nuevas preguntas de la materia que elijas."
+      },
+      "school-notes-clean": {
+        "title": "Organiza tus apuntes",
+        "description": "Ordena un tema en tus notas y agrega títulos."
+      },
+      "school-share-tip": {
+        "title": "Comparte un consejo de estudio",
+        "description": "Envía a un amigo una técnica de estudio que uses."
+      },
+      "family-call-parent": {
+        "title": "Conversar con la familia",
+        "description": "Habla sinceramente al menos 5 minutos con un miembro de tu familia."
+      },
+      "family-eat-together": {
+        "title": "Comer juntos",
+        "description": "Come junto a tu familia sin usar el teléfono."
+      },
+      "family-thank-message": {
+        "title": "Enviar mensaje de agradecimiento",
+        "description": "Envía un mensaje breve de agradecimiento a alguien de tu familia."
+      },
+      "social-message-friend": {
+        "title": "Enviar mensaje a un amigo",
+        "description": "Pregúntale «¿Cómo estás?» a alguien con quien no hablas hace tiempo."
+      },
+      "social-comment-support": {
+        "title": "Dejar comentario de apoyo",
+        "description": "Escribe un comentario sincero en la publicación de un amigo."
+      },
+      "social-share-win": {
+        "title": "Comparte tu logro del día",
+        "description": "Prepara una tarjeta con el momento que te alegró hoy."
+      },
+      "social-new-connection": {
+        "title": "Crear nueva conexión",
+        "description": "Envía un mensaje corto a alguien a quien sigues desde hace tiempo."
+      },
+      "social-phone-free-coffee": {
+        "title": "Descanso sin teléfono",
+        "description": "Tómate un descanso de 15 minutos con o sin compañía, sin usar el teléfono."
+      },
+      "viral-plan-card": {
+        "title": "Planear una tarjeta Viral",
+        "description": "Piensa una idea para una tarjeta y escribe su título."
+      },
+      "viral-gratitude-3": {
+        "title": "Agradecer por 3 cosas",
+        "description": "Escribe 3 cosas por las que agradeces hoy."
+      },
+      "viral-before-after": {
+        "title": "Idea de antes/después",
+        "description": "Encuentra algo que puedas mostrar en un «antes–después»."
+      }
+    },
+    "meta": {
+      "createdAt": "Creada",
+      "completedAt": "Completada",
+      "originGiven": "Tarea asignada",
+      "originSelf": "Tarea propia",
+      "priorityPrefix": "Prioridad: {{priority}}",
+      "timePrefix": "Hora: {{when}}",
+      "repeatPrefix": "Repetición: {{repeat}}"
+    },
+    "request": {
+      "areaTitle": "Recibe tu tarea sorpresa de hoy.",
+      "areaSubtitle": "Pulsa el botón y Viral elegirá una tarea preparada para ti.",
+      "buttonIdle": "Dame mi tarea de hoy",
+      "buttonHasTask": "Tu tarea está lista 👇",
+      "cardTitlePrefix": "Tarea de hoy: ",
+      "doButton": "Hecho ✓",
+      "changeButton": "Cambiar",
+      "changeUsedLabel": "Ya usaste tu cambio de hoy"
+    },
+    "requestAlerts": {
+      "noMoreChangesTitle": "Límite alcanzado hoy",
+      "noMoreChangesBody": "Solo puedes cambiar la tarea una vez por día. Mañana tendrás una nueva tarea. 🙌",
+      "alreadyChangedBody": "Ya cambiaste la tarea del día una vez."
+    },
+    "completeRequested": {
+      "alertTitle": "¡Felicidades 🎉!",
+      "alertBody": "¡Completaste la tarea de hoy!\n\nNivel: {{level}}\nCompletadas hoy: {{completedToday}}\nRacha: {{streak}} día(s)",
+      "ok": "OK",
+      "createCard": "Crear tarjeta"
+    },
+    "sections": {
+      "activeTitle": "Tareas activas",
+      "activeEmpty": "No tienes tareas activas. Puedes agregar nuevas.",
+      "completedTitle": "Tareas completadas",
+      "completedEmpty": "Aún no tienes tareas completadas.",
+      "completedToggleShow": "Mostrar",
+      "completedToggleHide": "Ocultar",
+      "completedClear": "Borrar",
+      "completedReactivate": "Reactivar",
+      "completedCreateCard": "Crear tarjeta",
+      "completedShowMore": "Mostrando las últimas 3 – Ver todas",
+      "completedShowLess": "Mostrando todas – Ver solo 3"
+    },
+    "buttons": {
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "alerts": {
+      "clearCompletedTitle": "Borrar completadas",
+      "clearCompletedBody": "Se borrarán todas las tareas completadas. Las tareas activas permanecerán.\n\n¿Confirmas?",
+      "clearCancel": "Cancelar",
+      "clearConfirm": "Sí, borrar",
+      "deleteTaskTitle": "Eliminar tarea",
+      "deleteTaskBody": "¿Quieres eliminar solo la tarea o también las tarjetas creadas en el feed?",
+      "deleteCancel": "Cancelar",
+      "deleteOnlyTask": "Eliminar solo tarea",
+      "deleteTaskAndCards": "Eliminar tarea y tarjetas"
+    },
+    "edit": {
+      "title": "Editar tarea",
+      "placeholder": "Título de la tarea",
+      "cancel": "Cancelar",
+      "save": "Guardar"
+    },
+    "completeModal": {
+      "title": "Tarea completada 🎉",
+      "text": "Puedes compartir esta tarea como tarjeta en el feed.",
+      "later": "Después",
+      "createCard": "Crear tarjeta"
+    },
+    "completeCardPrefix": "Tarea completada: ",
+    "pro": {
+      "title": "Asignar tarea a un amigo (Pro)",
+      "body": "Próximamente: podrás asignar tareas a tus amigos y enviarles notificaciones. Esta función será parte de Viral Pro.",
+      "button": "Me interesa Pro",
+      "alertTitle": "Viral Pro",
+      "alertBody": "Las funciones Pro están en planificación. Cerca del lanzamiento se detallarán. 🚀"
+    }
+  },
+  "sharePanel": {
+  "title": "Compartir",
+  "shareTitle": "Compartir",
+
+  "infoText": "Puedes compartir usando tus cuentas conectadas.",
+  "shareBody": "Puedes compartir usando tus cuentas conectadas.",
+
+  "noAccounts": "No hay cuentas conectadas.",
+  "connectButton": "Conectar cuentas",
+  "cancel": "Cancelar",
+
+  "shareAll": "Compartir en todas las cuentas",
+  "shareAllButton": "Compartir en todas las cuentas",
+
+  "connectFallbackTitle": "Conecta tus cuentas",
+  "connectFallbackBody": "Conecta cuentas desde tu perfil.",
+
+  "infoTitle": "Sobre compartir",
+  "infoBody": "El compartir es simulado.",
+
+  "shareAllTitle": "Compartir en todas",
+  "shareAllBody": "Compartido de forma simulada."
+},
+  "share": {
+    "requireAccounts": {
+      "title": "Vincula tus cuentas",
+      "desc": "Para compartir en plataformas externas, primero debes vincular tus cuentas.",
+      "desc2": "Puedes agregar cuentas externas desde la sección «Cuentas vinculadas» en Perfil.",
+      "connectButton": "Vincular cuentas",
+      "cancelButton": "Cancelar",
+      "okButton": "OK"
+    }
+  },
+  "nav": {
+    "feed": "Feed",
+    "upload": "Subir",
+    "tasks": "Tareas",
+    "profile": "Perfil",
+    "logout": "Cerrar sesión"
+  },
+  "feed": {
+    "guestName": "invitado",
+    "headerTitle": "Feed",
+    "headerSub": "Hola, {{name}} 👋",
+    "headerTagline": "Tus tareas, videos y publicaciones — todo en un solo lugar.",
+    "focusNetwork": {
+      "button": "Ir a Focus Network"
+    },
+    "filters": {
+      "all": "Todos",
+      "mine": "Míos",
+      "tasks": "Tarjetas",
+      "video": "Video",
+      "external": "Actividad externa"
+    },
+    "refreshBanner": "Feed actualizado.",
+    "empty": {
+      "loading": "Cargando feed...",
+      "noPosts": "Aún no hay publicaciones.",
+      "cta": "Crea tu primera tarea o video"
+    },
+    "post": {
+      "genericTitle": "Publicación",
+      "genericName": "Post"
+    },
+    "badges": {
+      "taskCard": "Tarjeta de tarea"
+    },
+    "external": {
+    "badge": "Contenido externo"
+    },
+    "labels": {
+      "descriptionPrefix": "Descripción:"
+    },
+    "share": {
+      "planned": "Programado: {{targets}}",
+      "last": "Último compartir: {{date}} ({{targets}})",
+      "alsoSharedOn": "También compartido en:",
+      "defaultText": "Publicación Viral",
+      "shareText": "Texto de compartir para {{platform}}:\n{{text}}",
+      "simulationTitle": "Compartir (simulación)",
+      "simulationMessage": "Se simula un compartir en {{platform}}.",
+      "errorTitle": "Compartir",
+      "errorMessage": "El compartir fue cancelado o hubo un error.",
+      "choose": "Elegir compartir",
+      "previewTitle": "Vista previa",
+      "previewFallback": "Texto de compartir",
+      "simulateButton": "Compartir (simulación)",
+      "plannedShort": "Programado",
+      "noAccountsTitle": "Vincula tus cuentas",
+      "noAccountsBody": "Para compartir en plataformas externas necesitas vincular tus cuentas.",
+      "goProfileTitle": "Vincular cuentas",
+      "goProfileBody": "Puedes agregar cuentas externas desde el Perfil → «Cuentas vinculadas»."
+    },
+    "video": {
+      "info": "📹 Hay un video asociado a esta tarjeta.",
+      "watch": "Ver video",
+      "sheetTitlePrefix": "Tarjeta con video:"
+    },
+    "comments": {
+      "offLabel": "Comentarios desactivados",
+      "cta": "Escribe un comentario",
+      "count": "{{count}} comentario(s)",
+      "title": "Comentarios",
+      "toggleOpen": "Mostrar comentarios",
+      "toggleClose": "Ocultar comentarios",
+      "empty": "Aún no hay comentarios. Sé el primero 🙂",
+      "disabledTitle": "Comentarios desactivados",
+      "disabledMessage": "Los comentarios están desactivados para esta publicación.",
+      "disabledInfo": "Solo puedes ver los comentarios existentes.",
+      "placeholder": "Escribe un comentario...",
+      "replyPlaceholder": "Responder a {{author}}...",
+      "replyingTo": "Respondiendo a {{author}}",
+      "send": "Enviar",
+      "actionsTitle": "Acción de comentario",
+      "deleteQuestion": "¿Eliminar este comentario?",
+      "delete": "Eliminar comentario",
+      "reply": "Responder"
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "markAll": "Marcar todas como leídas",
+      "empty": "Aún no tienes notificaciones.",
+      "commentsToggle": "Has {{state}} los comentarios en «{{title}}».",
+      "stateClosed": "desactivado",
+      "stateOpened": "activado",
+      "close": "Cerrar",
+      "addedComment": "Has agregado un comentario a «{{title}}»."
+    },
+    "freeVideo": {
+      "title": "Video",
+      "message": "¿Qué deseas hacer con este video?",
+      "delete": "Eliminar video"
+    },
+    "postActions": {
+  "title": "Acciones de la publicación",
+  "message": "¿Qué quieres hacer con esta publicación?",
+  "archive": "Archivar tarjeta",
+  "delete": "Eliminar tarjeta"
+  },
+    "time": {
+      "justNow": "justo ahora",
+      "minutesAgo": "hace {{count}} min",
+      "hoursAgo": "hace {{count}} h",
+      "yesterday": "ayer",
+      "daysAgo": "hace {{count}} día(s)"
+    }
+  },
+    "common__dup": {
+    "warning": "Advertencia",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "continue": "Continuar",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "saving": "Guardando...",
+    "loading": "Cargando..."
+  },
+  "auth": {
+  "switch": {
+    "title": "Cambiar usuario",
+    "body": "Se limpiarán los campos. Para iniciar sesión se requiere correo/teléfono + contraseña."
+  },
+  "welcome": {
+    "title": "Bienvenido 👋",
+    "subtitle": "Formulario de registro para usuarios reales."
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "subtitle": "Inicia sesión con tu correo/teléfono y contraseña.",
+    "identifierPlaceholder": "Correo o Teléfono",
+    "passwordPlaceholder": "Tu contraseña",
+    "loginButton": "Iniciar sesión",
+    "loading": "Iniciando...",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "newHere": "¿Eres nuevo? Crear una cuenta",
+    "haveAccount": "¿Ya tienes una cuenta? Inicia sesión",
+    "switchUser": "Cambiar usuario",
+    "backToLogin": "← Volver al inicio de sesión"
+  },
+  "register": {
+    "subtitle": "Formulario de registro para usuarios reales.",
+    "fullNameLabel": "Nombre completo",
+    "fullNamePlaceholder": "Nombre completo",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "ejemplo@mail.com",
+    "phoneLabel": "Teléfono",
+    "phonePlaceholder": "5xx xxx xx xx",
+    "passwordLabel": "Contraseña",
+    "passwordPlaceholder": "Tu contraseña",
+    "passwordConfirmLabel": "Contraseña (confirmar)",
+    "passwordConfirmPlaceholder": "Confirmar contraseña",
+    "passwordHint": "La contraseña debe tener al menos 8 caracteres e incluir mayúsculas/minúsculas, un número y un símbolo.",
+    "submit": "Crear cuenta",
+    "haveAccount": "¿Ya tienes una cuenta? Inicia sesión",
+    "cta": "¿Ya tienes una cuenta? Inicia sesión"
+  },
+  "forgot": {
+    "title": "Olvidé mi contraseña",
+    "subtitle": "Puedes recibir un código usando tu correo registrado o tu número de teléfono.",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "channelEmail": "Correo electrónico",
+    "channelPhone": "Teléfono",
+    "emailPlaceholder": "Tu correo electrónico registrado",
+    "sendCode": "Enviar código de verificación",
+    "verifyTitle": "Verificar código",
+    "verifySubtitle": "Introduce el código y tu nueva contraseña.",
+    "codePlaceholder": "Código de verificación",
+    "newPasswordPlaceholder": "Nueva contraseña",
+    "newPasswordConfirmPlaceholder": "Nueva contraseña (confirmar)",
+    "updateButton": "Actualizar contraseña",
+    "backToLogin": "← Volver a iniciar sesión"
+  }
+ }
+}
+

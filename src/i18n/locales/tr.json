@@ -1,0 +1,687 @@
+{
+  "common": {
+  "appName": "Viral",
+  "ok": "Tamam",
+  "cancel": "Vazgeç",
+  "close": "Kapat",
+  "continue": "Devam",
+  "hide": "Gizle",
+  "show": "Göster",
+  "save": "Kaydet",
+  "saving": "Kaydediliyor...",
+  "loading": "Yükleniyor...",
+  "warning": "Uyarı",
+  "error": "Hata",
+  "success": "Başarılı"
+},
+"onboarding": {
+  "language": {
+    "title": "Dil Seç",
+    "subtitle": "Devam etmek için dilini seç",
+    "hint": "Dili daha sonra Profil ekranından değiştirebilirsin."
+  },
+  "buttons": {
+    "skip": "Atla",
+    "next": "İleri",
+    "start": "Başla"
+  }
+},
+   "profile": {
+    "title": "Profil",
+    "languageButton": "Dil",
+    "languageHint": "Uygulama dilini seç",
+    "defaultUser": "Kullanıcı",
+    "fullNameLabel": "Ad soyad",
+    "fullNamePlaceholder": "Ad soyad",
+    "handleLabel": "Kullanıcı adı",
+    "handlePlaceholder": "@kullanici",
+    "bioLabel": "Hakkında (bio)",
+    "bioPlaceholder": "Kısaca kendini tanıt...",
+    "websiteLabel": "Bağlantı (isteğe bağlı)",
+    "websitePlaceholder": "https://",
+    "emailLabel": "E-posta",
+    "emailPlaceholder": "ornek@mail.com",
+    "phoneLabel": "Telefon",
+    "phonePlaceholder": "5x xx xx xx",
+    "phoneHint": "Başa 0 eklemene gerek yok. Ülke kodu solda.",
+    "passwordLabel": "Şifre",
+    "passwordPlaceholder": "Şifren",
+    "passwordConfirmLabel": "Şifre (tekrar)",
+    "passwordConfirmPlaceholder": "Şifreyi tekrar yaz",
+    "passwordHint": "Şifre en az 8 karakter olmalı; büyük/küçük harf, rakam ve semboller içermeli.",
+    "logout": "Çıkış yap",
+    "loadingProfile": "Profil yükleniyor...",
+    "alert": {
+      "warning": "Uyarı",
+      "error": "Hata",
+      "success": "Başarılı",
+      "passwordRequired": "Şifre ve tekrarı zorunludur.",
+      "passwordMismatch": "Şifre ve tekrarı aynı olmalıdır.",
+      "saveFailed": "Profil güncellenemedi.",
+      "saveSuccess": "Profil bilgileriniz güncellendi."      
+    },
+    "verify": {
+      "sectionTitle": "Telefon doğrulama",
+      "statusVerified": "Telefon doğrulandı",
+      "statusNotVerified": "Telefon doğrulanmadı",
+      "codeSentTitle": "Doğrulama kodu gönderildi",
+      "codeSentDev": "Simülasyon (dev): Kod {{code}}",
+      "codeSentText": "Telefonuna bir doğrulama kodu gönderildi (simülasyon).",
+      "enterCode": "Lütfen doğrulama kodunu gir.",
+      "verifyFailed": "Kod doğrulanamadı.",
+      "verifySuccess": "Telefon numaran doğrulandı.",
+      "sendCodeButton": "Kodu gönder (simülasyon)",
+      "codePlaceholder": "Doğrulama kodu",
+      "confirmButton": "Kodu doğrula"
+    },
+    "personalSection": {
+      "title": "Kişisel bilgiler",
+      "hide": "Gizle",
+      "showEdit": "Göster / Düzenle"
+    },
+    "avatar": {
+      "label": "Profil fotoğrafı",
+      "readError": "Seçilen görsel okunamadı.",
+      "pickError": "Profil fotoğrafı seçilirken bir sorun oluştu. Tekrar dene.",
+      "change": "Fotoğrafı değiştir",
+      "choose": "Fotoğraf seç"
+    },
+    "onboarding": {
+      "restartTitle": "Başlangıç turunu yeniden başlat",
+      "restartMessage": "Kısa başlangıç turunu yeniden başlatmak üzeresin. Devam edilsin mi?",
+      "restartConfirm": "Evet, başlat",
+      "readyTitle": "Hazır 🎉",
+      "readyMessage": "Onboarding birazdan yeniden açılacak. Turun sonunda tekrar uygulamaya döneceksin.",
+      "restartButton": "Onboarding'i yeniden başlat"
+    },
+    "invite": {
+      "button": "Arkadaşlarımı davet et",
+      "title": "Beni Viral'de bul",
+      "usernameLabel": "Kullanıcı adı",
+      "profileLinkLabel": "Profil bağlantısı",
+      "appLinkLabel": "Viral uygulama bağlantısı",
+      "platformQuestion": "Hangi platformda paylaşmak istiyorsun?",
+      "defaultUsername": "Viral kullanıcısı",
+      "shareLine1": "Beni Viral'de bul! 👋",
+      "shareUsername": "Kullanıcı adı: {{username}}",
+      "shareProfile": "Profil: {{link}}",
+      "shareApp": "Uygulama bağlantısı: {{link}}",
+      "shareVia": "(Bu mesajı {{platform}} üzerinden paylaşıyorum)"
+    },
+    "accounts": {
+      "sectionTitle": "Hesap bağlantıları",
+      "toggleButton": "Hesap bağla / kaldır",
+      "summary": "{{count}} bağlı hesap",
+      "connected": "Bağlı",
+      "connect": "Bağla",
+      "account": "Hesap",
+      "connectedFlash": "{{label}} hesabın Viral'e bağlandı.",
+      "disconnectedFlash": "{{label}} hesabın Viral'den kaldırıldı.",
+      "manage": "hesabını yönet",
+      "bind": "hesabını bağla",
+      "hintConnected": "Bu hesabı Viral'den kaldırabilir veya bağlantısını güncelleyebilirsin.",
+      "hintDisconnected": "Bu hesabı Viral'e bağlamak için profil veya sayfa bağlantısını gir.",
+      "linkPlaceholder": "https://...",
+      "removeButton": "Hesabı kaldır"
+    },
+    "feedStats": {
+      "sectionTitle": "Akış istatistikleri",
+      "totalCards": "Toplam kart",
+      "visibleCards": "Görünen kartlar",
+      "totalLikes": "Toplam beğeni",
+      "videoCards": "Videolu kartlar"
+    },
+    "activities": {
+      "sectionTitle": "Son aktiviteler",
+      "empty": "Henüz adına kayıtlı bir kart yok. Akışa görev kartları veya videolar eklediğinde, özetlerini burada göreceksin.",
+      "badgeTaskCard": "Görev kartı",
+      "badgeVideo": "Videolu",
+      "noSharePlanned": "Planlı paylaşım yok"
+    },
+    "taskStats": {
+      "sectionTitle": "Görev istatistikleri",
+      "totalTasks": "Toplam görev sayısı",
+      "completed": "Tamamlanan"
+    },
+    "account": {
+      "sectionTitle": "Hesap",
+      "instagramLogs": "Instagram paylaşım kayıtlarını görüntüle"
+    },
+    "section": {
+      "hide": "Gizle",
+      "show": "Göster"
+    }
+  },
+  "upload": {
+    "screenTitleTask": "Görev kartı oluştur",
+    "screenTitleFree": "Paylaşım kartı oluştur",
+    "mode": {
+      "task": "Görev paylaşımı",
+      "free": "Serbest paylaşım",
+      "taskDescription": "Tamamladığın görevlerden birini seçip kart olarak paylaşabilirsin.",
+      "freeDescription": "Şu anda görev seçmeden serbest bir paylaşım kartı oluşturuyorsun.",
+      "toggleHideTasks": "Gizle",
+      "toggleShowTasks": "Listeyi göster",
+      "noCompletedTasksInline": "Şimdilik tamamlanmış görevin yok. Önce Görevler ekranından bir görev tamamla.",
+      "noCompletedTasksTitle": "Görev bulunamadı",
+      "noCompletedTasksBody": "Şu anda tamamlanmış bir görev yok. Görev moduna geçmek için önce bir görevi tamamla."
+    },
+    "fields": {
+      "cardTitleLabel": "Kart başlığı",
+      "cardTitlePlaceholder": "Bir başlık yaz (isteğe bağlı)",
+      "cardDescriptionLabel": "Kart açıklaması",
+      "cardDescriptionPlaceholder": "Görev açıklaması veya serbest paylaşım metni... (isteğe bağlı)"
+    },
+    "video": {
+      "label": "Video (isteğe bağlı)",
+      "hint": "Ücretsiz sürümde videolar en fazla 30 saniye olabilir. Uygulama şu anda en fazla 3 dakikalık videoları destekliyor.",
+      "pick": "Video seç",
+      "change": "Videoyu değiştir",
+      "notSelected": "Henüz video seçilmedi",
+      "selectedFallback": "Video seçildi",
+      "tooLongTitle": "Video çok uzun",
+      "tooLongBody": "Şu anda en fazla 3 dakikalık videolar destekleniyor. Lütfen videonu kısaltıp tekrar dene.",
+      "overFreeLimitTitle": "Video 30 saniyeden uzun",
+      "overFreeLimitBody": "Ücretsiz sürümde göndermek istediğin video 30 saniyeden kısa olmalıdır. Daha uzun videolar için Pro seçeneğini inceleyebileceksin.",
+      "overFreeLimitCancel": "İptal",
+      "overFreeLimitPro": "Pro sürümü merak ediyorum",
+      "proInfoTitle": "Viral Pro",
+      "proInfoBody": "Şu anda Pro özelliklerinin planlama aşamasındasın. Yayına yaklaştıkça Pro sürümünü ve uzun video desteğini detaylandıracaksın. 🚀",
+      "pickErrorTitle": "Video seçilemedi",
+      "pickErrorBody": "Video seçilirken bir hata oluştu. Lütfen tekrar dene."
+    },
+    "share": {
+      "plannedLabel": "Planlı paylaşım",
+      "freePostTip": "Görev olmadan da paylaşım yapabilirsin. Videolarını, anılarını ve dilediğin her şeyi özgürce paylaş; akışta bağımsız bir kart olarak görünecek.",
+      "platformNotConnectedTitle": "{{platform}} hesabı bağlı değil",
+      "platformNotConnectedBody": "{{platform}} üzerinde paylaşmak için {{platform}} hesabını Viral'e bağlamalısın.",
+      "platformNotConnectedCancel": "Hesabımı bağlama",
+      "platformNotConnectedConnect": "{{platform}} hesabımı Viral'e bağla",
+      "goProfileTitle": "Profil ekranına git",
+      "goProfileBody": "“Profil” sekmesine git ve “Hesap bağlantıları” bölümünden {{platform}} hesabını bağla."
+    },
+    "preview": {
+      "label": "Önizleme",
+      "taskPrefix": "Tamamlanan görev: ",
+      "freePrefix": "Paylaşım hazır: ",
+      "freeBadge": "Serbest paylaşım kartı",
+      "taskBadge": "Görev kartı",
+      "contentLabelTask": "İçerik",
+      "contentLabelFree": "Paylaşım içeriği",
+      "plannedLabel": "Planlı paylaşım:",
+      "videoLabel": "📹 Video: {{label}}",
+      "videoFallback": "seçilen video",
+      "noTaskSelected": "Görev seçilmedi"
+    },
+    "submit": {
+      "creating": "Oluşturuluyor...",
+      "task": "Görev kartı oluştur",
+      "free": "Kartı oluştur"
+    },
+    "alerts": {
+      "missingContentTitle": "Uyarı",
+      "missingContentBody": "Bir görev seç veya başlık / açıklama / video ekledikten sonra kartı oluştur.",
+      "successTitle": "Başarılı",
+      "successTaskBody": "Görev kartı akışta paylaşıldı.",
+      "successFreeBody": "Serbest paylaşım kartın akışa eklendi."
+    }
+  },
+  "tasks": {
+    "screenTitle": "Görevler",
+    "statsLine": "Aktif: {{active}} · Tamamlanan: {{completed}}",
+    "todayCard": {
+      "label": "Bugünün görevi",
+      "doneButton": "Tamamlandı"
+    },
+    "levelCard": {
+      "label": "Seviye",
+      "streak": "🔥 Seri: {{count}} gün",
+      "completedToday": "🎯 Bugün tamamlanan: {{count}}",
+      "longestStreak": "🏅 En uzun seri: {{count}} gün"
+    },
+    "modes": {
+      "givenTitle": "Görev iste",
+      "selfTitle": "Görev ekle",
+      "givenDescription": "Sürpriz bir görev iste; Viral senin için seçsin.",
+      "selfDescription": "Bu sayfadan kendine görev ekleyebilirsin."
+    },
+    "self": {
+      "inputPlaceholder": "örn. 20 dk odak",
+      "scheduleQuestion": "Bu görevi ne zaman yapacaksın?",
+      "repeatQuestion": "Bu görev tekrar edecek mi?",
+      "reminderLabel": "Hatırlatıcı",
+      "reminderOn": "Açık",
+      "reminderOff": "Kapalı",
+      "addButton": "Ekle",
+      "backToFeedButton": "← Akış"
+    },
+    "scheduleOptions": {
+      "today": "Bugün",
+      "tomorrow": "Yarın",
+      "thisWeek": "Bu hafta"
+    },
+    "repeatOptions": {
+      "none": "Tek seferlik",
+      "daily": "Her gün",
+      "weekly": "Haftalık"
+    },
+    "categories": {
+      "general": "Genel",
+      "school": "Okul",
+      "work": "İş",
+      "health": "Sağlık",
+      "family": "Aile",
+      "social": "Sosyal"
+    },
+    "priorities": {
+      "low": "Düşük",
+      "medium": "Orta",
+      "high": "Yüksek"
+    },
+    "templates": {
+      "focus-25min": {
+        "title": "25 dakika odaklan",
+        "description": "Telefonu sessize al, tek bir işe 25 dakika boyunca odaklan."
+      },
+      "focus-deep-clean": {
+        "title": "Masa / çalışma alanı mini temizlik",
+        "description": "Masandaki gereksizleri topla, 10 dakikalık “sıfırdan başla” etkisi yarat."
+      },
+      "focus-inbox-zero": {
+        "title": "Gelen kutunu hafiflet",
+        "description": "Bugün en az 5 gereksiz maili sil ya da arşivle."
+      },
+      "focus-no-scroll-20min": {
+        "title": "20 dakika “scroll yok” kuralı",
+        "description": "Herhangi bir sosyal medya akışında gezinmeden 20 dakika geçir."
+      },
+      "health-steps-6000": {
+        "title": "Gün içinde 6000 adım at",
+        "description": "Dışarıda kısa yürüyüşler planla; toplamda en az 6000 adıma ulaş."
+      },
+      "health-water-6": {
+        "title": "En az 6 bardak su iç",
+        "description": "Su tüketimini gün içine yayarak takip et."
+      },
+      "health-stretch-10": {
+        "title": "10 dakikalık esneme molası",
+        "description": "Boyun, omuz ve bel için basit esneme hareketleri yap."
+      },
+      "health-walk-sunset": {
+        "title": "Akşamüstü mini yürüyüş",
+        "description": "Gün batımına yakın 15 dakikalık temiz hava yürüyüşü yap."
+      },
+      "work-priority-task": {
+        "title": "En önemli işi bitir",
+        "description": "Bugünün en önemli işini seç, küçük parçalara böl ve tamamla."
+      },
+      "work-no-meeting-30": {
+        "title": "Toplantısız 30 dakika blok",
+        "description": "Takviminde 30 dakikalık sessiz odak bloğu aç ve o sırada hiçbir görüşme planlama."
+      },
+      "work-feedback-ask": {
+        "title": "Geri bildirim iste",
+        "description": "Yaptığın bir iş için ekip arkadaşından kısa bir geri bildirim rica et."
+      },
+      "work-small-win-share": {
+        "title": "Bugünün küçük zaferini not al",
+        "description": "Bugün seni en çok mutlu eden iş / ilerlemeyi bir cümleyle yaz."
+      },
+      "school-25min-study": {
+        "title": "25 dakika ders / konu tekrarı",
+        "description": "Sadece tek bir derse odaklan; telefonuna bakmadan 25 dakika çalış."
+      },
+      "school-question-solve": {
+        "title": "En az 10 soru çöz",
+        "description": "Bugün seçtiğin dersten en az 10 yeni soru çöz."
+      },
+      "school-notes-clean": {
+        "title": "Notlarını düzenle",
+        "description": "Defter / dijital notlarında bir konuyu temizle, başlıklar ekle."
+      },
+      "school-share-tip": {
+        "title": "Bir arkadaşına çalışma tüyosu gönder",
+        "description": "Kullandığın bir çalışma tekniğini (Pomodoro, renkli notlar vb.) arkadaşınla paylaş."
+      },
+      "family-call-parent": {
+        "title": "Ailenle kısa bir sohbet",
+        "description": "Ebeveynlerinden veya aileden biriyle en az 5 dakikalık samimi bir konuşma yap."
+      },
+      "family-eat-together": {
+        "title": "Beraber yemek",
+        "description": "Ailenle aynı masada, telefonsuz bir öğün ye."
+      },
+      "family-thank-message": {
+        "title": "Teşekkür mesajı gönder",
+        "description": "Ailenden birine “iyi ki varsın” tadında kısa bir teşekkür yaz."
+      },
+      "social-message-friend": {
+        "title": "Bir arkadaşına mesaj gönder",
+        "description": "Uzun süredir konuşmadığın birine “Nasılsın?” diye sor."
+      },
+      "social-comment-support": {
+        "title": "Destek yorumu bırak",
+        "description": "Bir arkadaşının paylaşımına içten, destekleyici bir yorum yaz."
+      },
+      "social-share-win": {
+        "title": "Bugünün “küçük zaferini” paylaş",
+        "description": "Bugün seni mutlu eden küçük bir anı kart olarak kaydetmeye hazırlan."
+      },
+      "social-new-connection": {
+        "title": "Yeni bir bağlantı kur",
+        "description": "Uzun süredir takip ettiğin ama hiç yazmadığın birine kısa bir merhaba mesajı gönder."
+      },
+      "social-phone-free-coffee": {
+        "title": "Telefonsuz kahve / çay molası",
+        "description": "Bir arkadaşınla ya da tek başına, 15 dakikalık kahve molasını telefonsuz geçir."
+      },
+      "viral-plan-card": {
+        "title": "Bir Viral kartı planla",
+        "description": "Bugün paylaşmak isteyeceğin bir anı, not ya da hedef için kart fikri düşün ve başlığını yaz."
+      },
+      "viral-gratitude-3": {
+        "title": "3 şey için şükret",
+        "description": "Bugün minnettar olduğun 3 şeyi kısa notlar halinde yaz; istersen kartına çevir."
+      },
+      "viral-before-after": {
+        "title": "Öncesi / sonrası fotoğraf fikri bul",
+        "description": "Masa düzeni, ekran temizliği, yürüyüş rotası gibi “önce–sonra” gösterebileceğin bir fikir bul."
+      }
+    },
+    "meta": {
+      "createdAt": "Oluşturuldu",
+      "completedAt": "Tamamlandı",
+      "originGiven": "Sana verilen görev",
+      "originSelf": "Kendine görev",
+      "priorityPrefix": "Öncelik: {{priority}}",
+      "timePrefix": "Zaman: {{when}}",
+      "repeatPrefix": "Tekrar: {{repeat}}"
+    },
+    "request": {
+      "areaTitle": "Bugünkü görevini sürpriz olarak al.",
+      "areaSubtitle": "Butona bas, Viral senin için hazır görevlerden birini seçsin.",
+      "buttonIdle": "Bugünkü görevimi ver",
+      "buttonHasTask": "Bugünkü görevin hazır 👇",
+      "cardTitlePrefix": "Bugünkü görev: ",
+      "doButton": "Yaptım ✓",
+      "changeButton": "Değiştir",
+      "changeUsedLabel": "Bugünlük hakkın bitti"
+    },
+    "requestAlerts": {
+      "noMoreChangesTitle": "Bugünlük hakkın doldu",
+      "noMoreChangesBody": "Hazır görevi günde en fazla bir kez değiştirebilirsin. Yarın yeni bir görev alabilirsin. 🙌",
+      "alreadyChangedBody": "Bugünkü görevi zaten bir kez değiştirdin."
+    },
+    "completeRequested": {
+      "alertTitle": "Tebrikler 🎉",
+      "alertBody": "Bugünkü görevini tamamladın!\n\nSeviye: {{level}}\nBugün tamamlanan görev: {{completedToday}}\nSerin: {{streak}} gün",
+      "ok": "Tamam",
+      "createCard": "Kart oluştur"
+    },
+    "sections": {
+      "activeTitle": "Aktif görevler",
+      "activeEmpty": "Şu anda aktif görev yok. Yeni görev ekleyebilirsin.",
+      "completedTitle": "Tamamlanan görevler",
+      "completedEmpty": "Henüz tamamlanan görev yok.",
+      "completedToggleShow": "Göster",
+      "completedToggleHide": "Gizle",
+      "completedClear": "Temizle",
+      "completedReactivate": "Tekrar aktif",
+      "completedCreateCard": "Kart oluştur",
+      "completedShowMore": "Son 3 görev gösteriliyor – Tümünü gör",
+      "completedShowLess": "Tümünü görüyorsun – Sadece son 3'ü göster"
+    },
+    "buttons": {
+      "edit": "Düzenle",
+      "delete": "Sil"
+    },
+    "alerts": {
+      "clearCompletedTitle": "Tamamlananları temizle",
+      "clearCompletedBody": "Tüm tamamlanan görevler silinecek. Aktif görevlere dokunulmayacak.\n\nEmin misin?",
+      "clearCancel": "Vazgeç",
+      "clearConfirm": "Evet, sil",
+      "deleteTaskTitle": "Görevi sil",
+      "deleteTaskBody": "Bu görevi sadece Görevler ekranından mı, yoksa bu görevden üretilen kartları da Akış'tan silerek mi kaldırmak istersin?",
+      "deleteCancel": "Vazgeç",
+      "deleteOnlyTask": "Sadece görev listeden sil",
+      "deleteTaskAndCards": "Görevi ve kartlarını sil"
+    },
+    "edit": {
+      "title": "Görevi düzenle",
+      "placeholder": "Görev başlığı",
+      "cancel": "Vazgeç",
+      "save": "Kaydet"
+    },
+    "completeModal": {
+      "title": "Görev tamamlandı 🎉",
+      "text": "İstersen bu görevi bir kart olarak Akış'ta paylaşabilirsin.",
+      "later": "Sonra",
+      "createCard": "Kart oluştur"
+    },
+    "completeCardPrefix": "Görev tamamlandı: ",
+    "pro": {
+      "title": "Arkadaşına görev ver (Pro)",
+      "body": "Yakında: arkadaş listenden kişilere görev atayıp bildirim gönderebileceksin. Bu özellik Viral Pro kullanıcıları için olacak.",
+      "button": "Pro’yu merak ediyorum",
+      "alertTitle": "Viral Pro",
+      "alertBody": "Pro özellikleri için planlama aşamasındasın. Uygulama yayına yaklaşınca detayları netleştirirsin. 🚀"
+    }
+  },
+ "sharePanel": {
+  "title": "Paylaşım",
+  "shareTitle": "Paylaşım",
+
+  "infoText": "Bağlı hesaplarını kullanarak Viral dışındaki platformlarda paylaşım yapabilirsin. Platformlar kendi paylaşım ekranlarını açabilir.",
+  "shareBody": "Bağlı hesaplarını kullanarak Viral dışındaki platformlarda paylaşım yapabilirsin.",
+
+  "noAccounts": "Henüz hiçbir hesabın bağlı değil.\nPaylaşım için önce hesaplarını bağlamalısın.",
+  "connectButton": "Hesaplarımı Bağla",
+  "cancel": "Vazgeç",
+
+  "shareAll": "Tüm hesaplarda paylaş",
+  "shareAllButton": "Tüm hesaplarda paylaş",
+
+  "connectFallbackTitle": "Hesaplarını bağla",
+  "connectFallbackBody": "Profil ekranındaki \"Hesaplarımı Bağla\" bölümünden dış hesaplarını ekleyebilirsin.",
+
+  "infoTitle": "Dış hesaplarda paylaşım hakkında",
+  "infoBody": "Viral’de oluşturduğun kartları, bağladığın hesaplarda da paylaşabilmen için alt tarafta bir özet görüyorsun. Bu sürümde paylaşım adımı bilgi amaçlıdır; gerçek paylaşım için ilgili uygulamayı açman gerekir.",
+
+  "shareAllTitle": "Tüm hesaplarda paylaş",
+  "shareAllBody": "Bağlı hesapların üzerinde bir paylaşım yaptığını varsayıyoruz. Bu sürümde paylaşım simülasyon olarak işleniyor."
+},
+  "share": {
+    "requireAccounts": {
+      "title": "Hesaplarını bağla",
+      "desc": "Dış platformlarda paylaşmak için önce hesaplarını bağlamalısın.",
+      "desc2": "Profil ekranındaki \"Hesaplarımı Bağla\" bölümünden dış hesaplarını ekleyebilirsin.",
+      "connectButton": "Hesaplarımı bağla",
+      "cancelButton": "Vazgeç",
+      "okButton": "Tamam"
+    }
+  },
+  "nav": {
+    "feed": "Akış",
+    "upload": "Yükle",
+    "tasks": "Görevler",
+    "profile": "Profil",
+    "logout": "Çıkış"
+  },
+  "feed": {
+    "guestName": "misafir",
+    "headerTitle": "Akış",
+    "headerSub": "Merhaba, {{name}} 👋",
+    "headerTagline": "Görevlerin, videoların ve paylaşımların — hepsi burada birleşiyor.",
+    "focusNetwork": {
+      "button": "Focus Ağı'na git"
+    },
+    "filters": {
+      "all": "Hepsi",
+      "mine": "Benim",
+      "tasks": "Görev kartları",
+      "video": "Video",
+      "external": "Dış aktivite"
+    },
+    "refreshBanner": "Akış yenilendi.",
+    "empty": {
+      "loading": "Akış yükleniyor...",
+      "noPosts": "Henüz bir paylaşım yok.",
+      "cta": "İlk görevini / videonu oluştur"
+    },
+    "post": {
+      "genericTitle": "Paylaşım",
+      "genericName": "Gönderi"
+    },
+    "badges": {
+      "taskCard": "Görev kartı"
+     },
+     "external": {
+    "badge": "Dış paylaşım"
+     },     
+    "labels": {
+      "descriptionPrefix": "Açıklama:"
+    },
+    "share": {
+      "planned": "Planlı paylaşım: {{targets}}",
+      "last": "Son paylaşım: {{date}} ({{targets}})",
+      "alsoSharedOn": "Ayrıca şu platformda paylaşıldı:",
+      "defaultText": "Viral paylaşımı",
+      "shareText": "{{platform}} için paylaşım:\n{{text}}",
+      "simulationTitle": "Paylaşım (simülasyon)",
+      "simulationMessage": "{{platform}} üzerinde bir paylaşım yapıldığı varsayılıyor.",
+      "errorTitle": "Paylaşım",
+      "errorMessage": "Paylaşım iptal edildi veya bir hata oluştu.",
+      "choose": "Paylaşım seç",
+      "previewTitle": "Paylaşım önizlemesi",
+      "previewFallback": "Paylaşım metni",
+      "simulateButton": "Paylaş (simülasyon)",
+      "plannedShort": "Planlı",
+      "noAccountsTitle": "Önce hesaplarını bağlamalısın",
+      "noAccountsBody": "Dış platformlarda paylaşmak için önce hesaplarını bağlamalısın.",
+      "goProfileTitle": "Hesaplarını bağla",
+      "goProfileBody": "Profil ekranındaki “Hesaplarımı Bağla” bölümünden dış hesaplarını ekleyebilirsin."
+    },
+    "video": {
+      "info": "📹 Bu kartla birlikte bir video planlandı.",
+      "watch": "Videoyu izle",
+      "sheetTitlePrefix": "Videolu kart:"
+    },
+    "comments": {
+      "offLabel": "Yorumlar kapalı",
+      "cta": "Yorum yaz",
+      "count": "{{count}} yorum",
+      "title": "Yorumlar",
+      "toggleOpen": "Yorumları aç",
+      "toggleClose": "Yorumları kapat",
+      "empty": "Henüz yorum yok. İlk yorumu sen yaz 🙂",
+      "disabledTitle": "Yorumlar kapalı",
+      "disabledMessage": "Bu gönderi için yorumlar kapalı.",
+      "disabledInfo": "Bu gönderi için yorumlar kapalı. Sadece mevcut yorumları görebilirsin.",
+      "placeholder": "Yorum yaz...",
+      "replyPlaceholder": "{{author}} kullanıcısına cevap yaz...",
+      "replyingTo": "Şu yoruma cevap veriyorsun: {{author}}",
+      "send": "Gönder",
+      "actionsTitle": "Yorum işlemi",
+      "deleteQuestion": "Bu yorum silinsin mi?",
+      "delete": "Yorumu sil",
+      "reply": "Cevap ver"
+    },
+    "notifications": {
+      "title": "Bildirimler",
+      "markAll": "Tümünü okundu işaretle",
+      "empty": "Henüz hiç bildirimin yok. Yorum yaptıkça ve ayarlarla oynadıkça, bildirimlerin burada görünecek.",
+      "commentsToggle": "“{{title}}” adlı gönderi için yorumları {{state}}.",
+      "stateClosed": "kapattın",
+      "stateOpened": "açtın",
+      "close": "Kapat",
+      "addedComment": "“{{title}}” adlı gönderiye bir yorum ekledin."
+    },
+    "freeVideo": {
+      "title": "Video",
+      "message": "Bu video ile ne yapmak istiyorsun?",
+      "delete": "Videoyu sil"
+    },
+"postActions": {
+  "title": "Gönderi işlemleri",
+  "message": "Bu gönderi için ne yapmak istersin?",
+  "archive": "Kartı arşivle",
+  "delete": "Kartı sil"
+   },
+    "time": {
+      "justNow": "az önce",
+      "minutesAgo": "{{count}} dk önce",
+      "hoursAgo": "{{count}} sa önce",
+      "yesterday": "dün",
+      "daysAgo": "{{count}} gün önce"
+    }
+  },
+     "common__dup": {
+    "warning": "Uyarı",
+    "error": "Hata",
+    "success": "Başarılı",
+    "cancel": "Vazgeç",
+    "continue": "Devam",
+    "show": "Göster",
+    "hide": "Gizle",
+    "saving": "Kaydediliyor...",
+    "loading": "Yükleniyor..."
+  },
+  "auth": {
+  "switch": {
+    "title": "Kullanıcı değiştir",
+    "body": "Alanlar temizlenecek. Giriş için e-posta/telefon + şifre gerekir."
+  },
+  "welcome": {
+    "title": "Hoş geldin 👋",
+    "subtitle": "Gerçek kullanıcılar için kayıt formu."
+  },
+  "login": {
+    "title": "Giriş Yap",
+    "subtitle": "E-posta/telefon ve şifren ile giriş yap.",
+    "identifierPlaceholder": "E-posta veya Telefon",
+    "passwordPlaceholder": "Şifren",
+    "loginButton": "Giriş Yap",
+    "loading": "Giriş...",
+    "forgotPassword": "Şifremi Unuttum",
+    "newHere": "Yeni kullanıcı mısın? Kayıt Ol",
+    "haveAccount": "Zaten hesabın var mı? Giriş Yap",
+    "switchUser": "Kullanıcı değiştir",
+    "backToLogin": "← Giriş ekranına dön"
+  },
+  "register": {
+    "subtitle": "Gerçek kullanıcılar için kayıt formu.",
+    "fullNameLabel": "Ad Soyad",
+    "fullNamePlaceholder": "Ad Soyad",
+    "emailLabel": "E-posta",
+    "emailPlaceholder": "ornek@mail.com",
+    "phoneLabel": "Telefon",
+    "phonePlaceholder": "5xx xxx xx xx",
+    "passwordLabel": "Şifre",
+    "passwordPlaceholder": "Şifren",
+    "passwordConfirmLabel": "Şifre (tekrar)",
+    "passwordConfirmPlaceholder": "Şifre tekrar",
+    "passwordHint": "Şifre en az 8 karakter olmalı; büyük/küçük harf, rakam ve işaret içermeli.",
+    "submit": "Kayıt Ol",
+    "haveAccount": "Zaten hesabın var mı? Giriş Yap",
+    "cta": "Zaten hesabın var mı? Giriş Yap"
+  },
+  "forgot": {
+    "title": "Şifremi Unuttum",
+    "subtitle": "Kayıtlı e-posta adresin veya telefon numaran ile doğrulama kodu alabilirsin.",
+    "email": "E-posta",
+    "phone": "Telefon",
+    "channelEmail": "E-posta",
+    "channelPhone": "Telefon",
+    "emailPlaceholder": "Kayıtlı e-posta adresin",
+    "sendCode": "Doğrulama Kodu Gönder",
+    "verifyTitle": "Kodu Doğrula",
+    "verifySubtitle": "Gelen doğrulama kodunu ve yeni şifreni gir.",
+    "codePlaceholder": "Doğrulama kodu",
+    "newPasswordPlaceholder": "Yeni şifre",
+    "newPasswordConfirmPlaceholder": "Yeni şifre (tekrar)",
+    "updateButton": "Şifreyi Güncelle",
+    "backToLogin": "← Giriş ekranına dön"
+  }
+ }
+}
+

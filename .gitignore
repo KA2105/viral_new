@@ -1,0 +1,29 @@
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Env
+.env
+.env.*
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# Build
+dist
+build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (Render disk kullanacağız)
+server/uploads
+
+# Gradle cache
+.gradle/
+android/.gradle/
+**/.gradle/
+
