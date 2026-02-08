@@ -38,6 +38,10 @@ model User {
   tasks           Task[]
   posts           Post[]
 
+  // ✅ Like/Comment ilişkileri
+  likes           Like[]
+  comments        Comment[]
+
   // 👥 Focus Ağı ilişkileri
   sentFriendRequests     FriendRequest[] @relation("FriendRequestsSent")
   receivedFriendRequests FriendRequest[] @relation("FriendRequestsReceived")
@@ -104,6 +108,16 @@ model Post {
   // Video bilgisi (şimdilik sadece URI metni)
   videoUri     String?
 
+  // ✅ NEW: Repost / Archive / Share meta (server/src/index.ts ile uyum)
+  // - repost endpointi "reshareCount increment" yapıyor
+  // - archive endpointi "archived" set ediyor
+  // - shared endpointi "lastSharedAt (number)" set ediyor
+  // - lastSharedTargets dizi olarak saklanır (Postgres array)
+  reshareCount     Int       @default(0)
+  archived         Boolean   @default(false)
+  lastSharedAt     BigInt?
+  lastSharedTargets String[] @default([])
+
   // Zaman
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -111,9 +125,49 @@ model Post {
   // 🔗 İsteğe bağlı User ilişkisi
   userId       Int?
   user         User?     @relation(fields: [userId], references: [id])
+
+  // ✅ Like/Comment ilişkileri
+  likes        Like[]
+  comments     Comment[]
+
+  @@index([createdAt])
+  @@index([userId])
 }
 
-// ✅ Arkadaş istekleri
+model Like {
+  id        Int      @id @default(autoincrement())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    Int
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId], name: "uniq_like_post_user")
+  @@index([postId])
+  @@index([userId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    Int
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+
+  text      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId, createdAt])
+  @@index([userId, createdAt])
+}
+
 model FriendRequest {
   id         Int      @id @default(autoincrement())
 
@@ -133,7 +187,6 @@ model FriendRequest {
   @@unique([fromUserId, toUserId, status], name: "uniq_active_request")
 }
 
-// ✅ Arkadaşlık (kanonik çift: küçük id -> büyük id)
 model Friendship {
   id        Int      @id @default(autoincrement())
 

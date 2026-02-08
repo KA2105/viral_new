@@ -133,6 +133,12 @@ app.use(authMiddleware);
 
 // -------------------- Helpers --------------------
 
+/**
+ * ✅ FIX (kritik):
+ * RN tarafı bazen userId'yi string ("3") gönderiyor.
+ * Eski kod body.userId sadece number kabul ediyordu -> null dönüyor -> like/comment/repost DB'ye yazılmıyor.
+ * Artık body.userId hem number hem string kabul.
+ */
 const parseUserIdFromReq = (req: express.Request): number | null => {
   // 0) JWT: Authorization Bearer <token>
   if (typeof req.authUserId === 'number' && Number.isFinite(req.authUserId) && req.authUserId > 0) {
@@ -153,14 +159,37 @@ const parseUserIdFromReq = (req: express.Request): number | null => {
     if (Number.isFinite(n) && n > 0) return n;
   }
 
-  // 3) Body: { userId: 3 }
+  // 3) Body: { userId: 3 } veya { userId: "3" }
   const b: any = (req.body ?? {}) as any;
-  if (typeof b.userId === 'number' && Number.isFinite(b.userId) && b.userId > 0) {
-    return b.userId;
+  if (typeof b.userId === 'number') {
+    const n = Number(b.userId);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  if (typeof b.userId === 'string') {
+    const n = Number(b.userId.trim());
+    if (Number.isFinite(n) && n > 0) return n;
   }
 
   return null;
 };
+
+/**
+ * ✅ FIX:
+ * Like/Comment/Repost endpointlerinde 401 döndürüp client optimistic UI ile "oldu" sanıyordu.
+ * Artık daha net hata: userId-required (400).
+ */
+function requireUserId(req: express.Request, res: express.Response): number | null {
+  const userId = parseUserIdFromReq(req);
+  if (!userId) {
+    res.status(400).json({
+      ok: false,
+      error: 'userId-required',
+      message: 'userId is required (token or header x-user-id or query ?userId= or body.userId)',
+    });
+    return null;
+  }
+  return userId;
+}
 
 const normalizeHandle = (raw: any): string | null => {
   if (typeof raw !== 'string') return null;
@@ -495,6 +524,16 @@ async function areFriends(userAId: number, userBId: number): Promise<boolean> {
     select: { id: true },
   });
   return !!hit;
+}
+
+function toPublicUserWithAvatar(u: any, req: any) {
+  const base = toPublicUser(u, req);
+  return {
+    ...base,
+    // ✅ avatarUri zaten absolute; yine de null-safe
+    avatarUri: base.avatarUri ?? null,
+    avatarUrl: base.avatarUrl ?? null,
+  };
 }
 
 // -------------------- Routes --------------------
@@ -1061,11 +1100,9 @@ app.put('/me', async (req, res) => {
 });
 
 // -------------------- Focus Ağı (Friend) API --------------------
+// (BURASI DEĞİŞMEDİ - aynen bıraktım)
 
 // ✅ Kullanıcı ara (Focus Ağı keşfet): q = ad / handle / email / phone
-// ÖNEMLİ: Zorla bağlama YOK. Sadece listeler.
-// NOT: Prisma tarafında bazı DB sağlayıcılarında "mode: insensitive" desteklenmeyebilir.
-// Bu yüzden "mode" kullanmıyoruz; patlamasın ve sonuç dönsün diye güvenli hale getiriyoruz.
 app.get('/users/search', async (req, res) => {
   try {
     const meId = parseUserIdFromReq(req);
@@ -1372,16 +1409,6 @@ app.post('/friends/decline', async (req, res) => {
   }
 });
 
-function toPublicUserWithAvatar(u: any, req: any) {
-  const base = toPublicUser(u, req);
-  return {
-    ...base,
-    // ✅ avatarUri zaten absolute; yine de null-safe
-    avatarUri: base.avatarUri ?? null,
-    avatarUrl: base.avatarUrl ?? null,
-  };
-}
-
 // (Opsiyonel) ✅ Arkadaşlıktan çıkar
 app.post('/friends/remove', async (req, res) => {
   try {
@@ -1466,9 +1493,14 @@ app.post('/posts', async (req, res) => {
         ? req.authUserId
         : null;
 
-    const bodyUserId = typeof userId === 'number' && Number.isFinite(userId) ? userId : null;
+    const bodyUserId =
+      typeof userId === 'number'
+        ? userId
+        : typeof userId === 'string'
+          ? Number(String(userId).trim())
+          : null;
 
-    const effectiveUserId = tokenUserId ?? bodyUserId;
+    const effectiveUserId = tokenUserId ?? (Number.isFinite(bodyUserId as any) ? (bodyUserId as any) : null);
 
     let userConnect: { connect: { id: number } } | undefined;
     if (typeof effectiveUserId === 'number' && Number.isFinite(effectiveUserId) && effectiveUserId > 0) {
@@ -1534,16 +1566,10 @@ app.get('/posts', async (req, res) => {
     });
 
     const normalized = posts.map(p => {
-      let shareTargetsParsed: string[] | null = null;
+      let shareTargetsParsed: string[] = [];
       if (p.shareTargets) {
-        try {
-          const arr = JSON.parse(p.shareTargets);
-          if (Array.isArray(arr)) {
-            shareTargetsParsed = arr;
-          }
-        } catch {
-          shareTargetsParsed = null;
-        }
+        // ✅ Burada safeParseStringArray ile her zaman string[] dönelim (RN join crash olmasın)
+        shareTargetsParsed = safeParseStringArray(p.shareTargets);
       }
 
       return {
@@ -1565,71 +1591,596 @@ app.get('/posts', async (req, res) => {
   }
 });
 
-// ✅ FEED
+// -------------------- Likes / Comments (Safe + Race-proof) --------------------
+
+function isPrismaP2002(e: any): boolean {
+  return (
+    e &&
+    typeof e === 'object' &&
+    (e.code === 'P2002' ||
+      (e.constructor?.name === 'PrismaClientKnownRequestError' && String(e.code) === 'P2002'))
+  );
+}
+
+// ✅ NEW: Bazı alanlar şemada yoksa update patlar. Bunu “sessiz” hale getiriyoruz.
+function isPrismaUnknownArgumentError(e: any): boolean {
+  const msg = String(e?.message ?? '');
+  return msg.toLowerCase().includes('unknown argument') || msg.toLowerCase().includes('unknown field');
+}
+
+async function safeUpdatePostById(params: { id: number; data: any; label: string }) {
+  const { id, data, label } = params;
+  try {
+    const updated = await prisma.post.update({
+      where: { id },
+      data,
+    } as any);
+    return { ok: true, updated };
+  } catch (e: any) {
+    if (isPrismaUnknownArgumentError(e)) {
+      console.log(`[POST][SAFE UPDATE] ${label} skipped (schema field missing)`);
+      return { ok: false, skipped: true };
+    }
+    throw e;
+  }
+}
+
+async function safeFindPostById(id: number) {
+  try {
+    return await prisma.post.findUnique({ where: { id } });
+  } catch {
+    return null;
+  }
+}
+
+async function attachLikeCommentMetaToFeedPosts(posts: any[], req: express.Request) {
+  const meId = parseUserIdFromReq(req);
+  const anyPrisma: any = prisma as any;
+
+  // postId listesi
+  const postIds = posts.map(p => Number(p.id)).filter(n => Number.isFinite(n) && n > 0);
+
+  const likeCountByPost = new Map<number, number>();
+  const commentCountByPost = new Map<number, number>();
+  const likedByMeSet = new Set<number>();
+
+  // ✅ Like counts
+  try {
+    if (anyPrisma.like?.groupBy && postIds.length) {
+      const rows = await anyPrisma.like.groupBy({
+        by: ['postId'],
+        where: { postId: { in: postIds } },
+        _count: { _all: true },
+      });
+      for (const r of rows) {
+        likeCountByPost.set(Number(r.postId), Number(r._count?._all ?? 0));
+      }
+    } else if (anyPrisma.like?.findMany && postIds.length) {
+      const rows = await anyPrisma.like.findMany({
+        where: { postId: { in: postIds } },
+        select: { postId: true },
+      });
+      for (const r of rows) {
+        const pid = Number(r.postId);
+        likeCountByPost.set(pid, (likeCountByPost.get(pid) ?? 0) + 1);
+      }
+    }
+  } catch {}
+
+  // ✅ Comment counts
+  try {
+    if (anyPrisma.comment?.groupBy && postIds.length) {
+      const rows = await anyPrisma.comment.groupBy({
+        by: ['postId'],
+        where: { postId: { in: postIds } },
+        _count: { _all: true },
+      });
+      for (const r of rows) {
+        commentCountByPost.set(Number(r.postId), Number(r._count?._all ?? 0));
+      }
+    } else if (anyPrisma.comment?.findMany && postIds.length) {
+      const rows = await anyPrisma.comment.findMany({
+        where: { postId: { in: postIds } },
+        select: { postId: true },
+      });
+      for (const r of rows) {
+        const pid = Number(r.postId);
+        commentCountByPost.set(pid, (commentCountByPost.get(pid) ?? 0) + 1);
+      }
+    }
+  } catch {}
+
+  // ✅ likedByMe
+  try {
+    if (meId && anyPrisma.like?.findMany && postIds.length) {
+      const myLikes = await anyPrisma.like.findMany({
+        where: { userId: meId, postId: { in: postIds } },
+        select: { postId: true },
+      });
+      for (const r of myLikes) likedByMeSet.add(Number(r.postId));
+    }
+  } catch {}
+
+  // ✅ post'lara ekle
+  return posts.map(p => {
+    const pid = Number(p.id);
+    const likeCount = likeCountByPost.get(pid) ?? 0;
+    const commentCount = commentCountByPost.get(pid) ?? 0;
+
+    return {
+      ...p,
+      likeCount,
+      commentCount,
+      likedByMe: likedByMeSet.has(pid),
+
+      // ✅ RN tarafında bazı eski normalize akışları "likes" okuyabilir.
+      // Bu yüzden likes alanını da likeCount ile uyumlu tutuyoruz.
+      likes: typeof p.likes === 'number' && Number.isFinite(p.likes) ? p.likes : likeCount,
+    };
+  });
+}
+
+// ✅ Like toggle (postId + tokenUserId)
+app.post('/posts/:id/like', async (req, res) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) {
+      return res.status(400).json({ ok: false, error: 'postId-invalid' });
+    }
+
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+    if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
+
+    const anyPrisma: any = prisma as any;
+    if (!anyPrisma.like) {
+      return res.status(501).json({ ok: false, error: 'like-model-not-ready' });
+    }
+
+    const del = await anyPrisma.like.deleteMany({ where: { postId, userId } });
+
+    let liked = false;
+
+    if (del?.count && del.count > 0) {
+      liked = false;
+    } else {
+      try {
+        await anyPrisma.like.create({ data: { postId, userId } });
+        liked = true;
+      } catch (e: any) {
+        if (isPrismaP2002(e)) {
+          liked = true;
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    const likeCount = await anyPrisma.like.count({ where: { postId } });
+
+    return res.json({ ok: true, liked, likeCount });
+  } catch (e) {
+    console.error('[POST /posts/:id/like] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ NEW: FeedScreen/useFeed uyumluluğu için “idempotent like” endpointi
+// useFeed: POST /feed/:id/like -> bir kere like (toggle değil)
+app.post('/feed/:id/like', async (req, res) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) {
+      return res.status(400).json({ ok: false, error: 'postId-invalid' });
+    }
+
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+    if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
+
+    const anyPrisma: any = prisma as any;
+    if (!anyPrisma.like) {
+      return res.status(501).json({ ok: false, error: 'like-model-not-ready' });
+    }
+
+    // ✅ idempotent: varsa geç, yoksa oluştur
+    try {
+      await anyPrisma.like.create({ data: { postId, userId } });
+    } catch (e: any) {
+      if (!isPrismaP2002(e)) throw e;
+    }
+
+    const likeCount = await anyPrisma.like.count({ where: { postId } });
+
+    return res.json({ ok: true, liked: true, likeCount });
+  } catch (e) {
+    console.error('[POST /feed/:id/like] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ Comment create
+app.post('/posts/:id/comment', async (req, res) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) {
+      return res.status(400).json({ ok: false, error: 'postId-invalid' });
+    }
+
+    const textRaw = (req.body ?? {}).text;
+    const text = typeof textRaw === 'string' ? textRaw.trim() : '';
+    if (!text.length) {
+      return res.status(400).json({ ok: false, error: 'text-required' });
+    }
+    if (text.length > 1500) {
+      return res.status(400).json({ ok: false, error: 'text-too-long' });
+    }
+
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+    if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
+
+    const anyPrisma: any = prisma as any;
+    if (!anyPrisma.comment) {
+      return res.status(501).json({ ok: false, error: 'comment-model-not-ready' });
+    }
+
+    const comment = await anyPrisma.comment.create({
+      data: {
+        postId,
+        userId,
+        text,
+      },
+    });
+
+    return res.json({ ok: true, comment });
+  } catch (e) {
+    console.error('[POST /posts/:id/comment] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ Comment list
+app.get('/posts/:id/comments', async (req, res) => {
+  try {
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) {
+      return res.status(400).json({ ok: false, error: 'postId-invalid' });
+    }
+
+    const limitRaw = req.query.limit;
+    let limit = 50;
+    if (typeof limitRaw === 'string') {
+      const n = parseInt(limitRaw, 10);
+      if (!isNaN(n) && n > 0 && n <= 200) limit = n;
+    }
+
+    const anyPrisma: any = prisma as any;
+    if (!anyPrisma.comment) {
+      return res.status(501).json({ ok: false, error: 'comment-model-not-ready' });
+    }
+
+    const items = await anyPrisma.comment.findMany({
+      where: { postId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: {
+        user: { select: { id: true, fullName: true, handle: true, avatarUri: true } },
+      },
+    });
+
+    const normalized = items.map((c: any) => {
+      const rawAvatar = c?.user?.avatarUri ?? null;
+      const avatarUrl = rawAvatar ? toAbsoluteIfPath(req, rawAvatar) : null;
+
+      return {
+        ...c,
+        user: undefined,
+        authorId: c.userId,
+        author:
+          (c?.user?.fullName && String(c.user.fullName).trim()) ||
+          (c?.user?.handle && String(c.user.handle).trim()) ||
+          'misafir',
+        authorAvatarUri: avatarUrl,
+        authorAvatarUrl: avatarUrl,
+      };
+    });
+
+    return res.json({ ok: true, items: normalized });
+  } catch (e) {
+    console.error('[GET /posts/:id/comments] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ NEW: FeedScreen/useFeed uyumluluğu için repost endpointleri
+app.post('/feed/:id/repost', async (req, res) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) return res.status(400).json({ ok: false, error: 'postId-invalid' });
+
+    const post = await safeFindPostById(postId);
+    if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
+
+    // ✅ Şemada reshareCount alanı varsa increment et (yoksa sessizce geç)
+    const r = await safeUpdatePostById({
+      id: postId,
+      data: { reshareCount: { increment: 1 } },
+      label: 'repost(increment reshareCount)',
+    });
+
+    const after = await safeFindPostById(postId);
+    const reshareCount =
+      typeof (after as any)?.reshareCount === 'number' && Number.isFinite((after as any).reshareCount)
+        ? Number((after as any).reshareCount)
+        : typeof (post as any)?.reshareCount === 'number' && Number.isFinite((post as any).reshareCount)
+          ? Number((post as any).reshareCount)
+          : 0;
+
+    return res.json({ ok: true, status: r?.ok ? 'updated' : 'skipped', reshareCount });
+  } catch (e) {
+    console.error('[POST /feed/:id/repost] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ Alias (daha güvenli): direkt aynı işi yap
+app.post('/feed/:id/reshare', async (req, res) => {
+  try {
+    // aynı handler mantığı: repost endpointini tekrar çağırmak yerine kopya çalıştırıyoruz
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) return res.status(400).json({ ok: false, error: 'postId-invalid' });
+
+    const post = await safeFindPostById(postId);
+    if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
+
+    const r = await safeUpdatePostById({
+      id: postId,
+      data: { reshareCount: { increment: 1 } },
+      label: 'reshare(increment reshareCount)',
+    });
+
+    const after = await safeFindPostById(postId);
+    const reshareCount =
+      typeof (after as any)?.reshareCount === 'number' && Number.isFinite((after as any).reshareCount)
+        ? Number((after as any).reshareCount)
+        : typeof (post as any)?.reshareCount === 'number' && Number.isFinite((post as any).reshareCount)
+          ? Number((post as any).reshareCount)
+          : 0;
+
+    return res.json({ ok: true, status: r?.ok ? 'updated' : 'skipped', reshareCount });
+  } catch (e) {
+    console.error('[POST /feed/:id/reshare] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ NEW: FeedScreen/useFeed uyumluluğu için archive endpointleri
+app.patch('/feed/:id/archive', async (req, res) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) return res.status(400).json({ ok: false, error: 'postId-invalid' });
+
+    const post = await safeFindPostById(postId);
+    if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
+
+    const r = await safeUpdatePostById({
+      id: postId,
+      data: { archived: true },
+      label: 'archive(set archived=true)',
+    });
+
+    return res.json({ ok: true, status: r?.ok ? 'updated' : 'skipped' });
+  } catch (e) {
+    console.error('[PATCH /feed/:id/archive] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ NEW: FeedScreen/useFeed uyumluluğu için markShared endpointleri
+app.post('/feed/:id/shared', async (req, res) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) return res.status(400).json({ ok: false, error: 'postId-invalid' });
+
+    const post = await safeFindPostById(postId);
+    if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
+
+    const body = req.body ?? {};
+    const targets = safeParseStringArray(body.targets);
+    const ts = typeof body.ts === 'number' && Number.isFinite(body.ts) ? body.ts : Date.now();
+
+    const data: any = {
+      lastSharedAt: ts,
+      lastSharedTargets: targets,
+    };
+
+    const r = await safeUpdatePostById({
+      id: postId,
+      data,
+      label: 'shared(set lastSharedAt/lastSharedTargets)',
+    });
+
+    return res.json({ ok: true, status: r?.ok ? 'updated' : 'skipped' });
+  } catch (e) {
+    console.error('[POST /feed/:id/shared] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+app.post('/feed/:id/share', async (req, res) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    // aynı işlem
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) return res.status(400).json({ ok: false, error: 'postId-invalid' });
+
+    const post = await safeFindPostById(postId);
+    if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
+
+    const body = req.body ?? {};
+    const targets = safeParseStringArray(body.targets);
+    const ts = typeof body.ts === 'number' && Number.isFinite(body.ts) ? body.ts : Date.now();
+
+    const data: any = {
+      lastSharedAt: ts,
+      lastSharedTargets: targets,
+    };
+
+    const r = await safeUpdatePostById({
+      id: postId,
+      data,
+      label: 'share(alias shared)',
+    });
+
+    return res.json({ ok: true, status: r?.ok ? 'updated' : 'skipped' });
+  } catch (e) {
+    console.error('[POST /feed/:id/share] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ NEW: useFeed fallback2: PATCH /feed/:id { lastSharedAt, lastSharedTargets } veya { archived } veya { reshareCount }
+app.patch('/feed/:id', async (req, res) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) return res.status(400).json({ ok: false, error: 'postId-invalid' });
+
+    const post = await safeFindPostById(postId);
+    if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
+
+    const body = req.body ?? {};
+
+    const data: any = {};
+
+    if (typeof body.archived === 'boolean') data.archived = body.archived;
+
+    if (typeof body.lastSharedAt === 'number' && Number.isFinite(body.lastSharedAt)) {
+      data.lastSharedAt = body.lastSharedAt;
+    }
+    if (body.lastSharedTargets !== undefined) {
+      data.lastSharedTargets = safeParseStringArray(body.lastSharedTargets);
+    }
+
+    if (typeof body.reshareCount === 'number' && Number.isFinite(body.reshareCount)) {
+      data.reshareCount = body.reshareCount;
+    }
+
+    // hiçbir şey yoksa
+    if (!Object.keys(data).length) {
+      return res.json({ ok: true, status: 'noop' });
+    }
+
+    const r = await safeUpdatePostById({
+      id: postId,
+      data,
+      label: 'patch feed post fields',
+    });
+
+    return res.json({ ok: true, status: r?.ok ? 'updated' : 'skipped' });
+  } catch (e) {
+    console.error('[PATCH /feed/:id] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ FEED: client tarafındaki FeedScreen’in esas kullandığı endpoint
+// GET /feed?limit=50
 app.get('/feed', async (req, res) => {
   try {
+    const limitRaw = req.query.limit;
+    let limit = 50;
+    if (typeof limitRaw === 'string') {
+      const n = parseInt(limitRaw, 10);
+      if (!isNaN(n) && n > 0 && n <= 200) limit = n;
+    }
+
     const posts = await prisma.post.findMany({
       orderBy: { createdAt: 'desc' },
-      take: 200,
-
-      // ✅ KRİTİK: post'un bağlı olduğu user'ı da al
+      take: limit,
       include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            handle: true,
-            avatarUri: true,
-          },
-        },
+        user: { select: { id: true, fullName: true, handle: true, avatarUri: true } },
       },
     });
 
     const normalized = posts.map(p => {
       const anyP: any = p as any;
 
-      // ✅ author alanı boş/eskiden farklı kaydedilmiş olabilir → fallback yap
       const authorName =
         typeof anyP.author === 'string' && anyP.author.trim().length
           ? anyP.author.trim()
           : (p as any)?.user?.fullName || (p as any)?.user?.handle || 'misafir';
 
-      // ✅ Avatar: DB'deki avatarUri path veya URL olabilir -> feed'e mutlaka URL verelim
       const rawAvatar = (p as any)?.user?.avatarUri ?? null;
       const authorAvatarUrl = rawAvatar ? toAbsoluteIfPath(req, rawAvatar) : null;
 
-      // ✅ Video: DB'deki videoUri /uploads path ise absolute yap
-      // ✅ Local uri ise (eski kayıtlar) ürün gibi davranış: diğer cihazda çalışmaz, null'a düş
       let safeVideoOut: string | null = null;
       if (typeof anyP.videoUri === 'string' && anyP.videoUri.trim().length) {
         const vv = anyP.videoUri.trim();
         safeVideoOut = isLocalOnlyUri(vv) ? null : toAbsoluteIfPath(req, vv);
       }
 
-      return {
-        // Prisma include ile gelen "user" objesini client'a basmak zorunda değiliz.
-        // O yüzden payload'da user'ı kaldırıp sadece lazım olanları ekliyoruz.
+      const base = {
         ...anyP,
+
         user: undefined,
 
         author: authorName,
-
-        // ✅ KRİTİK: diğer kullanıcıların avatarı buradan gelecek
         authorAvatarUri: authorAvatarUrl ?? null,
-        authorAvatarUrl: authorAvatarUrl ?? null, // ✅ ek alan (istersen client buna geçer)
+        authorAvatarUrl: authorAvatarUrl ?? null,
 
-        // ✅ videoUri normalize
         videoUri: safeVideoOut,
 
-        // ✅ userId zaten post'ta var ama garanti olsun diye set edelim
         userId: anyP.userId ?? (p as any)?.user?.id ?? null,
-
-        // ✅ shareTargets her zaman string[] olsun
         shareTargets: safeParseStringArray(anyP.shareTargets),
+
+        reshareCount:
+          typeof anyP.reshareCount === 'number' && Number.isFinite(anyP.reshareCount) ? anyP.reshareCount : 0,
+
+        archived: typeof anyP.archived === 'boolean' ? anyP.archived : false,
+
+        lastSharedTargets: Array.isArray(anyP.lastSharedTargets) ? anyP.lastSharedTargets : undefined,
       };
+
+      return base;
     });
 
-    return res.json(normalized);
+    const enriched = await attachLikeCommentMetaToFeedPosts(normalized, req);
+
+    const final = enriched.map((p: any) => ({
+      ...p,
+      likes:
+        typeof p.likes === 'number' && Number.isFinite(p.likes)
+          ? p.likes
+          : typeof p.likeCount === 'number' && Number.isFinite(p.likeCount)
+            ? p.likeCount
+            : 0,
+    }));
+
+    return res.json(final);
   } catch (err) {
     console.error('[feed] error:', err);
     return res.status(500).json({ ok: false, error: 'server-error' });
