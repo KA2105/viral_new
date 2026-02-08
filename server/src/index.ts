@@ -174,20 +174,43 @@ const parseUserIdFromReq = (req: express.Request): number | null => {
 };
 
 /**
- * ✅ FIX:
- * Like/Comment/Repost endpointlerinde 401 döndürüp client optimistic UI ile "oldu" sanıyordu.
- * Artık daha net hata: userId-required (400).
+ * ✅ FIX (improved):
+ * - Önce token/header/query/body'den userId alınır.
+ * - Eğer yoksa:
+ *    - Body.userId varsa kullanılır.
+ *    - Development ortamında fallback = 1 (test kolaylığı için)
+ *    - Production'da 400 döner.
  */
-function requireUserId(req: express.Request, res: express.Response): number | null {
-  const userId = parseUserIdFromReq(req);
+function requireUserId(
+  req: express.Request,
+  res: express.Response
+): number | null {
+  let userId = parseUserIdFromReq(req);
+
+  // Body üzerinden gelmiş olabilir (RN tarafı bazen body gönderiyor)
+  if (!userId && req.body?.userId) {
+    const parsed = Number(req.body.userId);
+    if (!isNaN(parsed) && parsed > 0) {
+      userId = parsed;
+    }
+  }
+
+  // Development fallback (TEST için)
+  if (!userId && process.env.NODE_ENV !== 'production') {
+    console.warn('[requireUserId] ⚠️ Dev fallback userId=1 used');
+    userId = 1;
+  }
+
   if (!userId) {
     res.status(400).json({
       ok: false,
       error: 'userId-required',
-      message: 'userId is required (token or header x-user-id or query ?userId= or body.userId)',
+      message:
+        'userId is required (token or header x-user-id or query ?userId= or body.userId)',
     });
     return null;
   }
+
   return userId;
 }
 
