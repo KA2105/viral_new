@@ -1,4 +1,4 @@
-// C:\Users\Acer\viral_new\server\src\index.ts
+server/src/index.ts
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -77,8 +77,6 @@ type JwtPayload = {
 };
 
 function signToken(userId: number) {
-  // jsonwebtoken type overloadları bazen “callback” overload’una kayabiliyor.
-  // Bunu engellemek için options tipini açıkça veriyoruz.
   const options: jwt.SignOptions = { expiresIn: JWT_EXPIRES_IN as any };
   return jwt.sign({ sub: userId } as JwtPayload, JWT_SECRET, options);
 }
@@ -122,7 +120,6 @@ function authMiddleware(req: express.Request, res: express.Response, next: expre
 
     return next();
   } catch (e) {
-    // Token geçersiz/expired vs -> oturumu yok say
     req.authUserId = null;
     return next();
   }
@@ -133,12 +130,6 @@ app.use(authMiddleware);
 
 // -------------------- Helpers --------------------
 
-/**
- * ✅ FIX (kritik):
- * RN tarafı bazen userId'yi string ("3") gönderiyor.
- * Eski kod body.userId sadece number kabul ediyordu -> null dönüyor -> like/comment/repost DB'ye yazılmıyor.
- * Artık body.userId hem number hem string kabul.
- */
 const parseUserIdFromReq = (req: express.Request): number | null => {
   // 0) JWT: Authorization Bearer <token>
   if (typeof req.authUserId === 'number' && Number.isFinite(req.authUserId) && req.authUserId > 0) {
@@ -173,40 +164,34 @@ const parseUserIdFromReq = (req: express.Request): number | null => {
   return null;
 };
 
-/**
- * ✅ FIX (improved):
- * - Önce token/header/query/body'den userId alınır.
- * - Eğer yoksa:
- *    - Body.userId varsa kullanılır.
- *    - Development ortamında fallback = 1 (test kolaylığı için)
- *    - Production'da 400 döner.
- */
-function requireUserId(
-  req: express.Request,
-  res: express.Response
-): number | null {
+function requireUserId(req: express.Request, res: express.Response): number | null {
   let userId = parseUserIdFromReq(req);
 
-  // Body üzerinden gelmiş olabilir (RN tarafı bazen body gönderiyor)
-  if (!userId && req.body?.userId) {
+  // body.userId (bazı clientlar buradan gönderir)
+  if (!userId && req.body?.userId !== undefined) {
     const parsed = Number(req.body.userId);
-    if (!isNaN(parsed) && parsed > 0) {
-      userId = parsed;
-    }
+    if (Number.isFinite(parsed) && parsed > 0) userId = parsed;
   }
 
-  // Development fallback (TEST için)
-  if (!userId && process.env.NODE_ENV !== 'production') {
-    console.warn('[requireUserId] ⚠️ Dev fallback userId=1 used');
-    userId = 1;
+  // ✅ Controlled fallback (ENV ile)
+  const allowFallback =
+    String(process.env.ALLOW_DEV_FALLBACK_USERID ?? '').toLowerCase() === 'true' ||
+    String(process.env.ALLOW_DEV_FALLBACK_USERID ?? '') === '1';
+
+  if (!userId && allowFallback) {
+    const fbRaw = process.env.DEV_FALLBACK_USERID ?? '1';
+    const fb = Number(fbRaw);
+    if (Number.isFinite(fb) && fb > 0) {
+      console.warn(`[requireUserId] ⚠️ Fallback userId=${fb} used (ALLOW_DEV_FALLBACK_USERID enabled)`);
+      userId = fb;
+    }
   }
 
   if (!userId) {
     res.status(400).json({
       ok: false,
       error: 'userId-required',
-      message:
-        'userId is required (token or header x-user-id or query ?userId= or body.userId)',
+      message: 'userId is required (token or header x-user-id or query ?userId= or body.userId)',
     });
     return null;
   }
@@ -218,7 +203,6 @@ const normalizeHandle = (raw: any): string | null => {
   if (typeof raw !== 'string') return null;
   const cleaned = raw.trim().replace(/^@+/, '');
   if (!cleaned) return null;
-  // 3–24 karakter: harf/rakam/._ (frontend ile uyumlu)
   if (!/^[a-zA-Z0-9_.]{3,24}$/.test(cleaned)) return null;
   return cleaned;
 };
@@ -232,9 +216,6 @@ const normalizeEmail = (raw: any): string | null => {
   return e;
 };
 
-// ✅ TR telefon normalize (yayınlık sağlam çözüm)
-// Kabul: 0532XXXXXXXX, +90532XXXXXXXX, 90532XXXXXXXX, 532XXXXXXXX
-// Çıkış: 10 hane (532XXXXXXXX)
 const normalizeTrPhone = (raw: any): string | null => {
   if (raw === undefined) return null;
 
@@ -243,43 +224,34 @@ const normalizeTrPhone = (raw: any): string | null => {
 
   let local10 = digits;
 
-  // 0XXXXXXXXXX (11 hane) => XXXXXXXXXX
   if (digits.length === 11 && digits.startsWith('0')) {
     local10 = digits.slice(1);
-  }
-  // 90XXXXXXXXXX (12 hane) => XXXXXXXXXX
-  else if (digits.length === 12 && digits.startsWith('90')) {
+  } else if (digits.length === 12 && digits.startsWith('90')) {
     local10 = digits.slice(2);
   }
 
-  // artık 10 hane olmalı
   if (local10.length !== 10) return null;
 
   return local10;
 };
 
-// ✅ Login için telefon adayları üret (eski DB formatlarıyla eşleşme için)
 function phoneCandidates(rawIdentifier: string): string[] {
   const digits = String(rawIdentifier ?? '').replace(/[^\d]/g, '');
   if (!digits) return [];
 
   const set = new Set<string>();
-
-  // raw digits (DB geçmişte böyle kalmış olabilir)
   set.add(digits);
 
-  // normalize 10 hane
   const local10 = normalizeTrPhone(digits);
   if (local10) {
-    set.add(local10); // 532XXXXXXXX
-    set.add('0' + local10); // 0532XXXXXXXX (eski kayıt)
-    set.add('90' + local10); // 90532XXXXXXXX (eski kayıt)
+    set.add(local10);
+    set.add('0' + local10);
+    set.add('90' + local10);
   }
 
   return Array.from(set).filter(Boolean);
 }
 
-// 🌍 Desteklenen dil kodları
 const SUPPORTED_LANGUAGES = ['tr', 'en', 'de', 'fr', 'es', 'pt', 'ar', 'hi', 'zh'];
 
 const normalizeLanguage = (raw: any): string | undefined => {
@@ -290,8 +262,6 @@ const normalizeLanguage = (raw: any): string | undefined => {
   return v;
 };
 
-// ✅ DB'de shareTargets string (JSON) saklanıyor olabilir.
-// Feed endpoint'i "array" bekleyen RN tarafı için her zaman string[] döndürelim.
 function safeParseStringArray(v: any): string[] {
   if (Array.isArray(v)) return v.filter(x => typeof x === 'string');
   if (typeof v === 'string') {
@@ -314,8 +284,6 @@ function safeParseStringArray(v: any): string[] {
 
 // -------------------- Uploads (Video/Avatar) Helpers --------------------
 
-// ✅ Prod'da bunu ENV ile sabitleyebilirsin: https://api.viral.app
-// Local testte otomatik req üzerinden üretiriz.
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || '';
 
 function getPublicBaseUrl(req: express.Request): string {
@@ -359,9 +327,7 @@ function toAbsoluteIfPath(req: express.Request, maybePathOrUrl: any): string | n
   if (typeof maybePathOrUrl !== 'string') return null;
   const s = maybePathOrUrl.trim();
   if (!s) return null;
-  // zaten full URL ise
   if (/^https?:\/\//i.test(s)) return s;
-  // path ise (uploads altında bekliyoruz)
   if (s.startsWith('/uploads/')) {
     return `${getPublicBaseUrl(req)}${s}`;
   }
@@ -389,15 +355,15 @@ const avatarStorage = multer.diskStorage({
 
 const uploadVideo = multer({
   storage: videoStorage,
-  limits: { fileSize: 300 * 1024 * 1024 }, // 300MB örnek
+  limits: { fileSize: 300 * 1024 * 1024 },
 });
 
 const uploadAvatar = multer({
   storage: avatarStorage,
-  limits: { fileSize: 12 * 1024 * 1024 }, // 12MB örnek
+  limits: { fileSize: 12 * 1024 * 1024 },
 });
 
-// ✅ Video upload: client bunu çağıracak, dönüşte URL alacak
+// ✅ Video upload
 app.post('/uploads/video', uploadVideo.single('file'), async (req, res) => {
   try {
     const f = (req as any).file as Express.Multer.File | undefined;
@@ -415,8 +381,7 @@ app.post('/uploads/video', uploadVideo.single('file'), async (req, res) => {
   }
 });
 
-// ✅ Avatar upload: client bunu çağıracak, dönüşte URL alacak
-// Not: Mevcut client’ta avatar PUT /me ile gidiyorsa, burada dönen avatarPath'i PUT /me ile set edeceğiz.
+// ✅ Avatar upload
 app.post('/uploads/avatar', uploadAvatar.single('file'), async (req, res) => {
   try {
     const f = (req as any).file as Express.Multer.File | undefined;
@@ -434,8 +399,7 @@ app.post('/uploads/avatar', uploadAvatar.single('file'), async (req, res) => {
   }
 });
 
-// ✅ EK: Alias endpointler (client tarafında /upload/... kullanırsan da çalışsın)
-// (Satır silmeden, sadece uyumluluk için ek)
+// ✅ Alias endpointler
 app.post('/upload/video', uploadVideo.single('file'), async (req, res) => {
   try {
     const f = (req as any).file as Express.Multer.File | undefined;
@@ -468,14 +432,10 @@ app.post('/upload/avatar', uploadAvatar.single('file'), async (req, res) => {
 
 // ✅ Client'e döndürdüğümüz user objesi tek yerde standardize olsun
 function toPublicUser(u: any, req?: express.Request) {
-  // avatarUri DB'de path (/uploads/...) veya full URL olabilir.
   const rawAvatar = u.avatarUri;
   const avatarUriRaw = typeof rawAvatar === 'string' ? rawAvatar : null;
 
-  // ✅ avatarUri'yi absolute yap (req varsa)
   const avatarAbs = req && avatarUriRaw ? toAbsoluteIfPath(req, avatarUriRaw) : avatarUriRaw;
-
-  // ✅ absolute URL alanı
   const avatarUrl = req && avatarUriRaw ? toAbsoluteIfPath(req, avatarUriRaw) : avatarUriRaw;
 
   return {
@@ -489,21 +449,14 @@ function toPublicUser(u: any, req?: express.Request) {
     handle: u.handle,
     bio: u.bio,
     website: u.website,
-
-    // ✅ geriye dönük uyum: artık absolute dönüyor
     avatarUri: avatarAbs ?? null,
-
-    // ✅ yeni alan
     avatarUrl: avatarUrl ?? null,
-
     email: u.email,
     phone: u.phone,
     isPhoneVerified: u.isPhoneVerified,
   };
 }
 
-// ✅ Login için “where” üret: hiçbir şey normalize edilemezse null döndür
-// ✅ Telefon için OR varyantlarıyla ara (DB geçmişi yüzünden “bulunamadı” hatasını bitirir)
 function buildLoginWhere(identifierRaw: string): Prisma.UserWhereInput | null {
   const raw = String(identifierRaw ?? '').trim();
   if (!raw) return null;
@@ -522,7 +475,6 @@ function buildLoginWhere(identifierRaw: string): Prisma.UserWhereInput | null {
   return null;
 }
 
-// ✅ Prisma P2002 -> field mapping helper
 function p2002FieldFromMeta(err: Prisma.PrismaClientKnownRequestError): string {
   const target = (err.meta as any)?.target as string[] | string | undefined;
   const t = Array.isArray(target) ? target : target ? [target] : [];
@@ -553,7 +505,6 @@ function toPublicUserWithAvatar(u: any, req: any) {
   const base = toPublicUser(u, req);
   return {
     ...base,
-    // ✅ avatarUri zaten absolute; yine de null-safe
     avatarUri: base.avatarUri ?? null,
     avatarUrl: base.avatarUrl ?? null,
   };
@@ -586,7 +537,7 @@ app.post('/auth/anonymous', async (req, res) => {
 
     const user = await prisma.user.upsert({
       where: { deviceId },
-      update: {}, // aynı cihaz: aynı user
+      update: {},
       create: {
         deviceId,
         language: null,
@@ -598,11 +549,10 @@ app.post('/auth/anonymous', async (req, res) => {
         email: null,
         phone: null,
         isPhoneVerified: false,
-        passwordHash: null, // anonymous
+        passwordHash: null,
       } as any,
     });
 
-    // ✅ Token da dönelim (anon için de)
     const token = signToken(user.id);
 
     return res.json({
@@ -616,9 +566,7 @@ app.post('/auth/anonymous', async (req, res) => {
   }
 });
 
-// 🟢 REGISTER: email/phone + password ile kayıt
-// ✅ deviceId gelirse: sadece anonymous user convert edilir
-// ✅ deviceId kayıtlı user ise: onu ezmez, yeni user yaratır (fallback)
+// 🟢 REGISTER
 app.post('/auth/register', async (req, res) => {
   try {
     const body = req.body ?? {};
@@ -663,7 +611,6 @@ app.post('/auth/register', async (req, res) => {
       });
     }
 
-    // ✅ UNIQUE ön kontrol
     const emailOther = await prisma.user.findFirst({
       where: { email: emailNorm },
       select: { id: true },
@@ -694,14 +641,12 @@ app.post('/auth/register', async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // ✅ deviceId geldiyse: SADECE anonymous ise convert et.
     if (deviceId) {
       const existing = await prisma.user.findUnique({ where: { deviceId } });
 
       if (existing) {
         const existingHash = (existing as any).passwordHash as string | null | undefined;
 
-        // sadece anon user convert edilir
         if (!existingHash) {
           const updated = await prisma.user.update({
             where: { id: existing.id },
@@ -718,12 +663,9 @@ app.post('/auth/register', async (req, res) => {
 
           return res.json({ ok: true, token, user: toPublicUser(updated, req) });
         }
-
-        // zaten kayıtlı user var → yeni user oluşturacağız (fallthrough)
       }
     }
 
-    // ✅ deviceId yoksa veya o deviceId bulunamazsa create fallback
     const fallbackDeviceId = deviceId ?? `reg-${Date.now()}`;
 
     const user = await prisma.user.create({
@@ -750,7 +692,6 @@ app.post('/auth/register', async (req, res) => {
       user: toPublicUser(user, req),
     });
   } catch (err: any) {
-    // ✅ Prisma unique constraint fallback (yarış koşulu vb.)
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
       const field = p2002FieldFromMeta(err);
       return res.status(409).json({
@@ -787,7 +728,7 @@ app.post('/auth/register', async (req, res) => {
   }
 });
 
-// 🟢 LOGIN: identifier(email/phone/handle) + password ile giriş
+// 🟢 LOGIN
 app.post('/auth/login', async (req, res) => {
   try {
     const body = req.body ?? {};
@@ -819,7 +760,6 @@ app.post('/auth/login', async (req, res) => {
       });
     }
 
-    // ✅ Debug (server console): hangi where ile arıyoruz?
     console.log('[AUTH] login attempt', { identifierRaw, where });
 
     const user = await prisma.user.findFirst({ where });
@@ -919,25 +859,23 @@ app.put('/me', async (req, res) => {
 
     const body = req.body ?? {};
 
-    // Alanları güvenli normalize et
     const fullName =
       typeof body.fullName === 'string' && body.fullName.trim().length ? body.fullName.trim() : undefined;
 
     const language = normalizeLanguage(body.language);
 
-    // ✅ HANDLE: geçersizse update'i bozma, ignore et
     let handleNorm: string | null | undefined = undefined;
     if (body.handle !== undefined) {
       const raw = String(body.handle ?? '').trim();
 
       if (!raw.length) {
-        handleNorm = null; // temizle
+        handleNorm = null;
       } else {
         const norm = normalizeHandle(raw);
         if (norm) {
-          handleNorm = norm; // set
+          handleNorm = norm;
         } else {
-          handleNorm = undefined; // geçersiz -> dokunma
+          handleNorm = undefined;
         }
       }
     }
@@ -951,10 +889,6 @@ app.put('/me', async (req, res) => {
           : null
         : undefined;
 
-    // ✅ avatarUri artık ürün gibi olmalı:
-    // - full URL (http/https) veya
-    // - /uploads/avatars/... path
-    // - local file/content/storage URI kabul etmiyoruz (diğer cihazda çalışmaz)
     const avatarUri =
       typeof body.avatarUri === 'string'
         ? body.avatarUri.trim().length
@@ -982,13 +916,12 @@ app.put('/me', async (req, res) => {
       });
     }
 
-    // ✅ PHONE: TR normalize
     let phoneNorm: string | null | undefined = undefined;
     if (body.phone !== undefined) {
       const raw = String(body.phone ?? '').trim();
 
       if (!raw.length) {
-        phoneNorm = null; // temizle
+        phoneNorm = null;
       } else {
         const normalized = normalizeTrPhone(raw);
         if (!normalized) {
@@ -998,13 +931,12 @@ app.put('/me', async (req, res) => {
             message: 'phone is invalid',
           });
         }
-        phoneNorm = normalized; // DB: 10 hane
+        phoneNorm = normalized;
       }
     }
 
     const isPhoneVerified = typeof body.isPhoneVerified === 'boolean' ? body.isPhoneVerified : undefined;
 
-    // ✅ UNIQUE alanlar için ön kontrol
     if (typeof emailNorm === 'string' && emailNorm.length) {
       const other = await prisma.user.findFirst({
         where: { email: emailNorm, NOT: { id: userId } },
@@ -1050,7 +982,6 @@ app.put('/me', async (req, res) => {
       }
     }
 
-    // ✅ LOG'u buraya taşıdık: artık 409 dönmeden log basmayacak
     console.log('[API] PUT /me', {
       userId,
       fullName,
@@ -1069,12 +1000,12 @@ app.put('/me', async (req, res) => {
       data: {
         fullName,
         language,
-        handle: handleNorm, // undefined => dokunma, null => temizle, string => set
+        handle: handleNorm,
         bio,
         website,
         avatarUri,
-        email: emailNorm, // undefined => dokunma, null => temizle
-        phone: phoneNorm, // undefined => dokunma, null => temizle, string => set
+        email: emailNorm,
+        phone: phoneNorm,
         isPhoneVerified,
       },
     });
@@ -1084,7 +1015,6 @@ app.put('/me', async (req, res) => {
       user: toPublicUser(updated, req),
     });
   } catch (err: any) {
-    // ✅ Prisma unique constraint fallback (PUT /me için)
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
       const field = p2002FieldFromMeta(err);
 
@@ -1142,7 +1072,6 @@ app.get('/users/search', async (req, res) => {
     const qEmail = qRaw.toLowerCase();
     const qPhone = qRaw.replace(/[^\d]/g, '');
 
-    // q boşsa: son kullanıcılar (keşfet)
     const where: Prisma.UserWhereInput = qRaw
       ? {
           OR: [
@@ -1160,7 +1089,6 @@ app.get('/users/search', async (req, res) => {
       take: limit,
     });
 
-    // Me varsa: arkadaşlık / bekleyen durumlarını da dönelim (UI label için)
     let friendships: Set<string> = new Set();
     let outgoingPending: Set<string> = new Set();
     let incomingPending: Set<string> = new Set();
@@ -1304,7 +1232,6 @@ app.post('/friends/request', async (req, res) => {
     const toUser = await prisma.user.findUnique({ where: { id: toUserId } });
     if (!toUser) return res.status(404).json({ ok: false, error: 'user-not-found' });
 
-    // Zaten arkadaş mı?
     if (await areFriends(meId, toUserId)) {
       return res.json({ ok: true, status: 'already-friends' });
     }
@@ -1510,7 +1437,6 @@ app.post('/posts', async (req, res) => {
       }
     }
 
-    // ✅ user bağlama: öncelik token (req.authUserId)
     const tokenUserId =
       typeof req.authUserId === 'number' && Number.isFinite(req.authUserId) && req.authUserId > 0
         ? req.authUserId
@@ -1532,14 +1458,12 @@ app.post('/posts', async (req, res) => {
 
     const freePost = typeof isFreePost === 'boolean' ? isFreePost : true;
 
-    // ✅ Ürün gibi: local video uri DB’ye yazılmamalı (başka telefonda çalışmaz)
     let safeVideoUri: string | null = null;
     if (typeof videoUri === 'string' && videoUri.trim().length) {
       const v = videoUri.trim();
       if (isLocalOnlyUri(v)) {
-        safeVideoUri = null; // lokal -> yok say
+        safeVideoUri = null;
       } else {
-        // /uploads/... veya http(s) olabilir
         safeVideoUri = v;
       }
     }
@@ -1591,7 +1515,6 @@ app.get('/posts', async (req, res) => {
     const normalized = posts.map(p => {
       let shareTargetsParsed: string[] = [];
       if (p.shareTargets) {
-        // ✅ Burada safeParseStringArray ile her zaman string[] dönelim (RN join crash olmasın)
         shareTargetsParsed = safeParseStringArray(p.shareTargets);
       }
 
@@ -1625,7 +1548,6 @@ function isPrismaP2002(e: any): boolean {
   );
 }
 
-// ✅ NEW: Bazı alanlar şemada yoksa update patlar. Bunu “sessiz” hale getiriyoruz.
 function isPrismaUnknownArgumentError(e: any): boolean {
   const msg = String(e?.message ?? '');
   return msg.toLowerCase().includes('unknown argument') || msg.toLowerCase().includes('unknown field');
@@ -1660,14 +1582,12 @@ async function attachLikeCommentMetaToFeedPosts(posts: any[], req: express.Reque
   const meId = parseUserIdFromReq(req);
   const anyPrisma: any = prisma as any;
 
-  // postId listesi
   const postIds = posts.map(p => Number(p.id)).filter(n => Number.isFinite(n) && n > 0);
 
   const likeCountByPost = new Map<number, number>();
   const commentCountByPost = new Map<number, number>();
   const likedByMeSet = new Set<number>();
 
-  // ✅ Like counts
   try {
     if (anyPrisma.like?.groupBy && postIds.length) {
       const rows = await anyPrisma.like.groupBy({
@@ -1690,7 +1610,6 @@ async function attachLikeCommentMetaToFeedPosts(posts: any[], req: express.Reque
     }
   } catch {}
 
-  // ✅ Comment counts
   try {
     if (anyPrisma.comment?.groupBy && postIds.length) {
       const rows = await anyPrisma.comment.groupBy({
@@ -1713,7 +1632,6 @@ async function attachLikeCommentMetaToFeedPosts(posts: any[], req: express.Reque
     }
   } catch {}
 
-  // ✅ likedByMe
   try {
     if (meId && anyPrisma.like?.findMany && postIds.length) {
       const myLikes = await anyPrisma.like.findMany({
@@ -1724,7 +1642,6 @@ async function attachLikeCommentMetaToFeedPosts(posts: any[], req: express.Reque
     }
   } catch {}
 
-  // ✅ post'lara ekle
   return posts.map(p => {
     const pid = Number(p.id);
     const likeCount = likeCountByPost.get(pid) ?? 0;
@@ -1736,14 +1653,13 @@ async function attachLikeCommentMetaToFeedPosts(posts: any[], req: express.Reque
       commentCount,
       likedByMe: likedByMeSet.has(pid),
 
-      // ✅ RN tarafında bazı eski normalize akışları "likes" okuyabilir.
-      // Bu yüzden likes alanını da likeCount ile uyumlu tutuyoruz.
-      likes: typeof p.likes === 'number' && Number.isFinite(p.likes) ? p.likes : likeCount,
+      // ✅ RN geriye dönük uyum: likes alanını da likeCount ile uyumlu tut
+      likes: likeCount,
     };
   });
 }
 
-// ✅ Like toggle (postId + tokenUserId)
+// ✅ Like toggle
 app.post('/posts/:id/like', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -1790,8 +1706,7 @@ app.post('/posts/:id/like', async (req, res) => {
   }
 });
 
-// ✅ NEW: FeedScreen/useFeed uyumluluğu için “idempotent like” endpointi
-// useFeed: POST /feed/:id/like -> bir kere like (toggle değil)
+// ✅ Idempotent like
 app.post('/feed/:id/like', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -1810,7 +1725,6 @@ app.post('/feed/:id/like', async (req, res) => {
       return res.status(501).json({ ok: false, error: 'like-model-not-ready' });
     }
 
-    // ✅ idempotent: varsa geç, yoksa oluştur
     try {
       await anyPrisma.like.create({ data: { postId, userId } });
     } catch (e: any) {
@@ -1827,7 +1741,7 @@ app.post('/feed/:id/like', async (req, res) => {
 });
 
 // ✅ Comment create
-app.post('/posts/:id/comment', async (req, res) => {
+const handleCreateComment = async (req: any, res: any) => {
   try {
     const userId = requireUserId(req, res);
     if (!userId) return;
@@ -1862,12 +1776,43 @@ app.post('/posts/:id/comment', async (req, res) => {
       },
     });
 
-    return res.json({ ok: true, comment });
+    // ✅ (2. adım) Post.commentCount artır (kolon yoksa app'i kırma)
+    // - Diğer cihazın feed ekranında sayı / değişiklik görmesi için kritik
+    let commentCount: number | null = null;
+
+    try {
+      // Eğer Post modelinde commentCount kolonu varsa:
+      const updated = await prisma.post.update({
+        where: { id: postId },
+        data: { commentCount: { increment: 1 } as any },
+        select: { commentCount: true },
+      });
+      const n = (updated as any)?.commentCount;
+      if (typeof n === 'number' && Number.isFinite(n)) commentCount = n;
+    } catch (e) {
+      // Kolon yoksa sorun değil; en azından doğru count'u hesaplayıp döneriz
+      console.log('[POST /posts/:id/comment] commentCount increment skipped:', e);
+    }
+
+    // ✅ Kolon yoksa bile sayarak döndür (client isterse bunu kullanır)
+    if (commentCount === null) {
+      try {
+        const cnt = await anyPrisma.comment.count({ where: { postId } });
+        if (typeof cnt === 'number' && Number.isFinite(cnt)) commentCount = cnt;
+      } catch {}
+    }
+
+    return res.json({ ok: true, comment, commentCount: commentCount ?? undefined });
   } catch (e) {
     console.error('[POST /posts/:id/comment] error:', e);
     return res.status(500).json({ ok: false, error: 'server-error' });
   }
-});
+};
+
+app.post('/posts/:id/comment', handleCreateComment);
+
+// ✅ Alias: client önce /feed/:id/comment deniyor, 404 olmasın
+app.post('/feed/:id/comment', handleCreateComment);
 
 // ✅ Comment list
 app.get('/posts/:id/comments', async (req, res) => {
@@ -1880,7 +1825,7 @@ app.get('/posts/:id/comments', async (req, res) => {
     const limitRaw = req.query.limit;
     let limit = 50;
     if (typeof limitRaw === 'string') {
-      const n = parseInt(limitRaw, 10);
+      const n = parseInt(limitRaw as string, 10);
       if (!isNaN(n) && n > 0 && n <= 200) limit = n;
     }
 
@@ -1922,7 +1867,7 @@ app.get('/posts/:id/comments', async (req, res) => {
   }
 });
 
-// ✅ NEW: FeedScreen/useFeed uyumluluğu için repost endpointleri
+// ✅ repost / reshare
 app.post('/feed/:id/repost', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -1934,7 +1879,6 @@ app.post('/feed/:id/repost', async (req, res) => {
     const post = await safeFindPostById(postId);
     if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
 
-    // ✅ Şemada reshareCount alanı varsa increment et (yoksa sessizce geç)
     const r = await safeUpdatePostById({
       id: postId,
       data: { reshareCount: { increment: 1 } },
@@ -1956,10 +1900,8 @@ app.post('/feed/:id/repost', async (req, res) => {
   }
 });
 
-// ✅ Alias (daha güvenli): direkt aynı işi yap
 app.post('/feed/:id/reshare', async (req, res) => {
   try {
-    // aynı handler mantığı: repost endpointini tekrar çağırmak yerine kopya çalıştırıyoruz
     const userId = requireUserId(req, res);
     if (!userId) return;
 
@@ -1990,7 +1932,7 @@ app.post('/feed/:id/reshare', async (req, res) => {
   }
 });
 
-// ✅ NEW: FeedScreen/useFeed uyumluluğu için archive endpointleri
+// ✅ archive
 app.patch('/feed/:id/archive', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -2015,7 +1957,7 @@ app.patch('/feed/:id/archive', async (req, res) => {
   }
 });
 
-// ✅ NEW: FeedScreen/useFeed uyumluluğu için markShared endpointleri
+// ✅ shared / share
 app.post('/feed/:id/shared', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -2054,7 +1996,6 @@ app.post('/feed/:id/share', async (req, res) => {
     const userId = requireUserId(req, res);
     if (!userId) return;
 
-    // aynı işlem
     const postId = Number(req.params.id);
     if (!Number.isFinite(postId) || postId <= 0) return res.status(400).json({ ok: false, error: 'postId-invalid' });
 
@@ -2083,7 +2024,7 @@ app.post('/feed/:id/share', async (req, res) => {
   }
 });
 
-// ✅ NEW: useFeed fallback2: PATCH /feed/:id { lastSharedAt, lastSharedTargets } veya { archived } veya { reshareCount }
+// ✅ PATCH /feed/:id fallback2
 app.patch('/feed/:id', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -2112,7 +2053,6 @@ app.patch('/feed/:id', async (req, res) => {
       data.reshareCount = body.reshareCount;
     }
 
-    // hiçbir şey yoksa
     if (!Object.keys(data).length) {
       return res.json({ ok: true, status: 'noop' });
     }
@@ -2131,7 +2071,6 @@ app.patch('/feed/:id', async (req, res) => {
 });
 
 // ✅ FEED: client tarafındaki FeedScreen’in esas kullandığı endpoint
-// GET /feed?limit=50
 app.get('/feed', async (req, res) => {
   try {
     const limitRaw = req.query.limit;
@@ -2193,14 +2132,12 @@ app.get('/feed', async (req, res) => {
 
     const enriched = await attachLikeCommentMetaToFeedPosts(normalized, req);
 
+    // ✅ KRİTİK FIX:
+    // - DB’den gelen legacy "likes" alanı (0 bile olsa number) artık likeCount’un üstüne yazamaz.
+    // - likes her zaman likeCount’tan üretilir => diğer kullanıcılarda da doğru görünür.
     const final = enriched.map((p: any) => ({
       ...p,
-      likes:
-        typeof p.likes === 'number' && Number.isFinite(p.likes)
-          ? p.likes
-          : typeof p.likeCount === 'number' && Number.isFinite(p.likeCount)
-            ? p.likeCount
-            : 0,
+      likes: typeof p.likeCount === 'number' && Number.isFinite(p.likeCount) ? p.likeCount : 0,
     }));
 
     return res.json(final);
@@ -2243,3 +2180,4 @@ const PORT = Number(process.env.PORT || 4000);
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`[API] Listening on http://0.0.0.0:${PORT}`);
 });
+
