@@ -1,4 +1,3 @@
-server/src/index.ts
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -1777,22 +1776,26 @@ const handleCreateComment = async (req: any, res: any) => {
     });
 
     // ✅ (2. adım) Post.commentCount artır (kolon yoksa app'i kırma)
-    // - Diğer cihazın feed ekranında sayı / değişiklik görmesi için kritik
-    let commentCount: number | null = null;
+// - Diğer cihazın feed ekranında sayı / değişiklik görmesi için kritik
+let commentCount: number | null = null;
 
-    try {
-      // Eğer Post modelinde commentCount kolonu varsa:
-      const updated = await prisma.post.update({
-        where: { id: postId },
-        data: { commentCount: { increment: 1 } as any },
-        select: { commentCount: true },
-      });
-      const n = (updated as any)?.commentCount;
-      if (typeof n === 'number' && Number.isFinite(n)) commentCount = n;
-    } catch (e) {
-      // Kolon yoksa sorun değil; en azından doğru count'u hesaplayıp döneriz
-      console.log('[POST /posts/:id/comment] commentCount increment skipped:', e);
-    }
+try {
+  // ✅ TS build patlamasın diye prisma'yı any'e çeviriyoruz.
+  // Kolon yoksa runtime'da hata atar -> catch'e düşer (app kırılmaz).
+  const anyPrisma: any = prisma as any;
+
+  const updated = await anyPrisma.post.update({
+    where: { id: postId },
+    data: { commentCount: { increment: 1 } },
+    select: { commentCount: true },
+  });
+
+  const n = updated?.commentCount;
+  if (typeof n === 'number' && Number.isFinite(n)) commentCount = n;
+} catch (e) {
+  // Kolon yoksa sorun değil; en azından yorum DB'ye yazıldı.
+  console.log('[POST /posts/:id/comment] commentCount increment skipped:', e);
+}
 
     // ✅ Kolon yoksa bile sayarak döndür (client isterse bunu kullanır)
     if (commentCount === null) {
