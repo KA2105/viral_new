@@ -27,3 +27,6 @@ server/uploads
 android/.gradle/
 **/.gradle/
 
+#server/dist
+
+
