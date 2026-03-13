@@ -4,15 +4,19 @@
   "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "postinstall": "prisma generate",
-    "migrate:deploy": "prisma migrate deploy",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
-  },
+  "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+
+  "clean": "rm -rf dist",
+  "build": "npm run clean && tsc",
+
+  "start": "node dist/index.js",
+
+  "postinstall": "prisma generate",
+  "migrate:deploy": "prisma migrate deploy",
+  "prisma:generate": "prisma generate",
+  "prisma:migrate": "prisma migrate dev",
+  "prisma:studio": "prisma studio"
+},
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",

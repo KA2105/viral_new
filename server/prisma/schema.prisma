@@ -45,6 +45,13 @@ model User {
   // 👥 Focus Ağı ilişkileri
   sentFriendRequests     FriendRequest[] @relation("FriendRequestsSent")
   receivedFriendRequests FriendRequest[] @relation("FriendRequestsReceived")
+
+  // ✅ Friendship ilişkileri (opsiyonel ama faydalı)
+  friendshipsAsUser1 Friendship[] @relation("FriendshipUser1")
+  friendshipsAsUser2 Friendship[] @relation("FriendshipUser2")
+
+  // ✅ Şifre sıfırlama tokenları
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Task {
@@ -113,10 +120,10 @@ model Post {
   // - archive endpointi "archived" set ediyor
   // - shared endpointi "lastSharedAt (number)" set ediyor
   // - lastSharedTargets dizi olarak saklanır (Postgres array)
-  reshareCount     Int       @default(0)
-  archived         Boolean   @default(false)
-  lastSharedAt     BigInt?
-  lastSharedTargets String[] @default([])
+  reshareCount      Int       @default(0)
+  archived          Boolean   @default(false)
+  lastSharedAt      BigInt?
+  lastSharedTargets String[]  @default([])
 
   // Zaman
   createdAt    DateTime  @default(now())
@@ -124,7 +131,7 @@ model Post {
 
   // 🔗 İsteğe bağlı User ilişkisi
   userId       Int?
-  user         User?     @relation(fields: [userId], references: [id])
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   // ✅ Like/Comment ilişkileri
   likes        Like[]
@@ -193,9 +200,29 @@ model Friendship {
   user1Id   Int
   user2Id   Int
 
+  // ✅ İlişki alanları (opsiyonel ama prisma tarafında join kolaylığı sağlar)
+  user1     User     @relation("FriendshipUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2     User     @relation("FriendshipUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
 
   @@unique([user1Id, user2Id], name: "uniq_friendship_pair")
   @@index([user1Id])
   @@index([user2Id])
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
 }

@@ -12,12 +12,18 @@ import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const prisma = new PrismaClient();
 const app = express();
 
+console.log('[BOOT] src/index.ts loaded at', new Date().toISOString());
+
 // ✅ Render/Proxy ortamlarında proto/host doğru gelsin (x-forwarded-proto)
 app.set('trust proxy', 1);
+
+// ✅ KRİTİK: 304/ETag davranışını kapat (feed’in her zaman güncel JSON dönmesi için)
+app.set('etag', false);
 
 // ✅ Prisma bağlantısını erken doğrula + düzgün kapat
 prisma
@@ -296,8 +302,8 @@ function getPublicBaseUrl(req: express.Request): string {
 
 function ensureUploadsDirs() {
   const root = path.join(process.cwd(), 'uploads');
-  const videos = path.join(root, 'videos');
-  const avatars = path.join(root, 'avatars');
+  const videos = path.join(root, 'uploads/videos');
+  const avatars = path.join(root, 'uploads/avatars');
   try {
     fs.mkdirSync(videos, { recursive: true });
     fs.mkdirSync(avatars, { recursive: true });
@@ -481,6 +487,7 @@ function p2002FieldFromMeta(err: Prisma.PrismaClientKnownRequestError): string {
   if (t.includes('email')) return 'email';
   if (t.includes('handle')) return 'handle';
   if (t.includes('deviceId')) return 'deviceId';
+  if (t.includes('token')) return 'token';
   return 'unknown';
 }
 
@@ -507,6 +514,60 @@ function toPublicUserWithAvatar(u: any, req: any) {
     avatarUri: base.avatarUri ?? null,
     avatarUrl: base.avatarUrl ?? null,
   };
+}
+
+// -------------------- Password Reset Helpers --------------------
+
+const RESET_PASSWORD_BASE_URL = (process.env.RESET_PASSWORD_BASE_URL ?? '').toString().trim();
+
+const smtpHost = (process.env.SMTP_HOST ?? '').toString().trim();
+const smtpPort = Number(process.env.SMTP_PORT ?? 587);
+const smtpUser = (process.env.SMTP_USER ?? '').toString().trim();
+const smtpPass = (process.env.SMTP_PASS ?? '').toString().trim();
+const smtpFrom = (process.env.SMTP_FROM ?? smtpUser).toString().trim();
+
+const mailer =
+  smtpHost && smtpUser && smtpPass
+    ? nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: false,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      })
+    : null;
+
+async function sendResetPasswordEmail(to: string, resetUrl: string) {
+  if (!mailer) {
+    console.log('[RESET PASSWORD][DEV LINK]', { to, resetUrl });
+    return;
+  }
+
+  await mailer.sendMail({
+    from: smtpFrom,
+    to,
+    subject: 'Viral şifre sıfırlama',
+    text:
+      `Şifreni sıfırlamak için aşağıdaki bağlantıyı kullan:\n\n` +
+      `${resetUrl}\n\n` +
+      `Bu bağlantı 15 dakika geçerlidir.`,
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Viral şifre sıfırlama</h2>
+        <p>Şifreni sıfırlamak için aşağıdaki bağlantıyı kullan:</p>
+        <p>
+          <a href="${resetUrl}" style="display:inline-block;padding:10px 16px;background:#E50914;color:#fff;text-decoration:none;border-radius:8px;">
+            Şifreyi sıfırla
+          </a>
+        </p>
+        <p>Bağlantı çalışmazsa bunu kopyala:</p>
+        <p>${resetUrl}</p>
+        <p>Bu bağlantı 15 dakika geçerlidir.</p>
+      </div>
+    `,
+  });
 }
 
 // -------------------- Routes --------------------
@@ -704,7 +765,9 @@ app.post('/auth/register', async (req, res) => {
                 ? 'handle-taken'
                 : field === 'deviceId'
                   ? 'deviceId-taken'
-                  : 'unique-constraint',
+                  : field === 'token'
+                    ? 'token-taken'
+                    : 'unique-constraint',
         field,
         message:
           field === 'phone'
@@ -715,7 +778,9 @@ app.post('/auth/register', async (req, res) => {
                 ? 'Bu kullanıcı adı başka bir hesapta kayıtlı.'
                 : field === 'deviceId'
                   ? 'Bu cihaz kimliğiyle çakışma oldu. Tekrar dene.'
-                  : 'Unique constraint failed',
+                  : field === 'token'
+                    ? 'Token çakışması oldu. Tekrar dene.'
+                    : 'Unique constraint failed',
       });
     }
 
@@ -798,6 +863,173 @@ app.post('/auth/login', async (req, res) => {
     });
   } catch (err) {
     console.error('[POST /auth/login] error:', err);
+    return res.status(500).json({
+      ok: false,
+      error: 'server-error',
+    });
+  }
+});
+
+// 🟢 FORGOT PASSWORD (ilk sürüm: sadece email aktif)
+app.post('/auth/forgot-password', async (req, res) => {
+  try {
+    const body = req.body ?? {};
+    const identifierRaw = typeof body.identifier === 'string' ? body.identifier.trim() : '';
+
+    if (!identifierRaw) {
+      return res.status(400).json({
+        ok: false,
+        error: 'identifier-required',
+        message: 'identifier is required',
+      });
+    }
+
+    const emailNorm = normalizeEmail(identifierRaw);
+
+    // Şimdilik telefon reset aktif değil
+    if (!emailNorm) {
+      return res.json({
+        ok: true,
+        message: 'Telefon ile şifre sıfırlama yakında aktif olacak. Lütfen e-posta kullan.',
+      });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { email: emailNorm },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+    // Güvenlik: kullanıcı olmasa bile aynı cevap
+    if (!user?.email) {
+      return res.json({
+        ok: true,
+        message: 'Hesap varsa sıfırlama bağlantısı gönderildi.',
+      });
+    }
+
+    // Eski kullanılmamış tokenları temizle
+    await prisma.passwordResetToken.deleteMany({
+      where: {
+        userId: user.id,
+        usedAt: null,
+      },
+    });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt,
+      },
+    });
+
+    const baseUrl = RESET_PASSWORD_BASE_URL || `${getPublicBaseUrl(req)}/reset-password`;
+    const resetUrl = `${baseUrl}?token=${encodeURIComponent(token)}`;
+
+    await sendResetPasswordEmail(user.email, resetUrl);
+
+    return res.json({
+      ok: true,
+      message: 'Hesap varsa sıfırlama bağlantısı gönderildi.',
+    });
+  } catch (err) {
+    console.error('[POST /auth/forgot-password] error:', err);
+    return res.status(500).json({
+      ok: false,
+      error: 'server-error',
+    });
+  }
+});
+
+// 🟢 RESET PASSWORD
+app.post('/auth/reset-password', async (req, res) => {
+  try {
+    const body = req.body ?? {};
+    const token = typeof body.token === 'string' ? body.token.trim() : '';
+    const newPassword = typeof body.newPassword === 'string' ? body.newPassword : '';
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        ok: false,
+        error: 'missing-fields',
+        message: 'token and newPassword are required',
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        ok: false,
+        error: 'weak-password',
+        message: 'password must be at least 8 characters',
+      });
+    }
+
+    const resetRow = await prisma.passwordResetToken.findUnique({
+      where: { token },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!resetRow) {
+      return res.status(400).json({
+        ok: false,
+        error: 'invalid-token',
+        message: 'Geçersiz sıfırlama bağlantısı.',
+      });
+    }
+
+    if (resetRow.usedAt) {
+      return res.status(400).json({
+        ok: false,
+        error: 'token-used',
+        message: 'Bu sıfırlama bağlantısı daha önce kullanılmış.',
+      });
+    }
+
+    if (resetRow.expiresAt.getTime() < Date.now()) {
+      return res.status(400).json({
+        ok: false,
+        error: 'token-expired',
+        message: 'Sıfırlama bağlantısının süresi dolmuş.',
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: resetRow.userId },
+        data: {
+          passwordHash,
+        },
+      }),
+      prisma.passwordResetToken.update({
+        where: { id: resetRow.id },
+        data: {
+          usedAt: new Date(),
+        },
+      }),
+      prisma.passwordResetToken.deleteMany({
+        where: {
+          userId: resetRow.userId,
+          id: { not: resetRow.id },
+        },
+      }),
+    ]);
+
+    return res.json({
+      ok: true,
+      message: 'Şifren başarıyla güncellendi.',
+    });
+  } catch (err) {
+    console.error('[POST /auth/reset-password] error:', err);
     return res.status(500).json({
       ok: false,
       error: 'server-error',
@@ -1581,12 +1813,15 @@ async function attachLikeCommentMetaToFeedPosts(posts: any[], req: express.Reque
   const meId = parseUserIdFromReq(req);
   const anyPrisma: any = prisma as any;
 
-  const postIds = posts.map(p => Number(p.id)).filter(n => Number.isFinite(n) && n > 0);
+  const postIds = (posts || [])
+    .map(p => Number((p as any)?.id))
+    .filter(n => Number.isFinite(n) && n > 0);
 
   const likeCountByPost = new Map<number, number>();
   const commentCountByPost = new Map<number, number>();
   const likedByMeSet = new Set<number>();
 
+  // ---------------- likes count ----------------
   try {
     if (anyPrisma.like?.groupBy && postIds.length) {
       const rows = await anyPrisma.like.groupBy({
@@ -1609,53 +1844,95 @@ async function attachLikeCommentMetaToFeedPosts(posts: any[], req: express.Reque
     }
   } catch {}
 
-  try {
-    if (anyPrisma.comment?.groupBy && postIds.length) {
-      const rows = await anyPrisma.comment.groupBy({
-        by: ['postId'],
-        where: { postId: { in: postIds } },
-        _count: { _all: true },
-      });
-      for (const r of rows) {
-        commentCountByPost.set(Number(r.postId), Number(r._count?._all ?? 0));
-      }
-    } else if (anyPrisma.comment?.findMany && postIds.length) {
-      const rows = await anyPrisma.comment.findMany({
-        where: { postId: { in: postIds } },
-        select: { postId: true },
-      });
-      for (const r of rows) {
-        const pid = Number(r.postId);
-        commentCountByPost.set(pid, (commentCountByPost.get(pid) ?? 0) + 1);
-      }
+ // ---------------- comments count ---------------- 
+try {
+  if (anyPrisma.comment?.groupBy && postIds.length) {
+    const rows = await anyPrisma.comment.groupBy({
+      by: ['postId'],
+      where: { postId: { in: postIds } },
+      _count: { _all: true },
+    });
+    for (const r of rows) {
+      commentCountByPost.set(Number(r.postId), Number(r._count?._all ?? 0));
     }
-  } catch {}
-
-  try {
-    if (meId && anyPrisma.like?.findMany && postIds.length) {
-      const myLikes = await anyPrisma.like.findMany({
-        where: { userId: meId, postId: { in: postIds } },
-        select: { postId: true },
-      });
-      for (const r of myLikes) likedByMeSet.add(Number(r.postId));
+  } else if (anyPrisma.comment?.findMany && postIds.length) {
+    const rows = await anyPrisma.comment.findMany({
+      where: { postId: { in: postIds } },
+      select: { postId: true },
+    });
+    for (const r of rows) {
+      const pid = Number(r.postId);
+      commentCountByPost.set(pid, (commentCountByPost.get(pid) ?? 0) + 1);
     }
-  } catch {}
+  }
+} catch {}
 
-  return posts.map(p => {
-    const pid = Number(p.id);
-    const likeCount = likeCountByPost.get(pid) ?? 0;
-    const commentCount = commentCountByPost.get(pid) ?? 0;
+// ---------------- likedByMe ----------------
+try {
+  if (meId && anyPrisma.like?.findMany && postIds.length) {
+    const rows = await anyPrisma.like.findMany({
+      where: { postId: { in: postIds }, userId: meId },
+      select: { postId: true },
+    });
+    for (const r of rows) {
+      const pid = Number(r.postId);
+      if (Number.isFinite(pid) && pid > 0) likedByMeSet.add(pid);
+    }
+  }
+} catch {}
 
-    return {
-      ...p,
-      likeCount,
-      commentCount,
-      likedByMe: likedByMeSet.has(pid),
+// ---------------- merge (KRİTİK) ----------------
+return (posts || []).map(p => {
+  const pid = Number((p as any)?.id);
+  const safePid = Number.isFinite(pid) ? pid : NaN;
 
-      // ✅ RN geriye dönük uyum: likes alanını da likeCount ile uyumlu tut
-      likes: likeCount,
-    };
-  });
+  const metaLikes = Number.isFinite(safePid) ? likeCountByPost.get(safePid) : undefined;
+  const metaComments = Number.isFinite(safePid) ? commentCountByPost.get(safePid) : undefined;
+
+  // ✅ LIKE: meta varsa onu bas, yoksa post üstündeki kalsın
+  const nextLikes =
+    typeof metaLikes === 'number' && Number.isFinite(metaLikes)
+      ? metaLikes
+      : typeof (p as any)?.likes === 'number' && Number.isFinite((p as any).likes)
+        ? (p as any).likes
+        : 0;
+
+  // ✅ COMMENT: EN STABİL KURAL
+  // - metaComments (Comment tablosundan sayım) varsa HER ZAMAN onu kullan
+  // - meta yoksa post.commentCount'a düş
+  // - ikisi de yoksa 0
+  const postCommentCount =
+    typeof (p as any)?.commentCount === 'number' && Number.isFinite((p as any).commentCount)
+      ? (p as any).commentCount
+      : undefined;
+
+  const nextCommentCount =
+    typeof metaComments === 'number' && Number.isFinite(metaComments)
+      ? metaComments
+      : typeof postCommentCount === 'number' && Number.isFinite(postCommentCount)
+        ? postCommentCount
+        : 0;
+
+  const likedByMe = Number.isFinite(safePid) && meId ? likedByMeSet.has(safePid) : false;
+
+  return {
+    ...p,
+    likes: nextLikes,
+
+    // ✅ 3 isimle birden dön (RN’de farklı yerler farklı isim okuyabiliyor)
+    commentCount: nextCommentCount,
+    commentsCount: nextCommentCount,
+    comments: nextCommentCount,
+
+    likedByMe,
+  };
+});
+
+// ✅ RN geriye dönük uyum: likes alanını da likeCount ile uyumlu tut
+// (bu blok sende zaten var, dokunmadım)
+likes: likeCount,
+};
+});
 }
 
 // ✅ Like toggle
@@ -1775,37 +2052,55 @@ const handleCreateComment = async (req: any, res: any) => {
       },
     });
 
-    // ✅ (2. adım) Post.commentCount artır (kolon yoksa app'i kırma)
-// - Diğer cihazın feed ekranında sayı / değişiklik görmesi için kritik
-let commentCount: number | null = null;
+    // ✅ FEED 304 kırmak için: Post’u “değişti” saydır
+    // commentCount kolonu olmasa bile updatedAt güncellenirse /feed ETag değişir.
+    try {
+      await prisma.post.update({
+        where: { id: postId },
+        data: { updatedAt: new Date() },
+      });
+    } catch {}
 
-try {
-  // ✅ TS build patlamasın diye prisma'yı any'e çeviriyoruz.
-  // Kolon yoksa runtime'da hata atar -> catch'e düşer (app kırılmaz).
-  const anyPrisma: any = prisma as any;
+    // ✅ (2. adım) Post.commentCount artırmayı dene (kolon yoksa sessizce geç)
+    // NOT: Şemada kolon yoksa Prisma "Unknown argument commentCount" verir.
+    // Bu durumda asıl kaynak: Comment tablosundan sayım.
+    let commentCount: number | null = null;
 
-  const updated = await anyPrisma.post.update({
-    where: { id: postId },
-    data: { commentCount: { increment: 1 } },
-    select: { commentCount: true },
-  });
+    try {
+      const anyPrisma2: any = prisma as any;
 
-  const n = updated?.commentCount;
-  if (typeof n === 'number' && Number.isFinite(n)) commentCount = n;
-} catch (e) {
-  // Kolon yoksa sorun değil; en azından yorum DB'ye yazıldı.
-  console.log('[POST /posts/:id/comment] commentCount increment skipped:', e);
-}
+      const updated = await anyPrisma2.post.update({
+        where: { id: postId },
+        data: { commentCount: { increment: 1 } },
+        select: { commentCount: true },
+      });
 
-    // ✅ Kolon yoksa bile sayarak döndür (client isterse bunu kullanır)
+      const n = updated?.commentCount;
+      if (typeof n === 'number' && Number.isFinite(n)) commentCount = n;
+    } catch {
+      // sessiz geç
+    }
+
+    // ✅ Kolon yoksa bile sayarak döndür (EN STABİL)
     if (commentCount === null) {
       try {
         const cnt = await anyPrisma.comment.count({ where: { postId } });
         if (typeof cnt === 'number' && Number.isFinite(cnt)) commentCount = cnt;
-      } catch {}
+      } catch {
+        commentCount = null;
+      }
     }
 
-    return res.json({ ok: true, comment, commentCount: commentCount ?? undefined });
+    const cc = commentCount ?? undefined;
+
+    // ✅ 3 isimle birden dön (client farklı isim okuyabiliyor)
+    return res.json({
+      ok: true,
+      comment,
+      commentCount: cc,
+      commentsCount: cc,
+      comments: cc,
+    });
   } catch (e) {
     console.error('[POST /posts/:id/comment] error:', e);
     return res.status(500).json({ ok: false, error: 'server-error' });
@@ -2075,6 +2370,17 @@ app.patch('/feed/:id', async (req, res) => {
 
 // ✅ FEED: client tarafındaki FeedScreen’in esas kullandığı endpoint
 app.get('/feed', async (req, res) => {
+  // ✅ Cache/ETag yüzünden 304 dönüp client’ın JSON alamaması problemini kır
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
+  // ✅ Ek garanti: proxy/CDN tarzı arakatmanlar 304 üretmesin
+  res.setHeader('Surrogate-Control', 'no-store');
+
+  // ✅ Last-Modified her request değişsin (ara katman “değişmedi” demesin)
+  res.setHeader('Last-Modified', new Date().toUTCString());
+
   try {
     const limitRaw = req.query.limit;
     let limit = 50;
@@ -2108,7 +2414,7 @@ app.get('/feed', async (req, res) => {
         safeVideoOut = isLocalOnlyUri(vv) ? null : toAbsoluteIfPath(req, vv);
       }
 
-      const base = {
+      return {
         ...anyP,
 
         user: undefined,
@@ -2129,28 +2435,104 @@ app.get('/feed', async (req, res) => {
 
         lastSharedTargets: Array.isArray(anyP.lastSharedTargets) ? anyP.lastSharedTargets : undefined,
       };
-
-      return base;
     });
 
-    const enriched = await attachLikeCommentMetaToFeedPosts(normalized, req);
+    // ✅ NEW: /feed cevabına commentCount ekle (kolon olmasa bile Comment tablosundan say)
+    let normalizedWithCounts = normalized;
 
-    // ✅ KRİTİK FIX:
-    // - DB’den gelen legacy "likes" alanı (0 bile olsa number) artık likeCount’un üstüne yazamaz.
-    // - likes her zaman likeCount’tan üretilir => diğer kullanıcılarda da doğru görünür.
-    const final = enriched.map((p: any) => ({
-      ...p,
-      likes: typeof p.likeCount === 'number' && Number.isFinite(p.likeCount) ? p.likeCount : 0,
-    }));
+    try {
+      const anyPrisma: any = prisma as any;
+
+      if (anyPrisma.comment && Array.isArray(normalized) && normalized.length) {
+        const ids = normalized
+          .map((pp: any) => Number((pp as any)?.id))
+          .filter(n => Number.isFinite(n) && n > 0);
+
+        const counts: Record<number, number> = {};
+
+        // 1) groupBy varsa tek sorgu
+        try {
+          if (typeof anyPrisma.comment.groupBy === 'function') {
+            const grouped = await anyPrisma.comment.groupBy({
+              by: ['postId'],
+              where: { postId: { in: ids } },
+              _count: { _all: true },
+            });
+
+            for (const g of grouped || []) {
+              const pid = Number((g as any)?.postId);
+              const c = Number((g as any)?._count?._all ?? 0);
+              if (Number.isFinite(pid) && pid > 0) counts[pid] = Number.isFinite(c) ? c : 0;
+            }
+          }
+        } catch {
+          // groupBy yoksa geç
+        }
+
+        // 2) groupBy yoksa fallback: tek tek say
+        if (!Object.keys(counts).length) {
+          for (const pid of ids) {
+            try {
+              const c = await anyPrisma.comment.count({ where: { postId: pid } });
+              counts[pid] = typeof c === 'number' && Number.isFinite(c) ? c : 0;
+            } catch {
+              counts[pid] = 0;
+            }
+          }
+        }
+
+        normalizedWithCounts = normalized.map((pp: any) => {
+          const pid = Number((pp as any)?.id);
+          const cc = Number.isFinite(pid) && pid > 0 ? (counts[pid] ?? 0) : 0;
+
+          // ✅ 3 isimle birden koy
+          return { ...pp, commentCount: cc, commentsCount: cc, comments: cc };
+        });
+      }
+    } catch (e) {
+      console.log('[GET /feed] commentCount attach skipped:', e);
+    }
+
+    // ✅ DEĞİŞTİ: normalized yerine normalizedWithCounts
+    const enriched = await attachLikeCommentMetaToFeedPosts(normalizedWithCounts, req);
+
+    // ✅ Like meta uyumu (senin eski “KRİTİK FIX” davranışını koru)
+    const final = (enriched || []).map((p: any) => {
+      const likeFixed =
+        typeof p.likeCount === 'number' && Number.isFinite(p.likeCount)
+          ? p.likeCount
+          : typeof p.likes === 'number' && Number.isFinite(p.likes)
+            ? p.likes
+            : 0;
+
+      const cc =
+        typeof p.commentCount === 'number' && Number.isFinite(p.commentCount)
+          ? p.commentCount
+          : typeof p.commentsCount === 'number' && Number.isFinite(p.commentsCount)
+            ? p.commentsCount
+            : typeof p.comments === 'number' && Number.isFinite(p.comments)
+              ? p.comments
+              : 0;
+
+      return {
+        ...p,
+        likes: likeFixed,
+
+        // ✅ 3 isimle birden dön
+        commentCount: cc,
+        commentsCount: cc,
+        comments: cc,
+      };
+    });
 
     return res.json(final);
-  } catch (err) {
-    console.error('[feed] error:', err);
+  } catch (e) {
+    console.error('[GET /feed] error:', e);
     return res.status(500).json({ ok: false, error: 'server-error' });
   }
 });
 
-// ✅ FEED: Tek post sil
+// ✅ FEED: Tek post sil (SADECE sahibi silebilir) — KRİTİK
 app.delete('/feed/:id', async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -2163,11 +2545,74 @@ app.delete('/feed/:id', async (req, res) => {
       });
     }
 
+    // ✅ Kim istek atıyor? (client’dan göndereceğiz)
+    const requesterUserIdRaw =
+      (req.headers && req.headers['x-user-id'] != null ? String(req.headers['x-user-id']) : undefined) ||
+      (req.query && req.query.userId != null ? String(req.query.userId) : undefined) ||
+      (req.body && req.body.userId != null ? String(req.body.userId) : undefined);
+
+    const requesterDeviceId =
+      (req.headers && req.headers['x-device-id'] != null ? String(req.headers['x-device-id']) : undefined) ||
+      (req.query && req.query.deviceId != null ? String(req.query.deviceId) : undefined) ||
+      (req.body && req.body.deviceId != null ? String(req.body.deviceId) : undefined);
+
+    const requesterUserId = requesterUserIdRaw != null ? Number(requesterUserIdRaw) : NaN;
+
+    // En az bir tanesi gelmeli
+    if ((!Number.isFinite(requesterUserId) || requesterUserId <= 0) && !requesterDeviceId) {
+      return res.status(401).json({
+        ok: false,
+        error: 'unauthorized',
+        message: 'missing user identity',
+      });
+    }
+
+    // ✅ Post sahibini bul (şemaya göre alanlardan hangisi varsa)
+    const post = await prisma.post.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        ownerId: true,   // varsa
+        userId: true,    // varsa
+        authorId: true,  // varsa
+        deviceId: true,  // varsa
+      },
+    });
+
+    if (!post) {
+      return res.status(404).json({ ok: false, error: 'not-found' });
+    }
+
+    const ownerMatch =
+      (Number.isFinite(requesterUserId) &&
+        requesterUserId > 0 &&
+        post.ownerId != null &&
+        Number(post.ownerId) === requesterUserId) ||
+      (Number.isFinite(requesterUserId) &&
+        requesterUserId > 0 &&
+        post.userId != null &&
+        Number(post.userId) === requesterUserId) ||
+      (Number.isFinite(requesterUserId) &&
+        requesterUserId > 0 &&
+        post.authorId != null &&
+        Number(post.authorId) === requesterUserId) ||
+      (!!requesterDeviceId &&
+        post.deviceId != null &&
+        String(post.deviceId) === String(requesterDeviceId));
+
+    if (!ownerMatch) {
+      return res.status(403).json({
+        ok: false,
+        error: 'forbidden',
+        message: 'you can only delete your own posts',
+      });
+    }
+
     await prisma.post.delete({ where: { id } });
 
     return res.json({ ok: true });
-  } catch (err: any) {
-    const msg = String(err?.message ?? '');
+  } catch (err) {
+    const msg = String(err && err.message ? err.message : '');
     if (msg.toLowerCase().includes('record') && msg.toLowerCase().includes('does not exist')) {
       return res.status(404).json({ ok: false, error: 'not-found' });
     }
