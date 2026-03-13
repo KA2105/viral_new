@@ -1930,10 +1930,6 @@ return (posts || []).map(p => {
 
 // ✅ RN geriye dönük uyum: likes alanını da likeCount ile uyumlu tut
 // (bu blok sende zaten var, dokunmadım)
-likes: likeCount,
-};
-});
-}
 
 // ✅ Like toggle
 app.post('/posts/:id/like', async (req, res) => {
