@@ -2548,15 +2548,9 @@ app.delete('/feed/:id', async (req, res) => {
       (req.query && req.query.userId != null ? String(req.query.userId) : undefined) ||
       (req.body && req.body.userId != null ? String(req.body.userId) : undefined);
 
-    const requesterDeviceId =
-      (req.headers && req.headers['x-device-id'] != null ? String(req.headers['x-device-id']) : undefined) ||
-      (req.query && req.query.deviceId != null ? String(req.query.deviceId) : undefined) ||
-      (req.body && req.body.deviceId != null ? String(req.body.deviceId) : undefined);
-
     const requesterUserId = requesterUserIdRaw != null ? Number(requesterUserIdRaw) : NaN;
 
-    // En az bir tanesi gelmeli
-    if ((!Number.isFinite(requesterUserId) || requesterUserId <= 0) && !requesterDeviceId) {
+    if (!Number.isFinite(requesterUserId) || requesterUserId <= 0) {
       return res.status(401).json({
         ok: false,
         error: 'unauthorized',
@@ -2564,15 +2558,12 @@ app.delete('/feed/:id', async (req, res) => {
       });
     }
 
-    // ✅ Post sahibini bul (şemaya göre alanlardan hangisi varsa)
+    // ✅ Mevcut şemaya göre sadece userId kontrolü
     const post = await prisma.post.findUnique({
       where: { id },
       select: {
         id: true,
-        ownerId: true,   // varsa
-        userId: true,    // varsa
-        authorId: true,  // varsa
-        deviceId: true,  // varsa
+        userId: true,
       },
     });
 
@@ -2581,21 +2572,10 @@ app.delete('/feed/:id', async (req, res) => {
     }
 
     const ownerMatch =
-      (Number.isFinite(requesterUserId) &&
-        requesterUserId > 0 &&
-        post.ownerId != null &&
-        Number(post.ownerId) === requesterUserId) ||
-      (Number.isFinite(requesterUserId) &&
-        requesterUserId > 0 &&
-        post.userId != null &&
-        Number(post.userId) === requesterUserId) ||
-      (Number.isFinite(requesterUserId) &&
-        requesterUserId > 0 &&
-        post.authorId != null &&
-        Number(post.authorId) === requesterUserId) ||
-      (!!requesterDeviceId &&
-        post.deviceId != null &&
-        String(post.deviceId) === String(requesterDeviceId));
+      Number.isFinite(requesterUserId) &&
+      requesterUserId > 0 &&
+      post.userId != null &&
+      Number(post.userId) === requesterUserId;
 
     if (!ownerMatch) {
       return res.status(403).json({
@@ -2608,8 +2588,8 @@ app.delete('/feed/:id', async (req, res) => {
     await prisma.post.delete({ where: { id } });
 
     return res.json({ ok: true });
-  } catch (err) {
-    const msg = String(err && err.message ? err.message : '');
+  } catch (err: any) {
+    const msg = String(err?.message ?? '');
     if (msg.toLowerCase().includes('record') && msg.toLowerCase().includes('does not exist')) {
       return res.status(404).json({ ok: false, error: 'not-found' });
     }
