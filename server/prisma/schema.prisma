@@ -218,6 +218,8 @@ model PasswordResetToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   token     String   @unique
+  code      String?
+  channel   String?  // 'email' | 'phone'
   expiresAt DateTime
   usedAt    DateTime?
 
@@ -225,4 +227,5 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([token])
+  @@index([code])
 }

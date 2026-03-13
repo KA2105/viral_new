@@ -870,7 +870,7 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-// 🟢 FORGOT PASSWORD (ilk sürüm: sadece email aktif)
+// 🟢 FORGOT PASSWORD (6 haneli kod mantığı: email aktif, telefon şimdilik simülasyon/sonra aktif)
 app.post('/auth/forgot-password', async (req, res) => {
   try {
     const body = req.body ?? {};
@@ -885,32 +885,51 @@ app.post('/auth/forgot-password', async (req, res) => {
     }
 
     const emailNorm = normalizeEmail(identifierRaw);
+    const phoneNorm = normalizeTrPhone(identifierRaw);
 
-    // Şimdilik telefon reset aktif değil
-    if (!emailNorm) {
-      return res.json({
-        ok: true,
-        message: 'Telefon ile şifre sıfırlama yakında aktif olacak. Lütfen e-posta kullan.',
+    // Şimdilik destek: email gerçek akış, telefon "yakında"
+    if (!emailNorm && !phoneNorm) {
+      return res.status(400).json({
+        ok: false,
+        error: 'invalid-identifier',
+        message: 'Geçerli bir e-posta adresi veya telefon numarası gir.',
       });
     }
 
-    const user = await prisma.user.findFirst({
-      where: { email: emailNorm },
-      select: {
-        id: true,
-        email: true,
-      },
-    });
+    let user: { id: number; email: string | null; phone: string | null } | null = null;
+    let channel: 'email' | 'phone' = 'email';
+
+    if (emailNorm) {
+      channel = 'email';
+      user = await prisma.user.findFirst({
+        where: { email: emailNorm },
+        select: {
+          id: true,
+          email: true,
+          phone: true,
+        },
+      });
+    } else if (phoneNorm) {
+      channel = 'phone';
+      user = await prisma.user.findFirst({
+        where: { phone: phoneNorm },
+        select: {
+          id: true,
+          email: true,
+          phone: true,
+        },
+      });
+    }
 
     // Güvenlik: kullanıcı olmasa bile aynı cevap
-    if (!user?.email) {
+    if (!user) {
       return res.json({
         ok: true,
-        message: 'Hesap varsa sıfırlama bağlantısı gönderildi.',
+        message: 'Hesap varsa doğrulama kodu gönderildi.',
       });
     }
 
-    // Eski kullanılmamış tokenları temizle
+    // Eski kullanılmamış reset kayıtlarını temizle
     await prisma.passwordResetToken.deleteMany({
       where: {
         userId: user.id,
@@ -919,24 +938,47 @@ app.post('/auth/forgot-password', async (req, res) => {
     });
 
     const token = crypto.randomBytes(32).toString('hex');
+    const code = String(Math.floor(100000 + Math.random() * 900000));
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await prisma.passwordResetToken.create({
       data: {
         userId: user.id,
         token,
+        code,
+        channel,
         expiresAt,
       },
     });
 
-    const baseUrl = RESET_PASSWORD_BASE_URL || `${getPublicBaseUrl(req)}/reset-password`;
-    const resetUrl = `${baseUrl}?token=${encodeURIComponent(token)}`;
+    if (channel === 'email' && user.email) {
+      // Şimdilik mevcut mail fonksiyonunu kullanıyoruz.
+      // İçerikte 6 haneli kodu göndermek için subject/body yapın varsa onu kullan.
+      // Yoksa dev log yine düşer.
+      await sendResetPasswordEmail(
+        user.email,
+        `Doğrulama kodun: ${code}\n\nBu kod 15 dakika geçerlidir.`
+      );
 
-    await sendResetPasswordEmail(user.email, resetUrl);
+      console.log('[RESET PASSWORD][EMAIL CODE]', {
+        to: user.email,
+        code,
+        expiresAt: expiresAt.toISOString(),
+      });
+    } else if (channel === 'phone') {
+      console.log('[RESET PASSWORD][PHONE CODE]', {
+        to: user.phone,
+        code,
+        expiresAt: expiresAt.toISOString(),
+      });
+    }
 
     return res.json({
       ok: true,
-      message: 'Hesap varsa sıfırlama bağlantısı gönderildi.',
+      message:
+        channel === 'phone'
+          ? 'Telefon için doğrulama kodu desteği yakında aktif olacak.'
+          : 'Hesap varsa doğrulama kodu gönderildi.',
     });
   } catch (err) {
     console.error('[POST /auth/forgot-password] error:', err);
@@ -947,18 +989,27 @@ app.post('/auth/forgot-password', async (req, res) => {
   }
 });
 
-// 🟢 RESET PASSWORD
+// 🟢 RESET PASSWORD (6 haneli kod ile)
 app.post('/auth/reset-password', async (req, res) => {
   try {
     const body = req.body ?? {};
-    const token = typeof body.token === 'string' ? body.token.trim() : '';
+    const identifierRaw = typeof body.identifier === 'string' ? body.identifier.trim() : '';
+    const code = typeof body.code === 'string' ? body.code.trim() : '';
     const newPassword = typeof body.newPassword === 'string' ? body.newPassword : '';
 
-    if (!token || !newPassword) {
+    if (!identifierRaw || !code || !newPassword) {
       return res.status(400).json({
         ok: false,
         error: 'missing-fields',
-        message: 'token and newPassword are required',
+        message: 'identifier, code and newPassword are required',
+      });
+    }
+
+    if (!/^\d{6}$/.test(code)) {
+      return res.status(400).json({
+        ok: false,
+        error: 'invalid-code-format',
+        message: 'Doğrulama kodu 6 haneli olmalıdır.',
       });
     }
 
@@ -970,34 +1021,63 @@ app.post('/auth/reset-password', async (req, res) => {
       });
     }
 
-    const resetRow = await prisma.passwordResetToken.findUnique({
-      where: { token },
-      include: {
-        user: true,
+    const emailNorm = normalizeEmail(identifierRaw);
+    const phoneNorm = normalizeTrPhone(identifierRaw);
+
+    if (!emailNorm && !phoneNorm) {
+      return res.status(400).json({
+        ok: false,
+        error: 'invalid-identifier',
+        message: 'Geçerli bir e-posta adresi veya telefon numarası gir.',
+      });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: emailNorm ? { email: emailNorm } : { phone: phoneNorm! },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        ok: false,
+        error: 'invalid-code',
+        message: 'Kod geçersiz veya süresi dolmuş.',
+      });
+    }
+
+    const resetRow = await prisma.passwordResetToken.findFirst({
+      where: {
+        userId: user.id,
+        code,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
     if (!resetRow) {
       return res.status(400).json({
         ok: false,
-        error: 'invalid-token',
-        message: 'Geçersiz sıfırlama bağlantısı.',
+        error: 'invalid-code',
+        message: 'Kod geçersiz veya süresi dolmuş.',
       });
     }
 
     if (resetRow.usedAt) {
       return res.status(400).json({
         ok: false,
-        error: 'token-used',
-        message: 'Bu sıfırlama bağlantısı daha önce kullanılmış.',
+        error: 'code-used',
+        message: 'Bu doğrulama kodu daha önce kullanılmış.',
       });
     }
 
     if (resetRow.expiresAt.getTime() < Date.now()) {
       return res.status(400).json({
         ok: false,
-        error: 'token-expired',
-        message: 'Sıfırlama bağlantısının süresi dolmuş.',
+        error: 'code-expired',
+        message: 'Doğrulama kodunun süresi dolmuş.',
       });
     }
 
