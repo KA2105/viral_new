@@ -1927,6 +1927,7 @@ return (posts || []).map(p => {
     likedByMe,
   };
 });
+}
 
 // ✅ RN geriye dönük uyum: likes alanını da likeCount ile uyumlu tut
 // (bu blok sende zaten var, dokunmadım)
