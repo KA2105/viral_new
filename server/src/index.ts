@@ -2622,21 +2622,9 @@ app.delete('/feed/:id', async (req, res) => {
       });
     }
 
-    // ✅ Kim istek atıyor? (client’dan göndereceğiz)
-    const requesterUserIdRaw =
-      (req.headers && req.headers['x-user-id'] != null ? String(req.headers['x-user-id']) : undefined) ||
-      (req.query && req.query.userId != null ? String(req.query.userId) : undefined) ||
-      (req.body && req.body.userId != null ? String(req.body.userId) : undefined);
-
-    const requesterUserId = requesterUserIdRaw != null ? Number(requesterUserIdRaw) : NaN;
-
-    if (!Number.isFinite(requesterUserId) || requesterUserId <= 0) {
-      return res.status(401).json({
-        ok: false,
-        error: 'unauthorized',
-        message: 'missing user identity',
-      });
-    }
+    // ✅ JWT / x-user-id / query / body hepsini destekle
+    const requesterUserId = requireUserId(req, res);
+    if (!requesterUserId) return;
 
     // ✅ Mevcut şemaya göre sadece userId kontrolü
     const post = await prisma.post.findUnique({
@@ -2652,10 +2640,8 @@ app.delete('/feed/:id', async (req, res) => {
     }
 
     const ownerMatch =
-      Number.isFinite(requesterUserId) &&
-      requesterUserId > 0 &&
       post.userId != null &&
-      Number(post.userId) === requesterUserId;
+      Number(post.userId) === Number(requesterUserId);
 
     if (!ownerMatch) {
       return res.status(403).json({
