@@ -302,8 +302,8 @@ function getPublicBaseUrl(req: express.Request): string {
 
 function ensureUploadsDirs() {
   const root = path.join(process.cwd(), 'uploads');
-  const videos = path.join(root, 'uploads/videos');
-  const avatars = path.join(root, 'uploads/avatars');
+  const videos = path.join(root, 'videos');
+  const avatars = path.join(root, 'avatars');
   try {
     fs.mkdirSync(videos, { recursive: true });
     fs.mkdirSync(avatars, { recursive: true });
