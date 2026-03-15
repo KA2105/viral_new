@@ -382,16 +382,11 @@ const uploadAvatar = multer({
 
 const uploadImage = multer({
   storage: imageStorage,
-  limits: { fileSize: 100 * 1024 * 1024 },
-});
-
-const uploadImages = multer({
-  storage: imageStorage,
   limits: {
-    fileSize: 100 * 1024 * 1024, // tek foto için üst limit
-    files: 10,                   // aynı anda max 10 foto
+    fileSize: 100 * 1024 * 1024, // tek dosya üst limiti
+    files: 10,                   // array upload için max 10
   },
-}); 
+});
 
 // ✅ Video upload
 app.post('/uploads/video', uploadVideo.single('file'), async (req, res) => {
@@ -461,7 +456,7 @@ app.post('/upload/avatar', uploadAvatar.single('file'), async (req, res) => {
 });
 
 // ✅ Çoklu foto upload
-app.post('/uploads/images', uploadImages.array('files', 10), async (req, res) => {
+app.post('/uploads/images', uploadImage.array('files', 10), async (req, res) => {
   try {
     const files = ((req as any).files || []) as Express.Multer.File[];
 
@@ -488,7 +483,7 @@ app.post('/uploads/images', uploadImages.array('files', 10), async (req, res) =>
 });
 
 // ✅ Alias: /upload/images
-app.post('/upload/images', uploadImages.array('files', 10), async (req, res) => {
+app.post('/upload/images', uploadImage.array('files', 10), async (req, res) => {
   try {
     const files = ((req as any).files || []) as Express.Multer.File[];
 
@@ -512,11 +507,6 @@ app.post('/upload/images', uploadImages.array('files', 10), async (req, res) => 
     console.error('[POST /upload/images] error:', e);
     return res.status(500).json({ ok: false, error: 'server-error' });
   }
-}); 
-
-const uploadImage = multer({
-  storage: imageStorage,
-  limits: { fileSize: 100 * 1024 * 1024 },
 });
 
 // ✅ Tek foto upload
