@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // 🔥 kalıcılık için
+import { useTranslation } from 'react-i18next';
 
 // ✅ API
 import { API_BASE_URL } from '../config/api';
@@ -132,6 +133,7 @@ function resolveAvatarUri(u: any): string | null {
 }
 
 const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
   // ✅ Auth: userId header için
@@ -238,7 +240,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         const base = String(API_BASE_URL || '').replace(/\/+$/, '');
 
         if (!base || !/^https?:\/\//i.test(base)) {
-          setNetHint('API_BASE_URL geçersiz görünüyor.');
+          setNetHint(t('focusNetwork.net.invalidBaseUrl', 'API_BASE_URL geçersiz görünüyor.'));
           return;
         }
 
@@ -271,7 +273,9 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
           setManualIncoming(rItems);
         }
       } catch (e: any) {
-        setNetHint(`Focus Ağı online fetch hata: ${e?.message || String(e)}`);
+        setNetHint(
+          `${t('focusNetwork.net.onlineFetchError', 'Focus Ağı online fetch hata')}: ${e?.message || String(e)}`,
+        );
       }
     };
 
@@ -293,11 +297,11 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
     if (activeTab !== 'discover') return;
 
     const q = search.trim();
-    const t = setTimeout(() => {
+    const tmr = setTimeout(() => {
       searchUsers({ userId: userId ?? undefined, q });
     }, 250);
 
-    return () => clearTimeout(t);
+    return () => clearTimeout(tmr);
   }, [search, activeTab, userId, searchUsers]);
 
   // 🔔 yeni istek sayısını hesapla (seenRequestIds ile kıyas)
@@ -370,11 +374,11 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         id: String(u.id),
         name,
         handle,
-        summary: u?.bio ? String(u.bio) : 'Focus ağında.',
+        summary: u?.bio ? String(u.bio) : t('focusNetwork.summary.inNetwork', 'Focus ağında.'),
         avatarUri,
       };
     });
-  }, [friends, hydrated, hydrateError, manualFriends]);
+  }, [friends, hydrated, hydrateError, manualFriends, t]);
 
   const discoverProfiles: FocusProfile[] = useMemo(() => {
     const sourceDiscover =
@@ -395,14 +399,14 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
       const summary =
         rel === 'friend'
-          ? 'Zaten ağında.'
+          ? t('focusNetwork.summary.alreadyInNetwork', 'Zaten ağında.')
           : rel === 'incoming'
-          ? 'Sana istek göndermiş.'
+          ? t('focusNetwork.summary.incomingRequest', 'Sana istek göndermiş.')
           : rel === 'outgoing'
-          ? 'İstek gönderildi (beklemede).'
+          ? t('focusNetwork.summary.outgoingPending', 'İstek gönderildi (beklemede).')
           : u?.bio
           ? String(u.bio)
-          : 'Keşfet listesinden ekle.';
+          : t('focusNetwork.summary.discoverFallback', 'Keşfet listesinden ekle.');
 
       return {
         id: String(u.id),
@@ -413,7 +417,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         avatarUri,
       };
     });
-  }, [discover, hydrated, hydrateError, manualDiscover]);
+  }, [discover, hydrated, hydrateError, manualDiscover, t]);
 
   const incomingProfiles: FocusProfile[] = useMemo(() => {
     const srcIncoming =
@@ -436,11 +440,11 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
           id: String(r.id),
           name,
           handle,
-          summary: 'Arkadaşlık isteği bekliyor.',
+          summary: t('focusNetwork.summary.requestPending', 'Arkadaşlık isteği bekliyor.'),
           avatarUri,
         };
       });
-  }, [incomingRequests, hydrated, hydrateError, manualIncoming]);
+  }, [incomingRequests, hydrated, hydrateError, manualIncoming, t]);
 
   const filteredMyNetwork = useMemo(() => {
     if (!normalizedQuery) return myNetworkProfiles;
@@ -482,7 +486,10 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
     if (!selectedProfile) return;
 
     if (!userId) {
-      Alert.alert('Giriş gerekli', 'Bu işlem için kullanıcı oturumu gerekli.');
+      Alert.alert(
+        t('focusNetwork.alerts.loginRequiredTitle', 'Giriş gerekli'),
+        t('focusNetwork.alerts.loginRequiredBody', 'Bu işlem için kullanıcı oturumu gerekli.'),
+      );
       return;
     }
 
@@ -510,17 +517,32 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         const rel = selectedProfile.relationship ?? 'none';
 
         if (rel === 'friend') {
-          Alert.alert('Zaten ağında', 'Bu kişi zaten Focus ağında.');
+          Alert.alert(
+            t('focusNetwork.alerts.alreadyInNetworkTitle', 'Zaten ağında'),
+            t('focusNetwork.alerts.alreadyInNetworkBody', 'Bu kişi zaten Focus ağında.'),
+          );
           closeDetail();
           return;
         }
         if (rel === 'outgoing') {
-          Alert.alert('Beklemede', 'Bu kişiye zaten istek gönderdin. Kabul etmesini bekle.');
+          Alert.alert(
+            t('focusNetwork.alerts.pendingTitle', 'Beklemede'),
+            t(
+              'focusNetwork.alerts.pendingBody',
+              'Bu kişiye zaten istek gönderdin. Kabul etmesini bekle.',
+            ),
+          );
           closeDetail();
           return;
         }
         if (rel === 'incoming') {
-          Alert.alert('İstek var', 'Bu kişi sana istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.');
+          Alert.alert(
+            t('focusNetwork.alerts.requestExistsTitle', 'İstek var'),
+            t(
+              'focusNetwork.alerts.requestExistsBody',
+              'Bu kişi sana istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.',
+            ),
+          );
           setActiveTab('requests');
           closeDetail();
           return;
@@ -532,7 +554,13 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         const result = await sendFriendRequest({ userId, toUserId });
 
         if (result?.status === 'incoming-exists') {
-          Alert.alert('İstek var', 'Bu kişi sana zaten istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.');
+          Alert.alert(
+            t('focusNetwork.alerts.requestExistsTitle', 'İstek var'),
+            t(
+              'focusNetwork.alerts.requestExistsBody',
+              'Bu kişi sana zaten istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.',
+            ),
+          );
           setActiveTab('requests');
         }
         closeDetail();
@@ -540,7 +568,10 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
       }
     } catch (e: any) {
       console.warn('[FocusNetwork] primary action failed:', e);
-      Alert.alert('Hata', 'İşlem başarısız oldu. (Bağlantı?)');
+      Alert.alert(
+        t('common.error', 'Hata'),
+        t('focusNetwork.alerts.actionFailedWithConnection', 'İşlem başarısız oldu. (Bağlantı?)'),
+      );
     }
   };
 
@@ -562,7 +593,10 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         await markAllIncomingSeen();
       } catch (e) {
         console.warn('[FocusNetwork] decline failed:', e);
-        Alert.alert('Hata', 'Reddetme işlemi başarısız oldu.');
+        Alert.alert(
+          t('common.error', 'Hata'),
+          t('focusNetwork.alerts.declineFailed', 'Reddetme işlemi başarısız oldu.'),
+        );
       }
     } else {
       closeDetail();
@@ -613,12 +647,12 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
     const quickAddText =
       inNetwork || rel === 'friend'
-        ? 'Ağımda'
+        ? t('focusNetwork.actions.inMyNetwork', 'Ağımda')
         : rel === 'outgoing'
-        ? 'Beklemede'
+        ? t('focusNetwork.actions.pending', 'Beklemede')
         : rel === 'incoming'
-        ? 'İstek var'
-        : 'İstek gönder';
+        ? t('focusNetwork.actions.requestExists', 'İstek var')
+        : t('focusNetwork.actions.sendRequest', 'İstek gönder');
 
     return (
       <View key={profile.id} style={styles.profileRow}>
@@ -640,7 +674,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
         <View style={styles.profileRight}>
           <Pressable style={({ pressed }) => [styles.detailBtn, pressed && styles.detailBtnPressed]} onPress={() => openDetail(profile)}>
-            <Text style={styles.detailBtnText}>Detay</Text>
+            <Text style={styles.detailBtnText}>{t('focusNetwork.actions.detail', 'Detay')}</Text>
           </Pressable>
 
           {options?.showQuickAdd && (
@@ -653,19 +687,34 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
               ]}
               onPress={async () => {
                 if (!userId) {
-                  Alert.alert('Giriş gerekli', 'Bu işlem için kullanıcı oturumu gerekli.');
+                  Alert.alert(
+                    t('focusNetwork.alerts.loginRequiredTitle', 'Giriş gerekli'),
+                    t('focusNetwork.alerts.loginRequiredBody', 'Bu işlem için kullanıcı oturumu gerekli.'),
+                  );
                   return;
                 }
 
                 if (rel === 'friend') return;
 
                 if (rel === 'outgoing') {
-                  Alert.alert('Beklemede', 'Bu kişiye zaten istek gönderdin. Kabul etmesini bekle.');
+                  Alert.alert(
+                    t('focusNetwork.alerts.pendingTitle', 'Beklemede'),
+                    t(
+                      'focusNetwork.alerts.pendingBody',
+                      'Bu kişiye zaten istek gönderdin. Kabul etmesini bekle.',
+                    ),
+                  );
                   return;
                 }
 
                 if (rel === 'incoming') {
-                  Alert.alert('İstek var', 'Bu kişi sana istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.');
+                  Alert.alert(
+                    t('focusNetwork.alerts.requestExistsTitle', 'İstek var'),
+                    t(
+                      'focusNetwork.alerts.requestExistsBody',
+                      'Bu kişi sana istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.',
+                    ),
+                  );
                   setActiveTab('requests');
                   return;
                 }
@@ -676,12 +725,21 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
                 try {
                   const result = await sendFriendRequest({ userId, toUserId });
                   if (result?.status === 'incoming-exists') {
-                    Alert.alert('İstek var', 'Bu kişi sana zaten istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.');
+                    Alert.alert(
+                      t('focusNetwork.alerts.requestExistsTitle', 'İstek var'),
+                      t(
+                        'focusNetwork.alerts.requestExistsBody',
+                        'Bu kişi sana zaten istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.',
+                      ),
+                    );
                     setActiveTab('requests');
                   }
                 } catch (e) {
                   console.warn('[FocusNetwork] quick add failed:', e);
-                  Alert.alert('Hata', 'İstek gönderilemedi. (Bağlantı?)');
+                  Alert.alert(
+                    t('common.error', 'Hata'),
+                    t('focusNetwork.alerts.requestSendFailed', 'İstek gönderilemedi. (Bağlantı?)'),
+                  );
                 }
               }}
             >
@@ -702,11 +760,14 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
                   await markAllIncomingSeen();
                 } catch (e) {
                   console.warn('[FocusNetwork] quick accept failed:', e);
-                  Alert.alert('Hata', 'Kabul edilemedi. (Bağlantı?)');
+                  Alert.alert(
+                    t('common.error', 'Hata'),
+                    t('focusNetwork.alerts.acceptFailed', 'Kabul edilemedi. (Bağlantı?)'),
+                  );
                 }
               }}
             >
-              <Text style={styles.addBtnText}>Kabul et</Text>
+              <Text style={styles.addBtnText}>{t('focusNetwork.actions.accept', 'Kabul et')}</Text>
             </Pressable>
           )}
 
@@ -723,11 +784,14 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
                   await markAllIncomingSeen();
                 } catch (e) {
                   console.warn('[FocusNetwork] quick decline failed:', e);
-                  Alert.alert('Hata', 'Reddetme işlemi başarısız oldu.');
+                  Alert.alert(
+                    t('common.error', 'Hata'),
+                    t('focusNetwork.alerts.declineFailed', 'Reddetme işlemi başarısız oldu.'),
+                  );
                 }
               }}
             >
-              <Text style={styles.declineBtnText}>Reddet</Text>
+              <Text style={styles.declineBtnText}>{t('focusNetwork.actions.decline', 'Reddet')}</Text>
             </Pressable>
           )}
         </View>
@@ -743,8 +807,13 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         </Pressable>
 
         <View style={styles.headerTextBlock}>
-          <Text style={styles.headerTitle}>Focus Ağı</Text>
-          <Text style={styles.headerSubtitle}>Burada sadece seçtiğin kişilerin gönderilerini görürsün.</Text>
+          <Text style={styles.headerTitle}>{t('focusNetwork.title', 'Focus Ağı')}</Text>
+          <Text style={styles.headerSubtitle}>
+            {t(
+              'focusNetwork.subtitle',
+              'Burada sadece seçtiğin kişilerin gönderilerini görürsün.',
+            )}
+          </Text>
         </View>
       </View>
 
@@ -759,14 +828,18 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
           style={({ pressed }) => [styles.tabPill, activeTab === 'network' && styles.tabPillActive, pressed && styles.tabPillPressed]}
           onPress={() => setActiveTab('network')}
         >
-          <Text style={[styles.tabText, activeTab === 'network' && styles.tabTextActive]}>Ağım</Text>
+          <Text style={[styles.tabText, activeTab === 'network' && styles.tabTextActive]}>
+            {t('focusNetwork.tabs.network', 'Ağım')}
+          </Text>
         </Pressable>
 
         <Pressable
           style={({ pressed }) => [styles.tabPill, activeTab === 'discover' && styles.tabPillActive, pressed && styles.tabPillPressed]}
           onPress={() => setActiveTab('discover')}
         >
-          <Text style={[styles.tabText, activeTab === 'discover' && styles.tabTextActive]}>Keşfet</Text>
+          <Text style={[styles.tabText, activeTab === 'discover' && styles.tabTextActive]}>
+            {t('focusNetwork.tabs.discover', 'Keşfet')}
+          </Text>
         </Pressable>
 
         <Pressable
@@ -774,7 +847,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
           onPress={() => setActiveTab('requests')}
         >
           <Text style={[styles.tabText, activeTab === 'requests' && styles.tabTextActive]}>
-            İstekler {incomingProfiles.length > 0 ? `(${incomingProfiles.length})` : ''}
+            {t('focusNetwork.tabs.requests', 'İstekler')} {incomingProfiles.length > 0 ? `(${incomingProfiles.length})` : ''}
           </Text>
         </Pressable>
       </View>
@@ -785,10 +858,10 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
           onChangeText={setSearch}
           placeholder={
             activeTab === 'network'
-              ? 'Ağında ara (@kullanıcı, ad)...'
+              ? t('focusNetwork.search.networkPlaceholder', 'Ağında ara (@kullanıcı, ad)...')
               : activeTab === 'discover'
-              ? 'Keşfet: @handle / ad / email / telefon...'
-              : 'İsteklerde ara...'
+              ? t('focusNetwork.search.discoverPlaceholder', 'Keşfet: @handle / ad / email / telefon...')
+              : t('focusNetwork.search.requestsPlaceholder', 'İsteklerde ara...')
           }
           placeholderTextColor="#999"
           style={styles.searchInput}
@@ -805,19 +878,32 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
             }
           }}
         >
-          <Text style={styles.addPersonBtnText}>{activeTab === 'discover' ? 'Kişi ekle' : 'Keşfet'}</Text>
+          <Text style={styles.addPersonBtnText}>
+            {activeTab === 'discover'
+              ? t('focusNetwork.actions.addPerson', 'Kişi ekle')
+              : t('focusNetwork.tabs.discover', 'Keşfet')}
+          </Text>
         </Pressable>
       </View>
 
       {newIncomingCount > 0 && activeTab !== 'requests' && (
         <Pressable style={({ pressed }) => [styles.incomingBanner, pressed && styles.incomingBannerPressed]} onPress={() => setActiveTab('requests')}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.incomingBannerTitle}>Yeni bağlantı isteği</Text>
-            <Text style={styles.incomingBannerSub}>{newIncomingCount} yeni istek var. Görmek için dokun.</Text>
+            <Text style={styles.incomingBannerTitle}>
+              {t('focusNetwork.banner.newRequestTitle', 'Yeni bağlantı isteği')}
+            </Text>
+            <Text style={styles.incomingBannerSub}>
+              {t('focusNetwork.banner.newRequestBody', '{{count}} yeni istek var. Görmek için dokun.', {
+                count: newIncomingCount,
+                defaultValue: '{{count}} yeni istek var. Görmek için dokun.',
+              })}
+            </Text>
           </View>
 
           <View style={styles.incomingBannerPill}>
-            <Text style={styles.incomingBannerPillText}>İstekler</Text>
+            <Text style={styles.incomingBannerPillText}>
+              {t('focusNetwork.tabs.requests', 'İstekler')}
+            </Text>
           </View>
         </Pressable>
       )}
@@ -826,12 +912,19 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         {activeTab === 'network' && (
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Ağım</Text>
-              <Text style={styles.sectionCount}>{myNetworkProfiles.length} kişi</Text>
+              <Text style={styles.sectionTitle}>{t('focusNetwork.sections.network', 'Ağım')}</Text>
+              <Text style={styles.sectionCount}>
+                {t('focusNetwork.count.people', '{{count}} kişi', {
+                  count: myNetworkProfiles.length,
+                  defaultValue: '{{count}} kişi',
+                })}
+              </Text>
             </View>
 
             {filteredMyNetwork.length === 0 ? (
-              <Text style={styles.emptyText}>Aramana uygun kişi bulunamadı.</Text>
+              <Text style={styles.emptyText}>
+                {t('focusNetwork.empty.noSearchMatch', 'Aramana uygun kişi bulunamadı.')}
+              </Text>
             ) : (
               filteredMyNetwork.map(profile => renderProfileRow(profile, { inNetwork: true, showQuickAdd: false }))
             )}
@@ -841,19 +934,29 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         {activeTab === 'discover' && (
           <View style={styles.section} onLayout={e => setSuggestionsOffset(e.nativeEvent.layout.y)}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Keşfet</Text>
-              <Text style={styles.sectionCount}>{discoverProfiles.length} kişi</Text>
+              <Text style={styles.sectionTitle}>{t('focusNetwork.sections.discover', 'Keşfet')}</Text>
+              <Text style={styles.sectionCount}>
+                {t('focusNetwork.count.people', '{{count}} kişi', {
+                  count: discoverProfiles.length,
+                  defaultValue: '{{count}} kişi',
+                })}
+              </Text>
             </View>
 
             {filteredDiscover.length === 0 ? (
-              <Text style={styles.emptyText}>Şu anda sonuç yok.</Text>
+              <Text style={styles.emptyText}>
+                {t('focusNetwork.empty.noResults', 'Şu anda sonuç yok.')}
+              </Text>
             ) : (
               filteredDiscover.map(profile => renderProfileRow(profile, { inNetwork: false, showQuickAdd: true }))
             )}
 
             <View style={{ marginTop: 10 }}>
               <Text style={{ fontSize: 11, color: '#999' }}>
-                Not: Keşfet listesi backend’den gelir. Bağlantı yoksa sonuçlar güncellenmeyebilir.
+                {t(
+                  'focusNetwork.note.backendDiscover',
+                  'Not: Keşfet listesi backend’den gelir. Bağlantı yoksa sonuçlar güncellenmeyebilir.',
+                )}
               </Text>
             </View>
           </View>
@@ -862,12 +965,21 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         {activeTab === 'requests' && (
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionTitle}>Gelen istekler</Text>
-              <Text style={styles.sectionCount}>{incomingProfiles.length} istek</Text>
+              <Text style={styles.sectionTitle}>
+                {t('focusNetwork.sections.incomingRequests', 'Gelen istekler')}
+              </Text>
+              <Text style={styles.sectionCount}>
+                {t('focusNetwork.count.requests', '{{count}} istek', {
+                  count: incomingProfiles.length,
+                  defaultValue: '{{count}} istek',
+                })}
+              </Text>
             </View>
 
             {filteredIncoming.length === 0 ? (
-              <Text style={styles.emptyText}>Bekleyen istek yok.</Text>
+              <Text style={styles.emptyText}>
+                {t('focusNetwork.empty.noPendingRequests', 'Bekleyen istek yok.')}
+              </Text>
             ) : (
               filteredIncoming.map(profile => renderProfileRow(profile, { showQuickAccept: true, showQuickDecline: true }))
             )}
@@ -895,29 +1007,45 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
             <Text style={styles.detailSummary}>{selectedProfile.summary}</Text>
 
             <View style={styles.detailInfoBox}>
-              <Text style={styles.detailInfoText}>• Arkadaşlık sistemi: istek gönder → karşı taraf kabul eder.</Text>
-              <Text style={styles.detailInfoText}>• Zorla bağlama yok. Her şey onaylı ilerler.</Text>
-              <Text style={styles.detailInfoText}>• Bağlantı yoksa işlemler başarısız olabilir.</Text>
+              <Text style={styles.detailInfoText}>
+                {t(
+                  'focusNetwork.detail.rule1',
+                  '• Arkadaşlık sistemi: istek gönder → karşı taraf kabul eder.',
+                )}
+              </Text>
+              <Text style={styles.detailInfoText}>
+                {t('focusNetwork.detail.rule2', '• Zorla bağlama yok. Her şey onaylı ilerler.')}
+              </Text>
+              <Text style={styles.detailInfoText}>
+                {t(
+                  'focusNetwork.detail.rule3',
+                  '• Bağlantı yoksa işlemler başarısız olabilir.',
+                )}
+              </Text>
               <Text style={styles.detailInfoText}>• API: {API_BASE_URL}</Text>
             </View>
 
             <View style={styles.detailActionsRow}>
               <Pressable style={({ pressed }) => [styles.detailSecondaryBtn, pressed && styles.detailSecondaryBtnPressed]} onPress={handleSecondaryActionInDetail}>
-                <Text style={styles.detailSecondaryText}>{detailContext.mode === 'requests' ? 'Reddet' : 'Kapat'}</Text>
+                <Text style={styles.detailSecondaryText}>
+                  {detailContext.mode === 'requests'
+                    ? t('focusNetwork.actions.decline', 'Reddet')
+                    : t('common.close', 'Kapat')}
+                </Text>
               </Pressable>
 
               <Pressable style={({ pressed }) => [styles.detailPrimaryBtn, pressed && styles.detailPrimaryBtnPressed]} onPress={handlePrimaryActionInDetail}>
                 <Text style={styles.detailPrimaryText}>
                   {detailContext.mode === 'network'
-                    ? 'Ağımdan çıkar'
+                    ? t('focusNetwork.actions.removeFromNetwork', 'Ağımdan çıkar')
                     : detailContext.mode === 'requests'
-                    ? 'Kabul et'
+                    ? t('focusNetwork.actions.accept', 'Kabul et')
                     : (() => {
                         const rel = selectedProfile.relationship ?? 'none';
-                        if (rel === 'friend') return 'Ağımda';
-                        if (rel === 'outgoing') return 'Beklemede';
-                        if (rel === 'incoming') return 'İstek var';
-                        return 'İstek gönder';
+                        if (rel === 'friend') return t('focusNetwork.actions.inMyNetwork', 'Ağımda');
+                        if (rel === 'outgoing') return t('focusNetwork.actions.pending', 'Beklemede');
+                        if (rel === 'incoming') return t('focusNetwork.actions.requestExists', 'İstek var');
+                        return t('focusNetwork.actions.sendRequest', 'İstek gönder');
                       })()}
                 </Text>
               </Pressable>

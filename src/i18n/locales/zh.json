@@ -605,7 +605,8 @@
   "title": "帖子操作",
   "message": "你想对这条帖子做什么？",
   "archive": "归档卡片",
-  "delete": "删除卡片"
+  "delete": "删除卡片",
+  "noPermission": "这张卡不属于你，你无法删除。"
    },
     "time": {
       "justNow": "刚刚",
@@ -634,7 +635,7 @@
   "welcome": {
     "title": "欢迎 👋",
     "subtitle": "真实用户注册表单。"
-  },
+  },  
   "login": {
     "title": "登录",
     "subtitle": "使用邮箱/手机号和密码登录。",
@@ -682,6 +683,83 @@
     "updateButton": "更新密码",
     "backToLogin": "← 返回登录"
   }
- }
+ },
+"focusNetwork": {
+  "title": "专注网络",
+  "subtitle": "在这里，你只会看到你选择的人发布的内容。",
+  "tabs": {
+    "network": "我的网络",
+    "discover": "发现",
+    "requests": "请求"
+  },
+  "search": {
+    "networkPlaceholder": "在你的网络中搜索（@用户、姓名）...",
+    "discoverPlaceholder": "发现：@handle / 姓名 / 邮箱 / 电话...",
+    "requestsPlaceholder": "搜索请求..."
+  },
+  "sections": {
+    "network": "我的网络",
+    "discover": "发现",
+    "incomingRequests": "收到的请求"
+  },
+  "count": {
+    "people": "{{count}} 人",
+    "requests": "{{count}} 个请求"
+  },
+  "summary": {
+    "inNetwork": "在专注网络中。",
+    "alreadyInNetwork": "已经在你的网络中。",
+    "incomingRequest": "已向你发送请求。",
+    "outgoingPending": "请求已发送（等待中）。",
+    "discoverFallback": "从发现列表中添加。",
+    "requestPending": "好友请求等待中。"
+  },
+  "actions": {
+    "detail": "详情",
+    "accept": "接受",
+    "decline": "拒绝",
+    "sendRequest": "发送请求",
+    "addPerson": "添加联系人",
+    "removeFromNetwork": "从网络中移除",
+    "inMyNetwork": "在我的网络中",
+    "pending": "等待中",
+    "requestExists": "已有请求"
+  },
+  "banner": {
+    "newRequestTitle": "新的连接请求",
+    "newRequestBody": "有 {{count}} 个新请求。点击查看。"
+  },
+  "empty": {
+    "noSearchMatch": "未找到匹配的人。",
+    "noResults": "当前没有结果。",
+    "noPendingRequests": "没有待处理请求。"
+  },
+  "note": {
+    "backendDiscover": "注意：发现列表来自后端。如果没有连接，结果可能不会更新。"
+  },
+  "detail": {
+    "rule1": "• 好友系统：发送请求 → 对方接受。",
+    "rule2": "• 没有强制连接。一切都通过确认进行。",
+    "rule3": "• 如果没有连接，操作可能会失败。"
+  },
+  "alerts": {
+    "loginRequiredTitle": "需要登录",
+    "loginRequiredBody": "此操作需要用户会话。",
+    "alreadyInNetworkTitle": "已经在你的网络中",
+    "alreadyInNetworkBody": "此人已经在你的专注网络中。",
+    "pendingTitle": "等待中",
+    "pendingBody": "你已经向此人发送过请求。请等待对方接受。",
+    "requestExistsTitle": "已有请求",
+    "requestExistsBody": "此人已经向你发送了请求。你可以在“请求”标签中接受。",
+    "actionFailedWithConnection": "操作失败。（连接问题？）",
+    "declineFailed": "拒绝失败。",
+    "requestSendFailed": "无法发送请求。（连接问题？）",
+    "acceptFailed": "无法接受。（连接问题？）"
+  },
+  "net": {
+    "invalidBaseUrl": "API_BASE_URL 看起来无效。",
+    "onlineFetchError": "专注网络在线获取错误"
+  }
+ } 
 }
 

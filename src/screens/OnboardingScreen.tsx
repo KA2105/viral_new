@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   Alert,
   Platform, // ✅ eklendi (alt padding için)
+  DeviceEventEmitter, // ✅ EK: App.tsx’e “Auth’a zorla” sinyali
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -32,6 +33,9 @@ type Props = {
 const { width, height } = Dimensions.get('window');
 
 const LANG_STORAGE_KEY = 'viral_language';
+
+// ✅ App.tsx ile aynı anahtar: onboarding bitince Auth ekranına zorlamak için
+const FORCE_AUTH_KEY = 'viral.forceAuthAfterLogout'; // "1" | ""
 
 type LangCode = 'tr' | 'en' | 'de' | 'fr' | 'es' | 'pt' | 'ar' | 'hi' | 'zh';
 
@@ -94,16 +98,36 @@ const OnboardingScreen: React.FC<Props> = ({ onFinish }) => {
 
   const slides = useMemo(() => getSlidesFor(currentSlidesLang), [currentSlidesLang]);
 
-  const handleNext = () => {
-    if (index < slides.length - 1) {
-      setIndex(prev => prev + 1);
-    } else {
+  // ✅ KRİTİK: Onboarding bitince “kayıt/giriş”e düşmek için forceAuth set et
+  const finishOnboarding = async () => {
+    try {
+      try {
+        await AsyncStorage.setItem(FORCE_AUTH_KEY, '1');
+      } catch (e) {
+        console.warn('[Onboarding] set FORCE_AUTH_KEY failed:', e);
+      }
+
+      // App.tsx’e anında haber ver (listener ekleyeceğiz)
+      try {
+        DeviceEventEmitter.emit('viral_force_auth', { reason: 'onboarding' });
+      } catch (e) {
+        console.warn('[Onboarding] emit viral_force_auth failed:', e);
+      }
+    } finally {
       onFinish();
     }
   };
 
+  const handleNext = () => {
+    if (index < slides.length - 1) {
+      setIndex(prev => prev + 1);
+    } else {
+      finishOnboarding();
+    }
+  };
+
   const handleSkip = () => {
-    onFinish();
+    finishOnboarding();
   };
 
   const handleMomentumScrollEnd = (event: any) => {
@@ -114,10 +138,7 @@ const OnboardingScreen: React.FC<Props> = ({ onFinish }) => {
 
   // ✅ DİL EKRANI BAŞLIKLARI: onboarding.language.* (JSON'a ekledik)
   const languageTitle = t('onboarding.language.title', 'Select Language');
-  const languageSubtitle = t(
-    'onboarding.language.subtitle',
-    'Choose your language to continue',
-  );
+  const languageSubtitle = t('onboarding.language.subtitle', 'Choose your language to continue');
 
   // ✅ KRİTİK DÜZELTME:
   // Butonlar artık common.* değil onboarding.buttons.* (JSON'a ekledik)
@@ -201,7 +222,7 @@ const OnboardingScreen: React.FC<Props> = ({ onFinish }) => {
                   <Text
                     style={[
                       styles.langBtnNative,
-                      (opt.code === 'ar' ? { textAlign: 'right' as const } : null),
+                      opt.code === 'ar' ? ({ textAlign: 'right' } as const) : null,
                     ]}
                     numberOfLines={1}
                     ellipsizeMode="tail"
@@ -216,10 +237,7 @@ const OnboardingScreen: React.FC<Props> = ({ onFinish }) => {
 
           <View style={styles.langBottomHint}>
             <Text style={styles.langBottomHintText}>
-              {t(
-                'onboarding.language.hint',
-                'You can change language later from Profile screen.',
-              )}
+              {t('onboarding.language.hint', 'You can change language later from Profile screen.')}
             </Text>
           </View>
         </ScrollView>

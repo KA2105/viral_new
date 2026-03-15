@@ -605,7 +605,8 @@
   "title": "Actions sur la publication",
   "message": "Que veux-tu faire avec cette publication ?",
   "archive": "Archiver la carte",
-  "delete": "Supprimer la carte"
+  "delete": "Supprimer la carte",
+  "noPermission": "Cette carte ne t’appartient pas. Tu ne peux pas la supprimer."
    },
     "time": {
       "justNow": "à l’instant",
@@ -634,7 +635,7 @@
   "welcome": {
     "title": "Bienvenue 👋",
     "subtitle": "Formulaire d’inscription pour les vrais utilisateurs."
-  },
+  },  
   "login": {
     "title": "Se connecter",
     "subtitle": "Connecte-toi avec ton e-mail/téléphone et ton mot de passe.",
@@ -681,6 +682,83 @@
     "newPasswordConfirmPlaceholder": "Nouveau mot de passe (confirmation)",
     "updateButton": "Mettre à jour le mot de passe",
     "backToLogin": "← Retour à la connexion"
+  }
+ },
+ "focusNetwork": {
+  "title": "Réseau Focus",
+  "subtitle": "Ici, tu ne vois que les publications des personnes que tu as choisies.",
+  "tabs": {
+    "network": "Mon réseau",
+    "discover": "Découvrir",
+    "requests": "Demandes"
+  },
+  "search": {
+    "networkPlaceholder": "Rechercher dans ton réseau (@utilisateur, nom)...",
+    "discoverPlaceholder": "Découvrir : @handle / nom / e-mail / téléphone...",
+    "requestsPlaceholder": "Rechercher dans les demandes..."
+  },
+  "sections": {
+    "network": "Mon réseau",
+    "discover": "Découvrir",
+    "incomingRequests": "Demandes reçues"
+  },
+  "count": {
+    "people": "{{count}} personnes",
+    "requests": "{{count}} demandes"
+  },
+  "summary": {
+    "inNetwork": "Dans le réseau Focus.",
+    "alreadyInNetwork": "Déjà dans ton réseau.",
+    "incomingRequest": "T’a envoyé une demande.",
+    "outgoingPending": "Demande envoyée (en attente).",
+    "discoverFallback": "Ajouter depuis la liste Découvrir.",
+    "requestPending": "La demande d’ami est en attente."
+  },
+  "actions": {
+    "detail": "Détail",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "sendRequest": "Envoyer une demande",
+    "addPerson": "Ajouter une personne",
+    "removeFromNetwork": "Retirer du réseau",
+    "inMyNetwork": "Dans mon réseau",
+    "pending": "En attente",
+    "requestExists": "Demande existante"
+  },
+  "banner": {
+    "newRequestTitle": "Nouvelle demande de connexion",
+    "newRequestBody": "{{count}} nouvelles demandes. Appuie pour voir."
+  },
+  "empty": {
+    "noSearchMatch": "Aucune personne correspondante trouvée.",
+    "noResults": "Aucun résultat pour le moment.",
+    "noPendingRequests": "Aucune demande en attente."
+  },
+  "note": {
+    "backendDiscover": "Remarque : la liste Découvrir vient du backend. Sans connexion, les résultats peuvent ne pas se mettre à jour."
+  },
+  "detail": {
+    "rule1": "• Système d’amitié : envoyer une demande → l’autre personne accepte.",
+    "rule2": "• Aucun lien forcé. Tout avance avec approbation.",
+    "rule3": "• Sans connexion, les actions peuvent échouer."
+  },
+  "alerts": {
+    "loginRequiredTitle": "Connexion requise",
+    "loginRequiredBody": "Une session utilisateur est nécessaire pour cette action.",
+    "alreadyInNetworkTitle": "Déjà dans ton réseau",
+    "alreadyInNetworkBody": "Cette personne est déjà dans ton Réseau Focus.",
+    "pendingTitle": "En attente",
+    "pendingBody": "Tu as déjà envoyé une demande à cette personne. Attends qu’elle l’accepte.",
+    "requestExistsTitle": "Demande existante",
+    "requestExistsBody": "Cette personne t’a déjà envoyé une demande. Tu peux l’accepter depuis l’onglet « Demandes ».",
+    "actionFailedWithConnection": "L’action a échoué. (Connexion ?)",
+    "declineFailed": "Le refus a échoué.",
+    "requestSendFailed": "La demande n’a pas pu être envoyée. (Connexion ?)",
+    "acceptFailed": "Impossible d’accepter. (Connexion ?)"
+  },
+  "net": {
+    "invalidBaseUrl": "API_BASE_URL semble invalide.",
+    "onlineFetchError": "Erreur de récupération en ligne du Réseau Focus"
   }
  }
 }

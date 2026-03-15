@@ -605,7 +605,8 @@
   "title": "Post actions",
   "message": "What would you like to do with this post?",
   "archive": "Archive card",
-  "delete": "Delete card"
+  "delete": "Delete card",
+  "noPermission": "This card isn't yours. You can't delete it."
   },
     "time": {
       "justNow": "just now",
@@ -681,6 +682,83 @@
     "newPasswordConfirmPlaceholder": "New password (confirm)",
     "updateButton": "Update password",
     "backToLogin": "← Back to login"
+  }
+ },
+ "focusNetwork": {
+  "title": "Focus Network",
+  "subtitle": "Here you only see posts from people you selected.",
+  "tabs": {
+    "network": "My Network",
+    "discover": "Discover",
+    "requests": "Requests"
+  },
+  "search": {
+    "networkPlaceholder": "Search your network (@user, name)...",
+    "discoverPlaceholder": "Discover: @handle / name / email / phone...",
+    "requestsPlaceholder": "Search requests..."
+  },
+  "sections": {
+    "network": "My Network",
+    "discover": "Discover",
+    "incomingRequests": "Incoming requests"
+  },
+  "count": {
+    "people": "{{count}} people",
+    "requests": "{{count}} requests"
+  },
+  "summary": {
+    "inNetwork": "In focus network.",
+    "alreadyInNetwork": "Already in your network.",
+    "incomingRequest": "Sent you a request.",
+    "outgoingPending": "Request sent (pending).",
+    "discoverFallback": "Add from the discover list.",
+    "requestPending": "Friend request is pending."
+  },
+  "actions": {
+    "detail": "Details",
+    "accept": "Accept",
+    "decline": "Decline",
+    "sendRequest": "Send request",
+    "addPerson": "Add person",
+    "removeFromNetwork": "Remove from network",
+    "inMyNetwork": "In my network",
+    "pending": "Pending",
+    "requestExists": "Request exists"
+  },
+  "banner": {
+    "newRequestTitle": "New connection request",
+    "newRequestBody": "{{count}} new requests. Tap to view."
+  },
+  "empty": {
+    "noSearchMatch": "No matching person found.",
+    "noResults": "No results right now.",
+    "noPendingRequests": "No pending requests."
+  },
+  "note": {
+    "backendDiscover": "Note: The discover list comes from the backend. If there is no connection, results may not update."
+  },
+  "detail": {
+    "rule1": "• Friendship system: send request → other side accepts.",
+    "rule2": "• No forced connection. Everything proceeds with approval.",
+    "rule3": "• If there is no connection, actions may fail."
+  },
+  "alerts": {
+    "loginRequiredTitle": "Login required",
+    "loginRequiredBody": "A user session is required for this action.",
+    "alreadyInNetworkTitle": "Already in your network",
+    "alreadyInNetworkBody": "This person is already in your Focus Network.",
+    "pendingTitle": "Pending",
+    "pendingBody": "You already sent a request to this person. Wait for them to accept it.",
+    "requestExistsTitle": "Request exists",
+    "requestExistsBody": "This person has already sent you a request. You can accept it from the “Requests” tab.",
+    "actionFailedWithConnection": "Action failed. (Connection?)",
+    "declineFailed": "Decline action failed.",
+    "requestSendFailed": "Request could not be sent. (Connection?)",
+    "acceptFailed": "Could not accept. (Connection?)"
+  },
+  "net": {
+    "invalidBaseUrl": "API_BASE_URL seems invalid.",
+    "onlineFetchError": "Focus Network online fetch error"
   }
  }
 }

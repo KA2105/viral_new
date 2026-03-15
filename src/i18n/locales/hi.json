@@ -599,7 +599,8 @@
     "freeVideo": {
       "title": "वीडियो",
       "message": "आप इस वीडियो के साथ क्या करना चाहते हैं?",
-      "delete": "वीडियो हटाएँ"
+      "delete": "वीडियो हटाएँ",
+      "noPermission": "यह कार्ड आपका नहीं है। आप इसे 삭제 नहीं कर सकते।"
     },
     "postActions": {
   "title": "पोस्ट विकल्प",
@@ -635,7 +636,7 @@
     "title": "स्वागत है 👋",
     "subtitle": "वास्तविक उपयोगकर्ताओं के लिए पंजीकरण फ़ॉर्म।"
   },
-  "login": {
+    "login": {
     "title": "लॉगिन करें",
     "subtitle": "ईमेल/फ़ोन और पासवर्ड से लॉगिन करें।",
     "identifierPlaceholder": "ईमेल या फ़ोन",
@@ -681,6 +682,83 @@
     "newPasswordConfirmPlaceholder": "नया पासवर्ड (पुष्टि)",
     "updateButton": "पासवर्ड अपडेट करें",
     "backToLogin": "← लॉगिन पर वापस जाएँ"
+  }
+ },
+"focusNetwork": {
+  "title": "फोकस नेटवर्क",
+  "subtitle": "यहाँ तुम केवल उन्हीं लोगों की पोस्ट देखोगे जिन्हें तुमने चुना है।",
+  "tabs": {
+    "network": "मेरा नेटवर्क",
+    "discover": "खोजें",
+    "requests": "अनुरोध"
+  },
+  "search": {
+    "networkPlaceholder": "अपने नेटवर्क में खोजें (@उपयोगकर्ता, नाम)...",
+    "discoverPlaceholder": "खोजें: @handle / नाम / ईमेल / फोन...",
+    "requestsPlaceholder": "अनुरोधों में खोजें..."
+  },
+  "sections": {
+    "network": "मेरा नेटवर्क",
+    "discover": "खोजें",
+    "incomingRequests": "आने वाले अनुरोध"
+  },
+  "count": {
+    "people": "{{count}} लोग",
+    "requests": "{{count}} अनुरोध"
+  },
+  "summary": {
+    "inNetwork": "फोकस नेटवर्क में।",
+    "alreadyInNetwork": "पहले से ही तुम्हारे नेटवर्क में।",
+    "incomingRequest": "तुम्हें अनुरोध भेजा है।",
+    "outgoingPending": "अनुरोध भेजा गया (लंबित)।",
+    "discoverFallback": "खोज सूची से जोड़ें।",
+    "requestPending": "फ्रेंड रिक्वेस्ट लंबित है।"
+  },
+  "actions": {
+    "detail": "विवरण",
+    "accept": "स्वीकार करें",
+    "decline": "अस्वीकार करें",
+    "sendRequest": "अनुरोध भेजें",
+    "addPerson": "व्यक्ति जोड़ें",
+    "removeFromNetwork": "नेटवर्क से हटाएँ",
+    "inMyNetwork": "मेरे नेटवर्क में",
+    "pending": "लंबित",
+    "requestExists": "अनुरोध मौजूद है"
+  },
+  "banner": {
+    "newRequestTitle": "नया कनेक्शन अनुरोध",
+    "newRequestBody": "{{count}} नए अनुरोध हैं। देखने के लिए टैप करें।"
+  },
+  "empty": {
+    "noSearchMatch": "कोई मेल खाने वाला व्यक्ति नहीं मिला।",
+    "noResults": "अभी कोई परिणाम नहीं है।",
+    "noPendingRequests": "कोई लंबित अनुरोध नहीं है।"
+  },
+  "note": {
+    "backendDiscover": "नोट: खोज सूची बैकएंड से आती है। कनेक्शन न होने पर परिणाम अपडेट नहीं हो सकते।"
+  },
+  "detail": {
+    "rule1": "• मित्रता प्रणाली: अनुरोध भेजें → सामने वाला स्वीकार करे।",
+    "rule2": "• कोई ज़बरदस्ती कनेक्शन नहीं। सब कुछ स्वीकृति के साथ आगे बढ़ता है।",
+    "rule3": "• कनेक्शन न होने पर क्रियाएँ विफल हो सकती हैं।"
+  },
+  "alerts": {
+    "loginRequiredTitle": "लॉगिन आवश्यक है",
+    "loginRequiredBody": "इस क्रिया के लिए उपयोगकर्ता सत्र आवश्यक है।",
+    "alreadyInNetworkTitle": "पहले से ही तुम्हारे नेटवर्क में",
+    "alreadyInNetworkBody": "यह व्यक्ति पहले से ही तुम्हारे फोकस नेटवर्क में है।",
+    "pendingTitle": "लंबित",
+    "pendingBody": "तुम इस व्यक्ति को पहले ही अनुरोध भेज चुके हो। उसके स्वीकार करने का इंतज़ार करो।",
+    "requestExistsTitle": "अनुरोध मौजूद है",
+    "requestExistsBody": "इस व्यक्ति ने तुम्हें पहले ही अनुरोध भेज दिया है। तुम इसे “अनुरोध” टैब से स्वीकार कर सकते हो।",
+    "actionFailedWithConnection": "क्रिया विफल हुई। (कनेक्शन?)",
+    "declineFailed": "अस्वीकार करना विफल हुआ।",
+    "requestSendFailed": "अनुरोध भेजा नहीं जा सका। (कनेक्शन?)",
+    "acceptFailed": "स्वीकार नहीं किया जा सका। (कनेक्शन?)"
+  },
+  "net": {
+    "invalidBaseUrl": "API_BASE_URL अमान्य लगता है।",
+    "onlineFetchError": "फोकस नेटवर्क ऑनलाइन फ़ेच त्रुटि"
   }
  }
 }

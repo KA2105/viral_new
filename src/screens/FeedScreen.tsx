@@ -1,3 +1,6 @@
+// src/screens/FeedScreen.tsx
+// ✅ PART 1 / 3
+
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   View,
@@ -20,6 +23,7 @@ import {
   Share,
   Easing,
   Linking,
+  AppState,
 
   // ✅ EK: Native -> RN event dinlemek için
   DeviceEventEmitter,
@@ -31,6 +35,7 @@ import { useAuth } from '../store/useAuth';
 import { useFeed } from '../store/useFeed';
 import type { Post } from '../data/feed';
 import { useTranslation } from 'react-i18next';
+import { Dimensions } from 'react-native';
 
 // ✅ API error user message helper
 import { getUserMessage, API_BASE_URL } from '../config/api';
@@ -68,6 +73,7 @@ type Comment = {
   ts: number;
   likes: number;
   parentId?: string | null;
+  authorAvatarUri?: string | null;
 };
 
 // 🔔 Bildirim tipi – kalıcı
@@ -94,11 +100,14 @@ type ShareIntentPayload = {
 // ================================
 // ✅ CAP / CLEANUP LIMITLERİ
 // ================================
-const MAX_NOTIFICATIONS = 200; // bildirim çok şişmesin
-const MAX_COMMENTS_PER_POST = 300; // tek post altında yorum şişmesin
-const MAX_CREATED_AT_ENTRIES = 800; // createdAt map şişmesin
+const MAX_NOTIFICATIONS = 200;
+const MAX_COMMENTS_PER_POST = 300;
+const MAX_CREATED_AT_ENTRIES = 800;
 const MAX_LOCAL_REPOSTS = 50;
 const MAX_EXTERNAL_POSTS = 50;
+
+// ✅ NEW: görsel limiti
+const MAX_POST_IMAGES_PREVIEW = 10;
 
 // 👍 Animasyonlu beğeni butonu (gönderi için)
 const AnimatedLikeButton: React.FC<{
@@ -177,7 +186,7 @@ const AnimatedLikeButton: React.FC<{
   );
 };
 
-// Platform label'dan (Facebook, Instagram, X...) basit bir tip üretelim
+// Platform label'dan basit bir tip üretelim
 const normalizePlatform = (label: string) => {
   const l = label.toLowerCase();
   if (l.includes('instagram')) return 'instagram';
@@ -250,12 +259,46 @@ function extractFirstUrl(text: string): string | null {
   }
 }
 
-// ✅ Tek aktif video (repost embed dahil) için state
+// ✅ NEW: imageUris normalize helper
+function getSafeImageUris(raw: any): string[] {
+  try {
+    const v = raw?.imageUris;
+
+    if (Array.isArray(v)) {
+      return v
+        .map(x => (typeof x === 'string' ? x.trim() : ''))
+        .filter(Boolean)
+        .slice(0, MAX_POST_IMAGES_PREVIEW);
+    }
+
+    if (typeof v === 'string') {
+      const s = v.trim();
+      if (!s) return [];
+      try {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map(x => (typeof x === 'string' ? x.trim() : ''))
+            .filter(Boolean)
+            .slice(0, MAX_POST_IMAGES_PREVIEW);
+        }
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+// ✅ Tek aktif video için state
 type ActiveVideoState = {
-  instanceId: string; // video instance anahtarı (repost embed için farklı)
-  listItemId: string; // FlatList satır id (viewability bununla kapanır)
+  instanceId: string;
+  listItemId: string;
   uri: string;
-  paused: boolean; // (kalsın) ama artık overlay yok
+  paused: boolean;
 };
 
 export default function FeedScreen({ go }: Props) {
@@ -391,7 +434,7 @@ export default function FeedScreen({ go }: Props) {
     }
   };
 
- // ✅ profile -> storage fallback
+  // ✅ profile -> storage fallback
   useEffect(() => {
     let cancelled = false;
 
@@ -489,7 +532,17 @@ export default function FeedScreen({ go }: Props) {
       '') ||
     null;
 
-  const { posts: storePosts, likePost, hydrate, hydrated, archivePost, removePost, markPostShared, repostPost } = useFeed();
+  const {
+    posts: storePosts,
+    likePost,
+    hydrate,
+    hydrated,
+    archivePost,
+    removePost,
+    markPostShared,
+    repostPost,
+    addCommentToPost,
+  } = useFeed();
 
   const allPosts: Post[] = useMemo(() => {
     const s = Array.isArray(storePosts) ? storePosts : [];
@@ -514,13 +567,38 @@ export default function FeedScreen({ go }: Props) {
     }
   };
 
-  const safeRemove = (p: Post) => {
+  const safeRemove = async (p: Post) => {
+    const pid = String((p as any)?.id ?? '');
+
     if (isExternalLocal(p)) {
       setExternalPosts(prev => prev.filter(x => x.id !== p.id));
       return;
     }
+
+    // ✅ local repost için store remove çağırma; local listeden kaldır
+    if (pid.startsWith('repost_')) {
+      setLocalReposts(prev => prev.filter(x => String((x as any)?.id ?? '') !== pid));
+      return;
+    }
+
+    const anyP: any = p as any;
+
+    const isMinePost =
+      anyP.ownerId === userId ||
+      anyP.userId === userId ||
+      anyP.authorId === userId ||
+      (anyP.author && (anyP.author === displayName || (fullNameStr && anyP.author === fullNameStr)));
+
+    if (!isMinePost) {
+      Alert.alert(
+        t('common.error', 'Hata'),
+        t('feed.postActions.noPermission', 'Bu kart sana ait değil. Silemezsin.'),
+      );
+      return;
+    }
+
     try {
-      removePost(p.id);
+      await removePost(p.id);
     } catch (e) {
       console.warn('[Feed] removePost hata:', e);
       Alert.alert(t('common.error', 'Hata'), getUserMessage(e));
@@ -528,10 +606,35 @@ export default function FeedScreen({ go }: Props) {
   };
 
   const safeArchive = (p: Post) => {
+    const pid = String((p as any)?.id ?? '');
+
     if (isExternalLocal(p)) {
       setExternalPosts(prev => prev.filter(x => x.id !== p.id));
       return;
     }
+
+    // ✅ local repost arşiv yerine kaldır
+    if (pid.startsWith('repost_')) {
+      setLocalReposts(prev => prev.filter(x => String((x as any)?.id ?? '') !== pid));
+      return;
+    }
+
+    const anyP: any = p as any;
+
+    const isMinePost =
+      anyP.ownerId === userId ||
+      anyP.userId === userId ||
+      anyP.authorId === userId ||
+      (anyP.author && (anyP.author === displayName || (fullNameStr && anyP.author === fullNameStr)));
+
+    if (!isMinePost) {
+      Alert.alert(
+        t('common.error', 'Hata'),
+        t('feed.postActions.noPermission', 'Bu kart sana ait değil. Arşivleyemezsin.'),
+      );
+      return;
+    }
+
     try {
       archivePost(p.id);
     } catch (e) {
@@ -565,6 +668,7 @@ export default function FeedScreen({ go }: Props) {
         body: anyP.body,
         note: anyP.note,
         videoUri: anyP.videoUri,
+        imageUris: getSafeImageUris(anyP),
 
         isTaskCard: typeof anyP.isTaskCard === 'boolean' ? anyP.isTaskCard : true,
         likes: 0,
@@ -603,6 +707,38 @@ export default function FeedScreen({ go }: Props) {
       setFeedError(msg);
     }
   };
+
+  // ✅ Feed'i arka planda da güncel tut
+  useEffect(() => {
+    let alive = true;
+
+    const tick = async () => {
+      try {
+        await safeHydrate({ silent: true });
+      } catch {}
+    };
+
+    tick();
+
+    const iv = setInterval(() => {
+      if (!alive) return;
+      tick();
+    }, 9000);
+
+    const sub = AppState.addEventListener('change', st => {
+      if (st === 'active') {
+        tick();
+      }
+    });
+
+    return () => {
+      alive = false;
+      clearInterval(iv);
+      try {
+        sub.remove();
+      } catch {}
+    };
+  }, []);
 
   const apiBase = useMemo(() => String(API_BASE_URL || '').replace(/\/+$/, ''), []);
   const resolveAvatarUri = (raw: any): string | null => {
@@ -670,12 +806,19 @@ export default function FeedScreen({ go }: Props) {
       const urlFromText = text ? extractFirstUrl(String(text)) : null;
 
       const isVideo =
-        (mime && String(mime).toLowerCase().startsWith('video/')) || (!!uri && String(uri).toLowerCase().includes('.mp4'));
+        (mime && String(mime).toLowerCase().startsWith('video/')) ||
+        (!!uri && String(uri).toLowerCase().includes('.mp4'));
 
-      const primaryUri = uri || (Array.isArray(uris) && uris.length > 0 ? uris[0] : null);
+      const safeUris = Array.isArray(uris)
+        ? uris.map(x => String(x || '').trim()).filter(Boolean)
+        : [];
+
+      const primaryUri = uri || (safeUris.length > 0 ? safeUris[0] : null);
 
       const title = isVideo
         ? t('feed.external.videoTitle', 'Paylaşılan Video')
+        : safeUris.length > 0
+        ? t('feed.external.imagesTitle', 'Paylaşılan Fotoğraflar')
         : urlFromText
         ? t('feed.external.linkTitle', 'Paylaşılan Bağlantı')
         : t('feed.external.genericTitle', 'Dış Paylaşım');
@@ -702,6 +845,10 @@ export default function FeedScreen({ go }: Props) {
 
       if (isVideo && primaryUri) {
         externalPost.videoUri = String(primaryUri);
+      }
+
+      if (!isVideo && safeUris.length > 0) {
+        externalPost.imageUris = safeUris.slice(0, MAX_POST_IMAGES_PREVIEW);
       }
 
       setExternalPosts(prev => {
@@ -778,6 +925,7 @@ export default function FeedScreen({ go }: Props) {
             external: true,
             _localExternal: true,
             likes: typeof x.likes === 'number' ? x.likes : 0,
+            imageUris: getSafeImageUris(x),
           }))
           .slice(0, MAX_EXTERNAL_POSTS);
 
@@ -805,7 +953,13 @@ export default function FeedScreen({ go }: Props) {
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed)) return;
 
-        const cleaned = parsed.filter(x => x && typeof x === 'object' && x.id).slice(0, MAX_LOCAL_REPOSTS);
+        const cleaned = parsed
+          .filter(x => x && typeof x === 'object' && x.id)
+          .map((x: any) => ({
+            ...x,
+            imageUris: getSafeImageUris(x),
+          }))
+          .slice(0, MAX_LOCAL_REPOSTS);
 
         if (!cancelled) setLocalReposts(cleaned as Post[]);
       } catch (e) {
@@ -878,8 +1032,11 @@ export default function FeedScreen({ go }: Props) {
     const seen = new Set<string>();
 
     return visiblePosts.filter(p => {
+      const imageKey = getSafeImageUris(p).join('|');
       const isFreeVideo = !p.isTaskCard && !!(p as any).videoUri;
-      const key = isFreeVideo ? `freeVideo:${p.id}|${String((p as any).videoUri)}` : `post:${p.id}`;
+      const key = isFreeVideo
+        ? `freeVideo:${p.id}|${String((p as any).videoUri)}`
+        : `post:${p.id}|${imageKey}`;
 
       if (seen.has(key)) return false;
       seen.add(key);
@@ -925,21 +1082,17 @@ export default function FeedScreen({ go }: Props) {
   const [sharePanelVisible, setSharePanelVisible] = useState(false);
   const [sharePanelPost, setSharePanelPost] = useState<Post | null>(null);
 
-  // ✅ ESKİ (dokunmadım): modal video state’leri dursun
   const [videoPost, setVideoPost] = useState<Post | null>(null);
   const [videoVisible, setVideoVisible] = useState(false);
 
-  // ✅ YENİ: Tek aktif video (instance + list satırı)
   const [activeVideo, setActiveVideo] = useState<ActiveVideoState | null>(null);
 
-  // ✅ activeVideo için ref (viewability callback stale olmasın)
   const activeVideoRef = useRef<ActiveVideoState | null>(null);
 
   useEffect(() => {
     activeVideoRef.current = activeVideo;
   }, [activeVideo]);
 
-  // ✅ görünürlük takip: listeden çıkınca aktif video kapansın
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 70 }).current;
 
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
@@ -949,7 +1102,7 @@ export default function FeedScreen({ go }: Props) {
     const stillVisible = viewableItems?.some((v: any) => {
       const it = v?.item;
       const id = String(it?.id ?? it?._id ?? '');
-      const isViewable = v?.isViewable !== false; // çoğu zaman true gelir
+      const isViewable = v?.isViewable !== false;
       return id === av.listItemId && isViewable;
     });
 
@@ -1010,6 +1163,8 @@ export default function FeedScreen({ go }: Props) {
                 ...c,
                 likes: typeof c.likes === 'number' ? c.likes : 0,
                 parentId: c.parentId ?? null,
+                authorAvatarUri:
+                  c && (c as any).authorAvatarUri != null ? String((c as any).authorAvatarUri).trim() : null,
               }))
               .slice(0, MAX_COMMENTS_PER_POST);
           });
@@ -1024,7 +1179,7 @@ export default function FeedScreen({ go }: Props) {
     loadComments();
   }, []);
 
-  // 💾 Yorumları her değiştiğinde AsyncStorage'a yaz (cap)
+  // 💾 Yorumları her değiştiğinde AsyncStorage'a yaz
   useEffect(() => {
     if (!commentsHydrated) return;
     const saveComments = async () => {
@@ -1032,7 +1187,7 @@ export default function FeedScreen({ go }: Props) {
         const capped: Record<string, Comment[]> = {};
         Object.keys(commentsByPost || {}).forEach(pid => {
           const arr = Array.isArray(commentsByPost[pid]) ? commentsByPost[pid] : [];
-          capped[pid] = arr.slice(-MAX_COMMENTS_PER_POST); // en yenileri tut
+          capped[pid] = arr.slice(-MAX_COMMENTS_PER_POST);
         });
         await AsyncStorage.setItem(COMMENTS_KEY, JSON.stringify(capped));
       } catch (e) {
@@ -1090,7 +1245,7 @@ export default function FeedScreen({ go }: Props) {
     loadNotifications();
   }, []);
 
-  // 💾 Bildirimleri kaydet (cap)
+  // 💾 Bildirimleri kaydet
   useEffect(() => {
     if (!notificationsHydrated) return;
     const save = async () => {
@@ -1124,35 +1279,56 @@ export default function FeedScreen({ go }: Props) {
     loadCreatedAt();
   }, []);
 
-  // ✅ TEK NOKTADAN TÜM VİDEOLARI KAPAT (inline + modal)
+  // ✅ TEK NOKTADAN TÜM VİDEOLARI KAPAT
   const stopAllVideos = () => {
     setActiveVideo(null);
-    // ✅ modal video da açık kalıp ikinci video gibi davranmasın
     setVideoVisible(false);
     setVideoPost(null);
   };
 
-  // Yeni görünen gönderilere timestamp at + cleanup
+  // Yeni görünen gönderilere gerçek timestamp ata + cleanup
   useEffect(() => {
     if (!createdAtHydrated) return;
 
+    const parseTs = (v: any): number | null => {
+      if (typeof v === 'number' && Number.isFinite(v) && v > 0) return v;
+
+      if (typeof v === 'string' && v.trim()) {
+        const asNum = Number(v);
+        if (Number.isFinite(asNum) && asNum > 0) return asNum;
+
+        const parsed = new Date(v).getTime();
+        if (Number.isFinite(parsed) && parsed > 0) return parsed;
+      }
+
+      return null;
+    };
+
     setCreatedAtByPost(prev => {
-      const now = Date.now();
       const updated: Record<string, number> = { ...prev };
       let changed = false;
 
       dedupedVisiblePosts.forEach(p => {
         const existing = updated[p.id];
-        if (typeof existing !== 'number' || Number.isNaN(existing)) {
-          updated[p.id] = now;
+        if (typeof existing === 'number' && Number.isFinite(existing) && existing > 0) {
+          return;
+        }
+
+        const anyP: any = p as any;
+
+        const realTs =
+          parseTs(anyP?.createdAt) ??
+          parseTs(anyP?.clientCreatedAt) ??
+          parseTs(anyP?.updatedAt);
+
+        if (realTs) {
+          updated[p.id] = realTs;
           changed = true;
         }
       });
 
-      // ✅ cleanup: görünmeyen eski key’leri çok birikmesin
       const keys = Object.keys(updated);
       if (keys.length > MAX_CREATED_AT_ENTRIES) {
-        // en yeni timestamp’leri tut
         const sortedKeys = keys
           .map(k => ({ k, v: typeof updated[k] === 'number' ? updated[k] : 0 }))
           .sort((a, b) => b.v - a.v)
@@ -1181,7 +1357,6 @@ export default function FeedScreen({ go }: Props) {
     });
   }, [dedupedVisiblePosts, createdAtHydrated]);
 
-  // Bildirim oluştur (cap)
   const addNotification = (text: string, postId?: string | null) => {
     setNotifications(prev => {
       const next = [
@@ -1199,40 +1374,68 @@ export default function FeedScreen({ go }: Props) {
   };
 
   const getTimeLabel = (post: Post) => {
-    const raw = createdAtByPost[post.id];
-    if (typeof raw !== 'number' || Number.isNaN(raw) || !Number.isFinite(raw)) {
+    const anyPost: any = post as any;
+
+    const parseTs = (v: any): number | null => {
+      if (typeof v === 'number' && Number.isFinite(v) && v > 0) return v;
+
+      if (typeof v === 'string' && v.trim()) {
+        const asNum = Number(v);
+        if (Number.isFinite(asNum) && asNum > 0) return asNum;
+
+        const parsed = new Date(v).getTime();
+        if (Number.isFinite(parsed) && parsed > 0) return parsed;
+      }
+
+      return null;
+    };
+
+    const ts =
+      parseTs(createdAtByPost[post.id]) ??
+      parseTs(anyPost?.createdAt) ??
+      parseTs(anyPost?.clientCreatedAt) ??
+      parseTs(anyPost?.updatedAt) ??
+      null;
+
+    if (!ts) {
       return (post as any).time || t('feed.time.justNow', 'az önce');
     }
 
-    const ts = raw;
     const now = Date.now();
     const diffMs = now - ts;
-    if (diffMs < 0) return (post as any).time || t('feed.time.justNow', 'az önce');
+
+    if (diffMs < 0) {
+      return new Date(ts).toLocaleDateString();
+    }
 
     const seconds = Math.floor(diffMs / 1000);
     if (seconds < 60) return t('feed.time.justNow', 'az önce');
 
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60)
+    if (minutes < 60) {
       return t('feed.time.minutesAgo', {
         defaultValue: '{{count}} dk önce',
         count: minutes,
       });
+    }
 
     const hours = Math.floor(minutes / 60);
-    if (hours < 24)
+    if (hours < 24) {
       return t('feed.time.hoursAgo', {
         defaultValue: '{{count}} saat önce',
         count: hours,
       });
+    }
 
     const days = Math.floor(hours / 24);
     if (days === 1) return t('feed.time.yesterday', 'dün');
-    if (days < 7)
+
+    if (days < 7) {
       return t('feed.time.daysAgo', {
         defaultValue: '{{count}} gün önce',
         count: days,
       });
+    }
 
     return new Date(ts).toLocaleDateString();
   };
@@ -1356,223 +1559,329 @@ export default function FeedScreen({ go }: Props) {
   };
 
   const openShareModal = (post: Post) => {
-  if (!(post as any).shareTargets || (post as any).shareTargets.length === 0) return;
-  // ✅ paylaşım öncesi video kapat (RAM rahatlasın)
-  stopAllVideos();
+    if (!(post as any).shareTargets || (post as any).shareTargets.length === 0) return;
+    stopAllVideos();
 
-  setSharePost(post);
-  setSelectedSharePlatform((post as any).shareTargets[0]);
-  setShareVisible(true);
-};
+    setSharePost(post);
+    setSelectedSharePlatform((post as any).shareTargets[0]);
+    setShareVisible(true);
+  };
 
-const closeShareModal = () => setShareVisible(false);
+  const closeShareModal = () => setShareVisible(false);
 
-const handleConfirmShare = async () => {
-  if (!sharePost || !selectedSharePlatform) return;
+  const handleConfirmShare = async () => {
+    if (!sharePost || !selectedSharePlatform) return;
 
-  // ✅ paylaşım öncesi video kapat (RAM rahatlasın)
-  stopAllVideos();
+    stopAllVideos();
 
-  // ✅ Önce gerçek paylaşım dene (Share sheet)
-  // Not: local/external ayrımı paylaşımı engellemesin; sadece video url local ise share sheet’e url eklemiyoruz.
-  try {
-    await handleShareToPlatform(sharePost, selectedSharePlatform);
-  } catch (e) {
-    // handleShareToPlatform zaten alert basıyor; burada sadece güvenli kapat
+    try {
+      await handleShareToPlatform(sharePost, selectedSharePlatform);
+    } catch (e) {
+      setShareVisible(false);
+      return;
+    }
+
+    try {
+      markPostShared(sharePost.id, [selectedSharePlatform]);
+    } catch (e) {
+      console.warn('[Feed] markPostShared hata:', e);
+    }
+
+    const titleForNotification =
+      (sharePost as any).title || (sharePost as any).note || t('feed.post.genericTitle', 'Gönderi');
+
+    addNotification(
+      t('feed.notifications.shared', {
+        defaultValue: '“{{title}}” gönderisini {{platform}} üzerinde paylaştın.',
+        title: titleForNotification,
+        platform: selectedSharePlatform,
+      }),
+      sharePost.id,
+    );
+
+    Alert.alert(
+      t('feed.share.successTitle', 'Paylaşım'),
+      t('feed.share.successMessage', {
+        defaultValue: '{{platform}} için paylaşım menüsü açıldı.',
+        platform: selectedSharePlatform,
+      }),
+    );
+
     setShareVisible(false);
-    return;
-  }
+  };
 
-  // ✅ Paylaşım başarılı/iptal edilmediyse simülasyon yerine gerçek işaretleme yap
-  try {
-    markPostShared(sharePost.id, [selectedSharePlatform]);
-  } catch (e) {
-    console.warn('[Feed] markPostShared hata:', e);
-  }
+  const handlePostLongPress = (post: Post) => {
+    if (isExternalLocal(post)) {
+      Alert.alert(
+        t('feed.postActions.title', 'Gönderi işlemleri'),
+        t('feed.postActions.message', 'Bu gönderi için ne yapmak istersin?'),
+        [
+          { text: t('feed.postActions.delete', 'Kartı sil'), style: 'destructive', onPress: () => safeRemove(post) },
+          { text: t('common.cancel', 'İptal'), style: 'cancel' },
+        ],
+      );
+      return;
+    }
 
-  const titleForNotification = (sharePost as any).title || (sharePost as any).note || t('feed.post.genericTitle', 'Gönderi');
+    const anyP: any = post as any;
 
-  addNotification(
-    t('feed.notifications.shared', {
-      defaultValue: '“{{title}}” gönderisini {{platform}} üzerinde paylaştın.',
-      title: titleForNotification,
-      platform: selectedSharePlatform,
-    }),
-    sharePost.id,
-  );
+    const isMinePost =
+      anyP.ownerId === userId ||
+      anyP.userId === userId ||
+      anyP.authorId === userId ||
+      (anyP.author && (anyP.author === displayName || (fullNameStr && anyP.author === fullNameStr)));
 
-  // İstersen success alert kalsın (simülasyon değil)
-  Alert.alert(
-    t('feed.share.successTitle', 'Paylaşım'),
-    t('feed.share.successMessage', {
-      defaultValue: '{{platform}} için paylaşım menüsü açıldı.',
-      platform: selectedSharePlatform,
-    }),
-  );
+    const isDisabled = !!commentsDisabledByPost[post.id];
 
-  setShareVisible(false);
-};
+    const actions: any[] = [
+      { text: t('feed.postActions.archive', 'Kartı arşivle'), onPress: () => safeArchive(post) },
+      {
+        text: isDisabled ? t('feed.postActions.openComments', 'Yorumları aç') : t('feed.postActions.closeComments', 'Yorumları kapat'),
+        onPress: () => toggleCommentsDisabledForPost(post.id),
+      },
+    ];
 
-const handlePostLongPress = (post: Post) => {
-  if (isExternalLocal(post)) {
+    if (isMinePost) {
+      actions.push({ text: t('feed.postActions.delete', 'Kartı sil'), style: 'destructive', onPress: () => safeRemove(post) });
+    }
+
+    actions.push({ text: t('common.cancel', 'İptal'), style: 'cancel' });
+
     Alert.alert(
       t('feed.postActions.title', 'Gönderi işlemleri'),
       t('feed.postActions.message', 'Bu gönderi için ne yapmak istersin?'),
-      [
-        { text: t('feed.postActions.delete', 'Kartı sil'), style: 'destructive', onPress: () => safeRemove(post) },
-        { text: t('common.cancel', 'İptal'), style: 'cancel' },
-      ],
+      actions,
+      { cancelable: true },
     );
-    return;
-  }
+  };
 
-  Alert.alert(t('feed.postActions.title', 'Gönderi işlemleri'), t('feed.postActions.message', 'Bu gönderi için ne yapmak istersin?'), [
-    { text: t('feed.postActions.archive', 'Kartı arşivle'), onPress: () => safeArchive(post) },
-    { text: t('feed.postActions.delete', 'Kartı sil'), style: 'destructive', onPress: () => safeRemove(post) },
-    { text: t('common.cancel', 'İptal'), style: 'cancel' },
-  ]);
-};
+  const handleFreeVideoActions = (post: Post) => {
+    const anyP: any = post as any;
 
-const handleFreeVideoActions = (post: Post) => {
-  Alert.alert(t('feed.freeVideo.title', 'Video'), t('feed.freeVideo.message', 'Bu videoyla ne yapmak istersin?'), [
-    { text: t('feed.freeVideo.delete', 'Videoyu sil'), style: 'destructive', onPress: () => safeRemove(post) },
-    { text: t('common.cancel', 'İptal'), style: 'cancel' },
-  ]);
-};
+    const isMinePost =
+      anyP.ownerId === userId ||
+      anyP.userId === userId ||
+      anyP.authorId === userId ||
+      (anyP.author && (anyP.author === displayName || (fullNameStr && anyP.author === fullNameStr)));
 
-const handleOpenDetail = (post: Post) => {
-  // ✅ detay açarken video kapat
-  stopAllVideos();
-
-  setSelectedPost(post);
-  setDetailVisible(true);
-};
-
-const handleCloseDetail = () => setDetailVisible(false);
-
-const openComments = (post: Post) => {
-  const disabled = commentsDisabledByPost[post.id];
-  if (disabled) {
-    Alert.alert(t('feed.comments.disabledTitle', 'Yorumlar kapalı'), t('feed.comments.disabledMessage', 'Bu gönderide yorumlar kapalı.'));
-    return;
-  }
-
-  // ✅ yorum açarken video kapat
-  stopAllVideos();
-
-  setCommentsPost(post);
-  setCommentsVisible(true);
-  setReplyTo(null);
-  setCommentInput('');
-};
-
-const closeComments = () => {
-  setCommentsVisible(false);
-  setCommentsPost(null);
-  setReplyTo(null);
-  setCommentInput('');
-};
-
-const handleSendComment = () => {
-  const text = commentInput.trim();
-  if (!text || !commentsPost) return;
-
-  const titleForNotification = (commentsPost as any).title || (commentsPost as any).note || t('feed.post.genericTitle', 'Gönderi');
-
-  setCommentsByPost(prev => {
-    const prevList = Array.isArray(prev[commentsPost.id]) ? prev[commentsPost.id] : [];
-    const newComment: Comment = {
-      id: String(Date.now()) + Math.random().toString(16).slice(2),
-      postId: commentsPost.id,
-      author: displayName,
-      text,
-      ts: Date.now(),
-      likes: 0,
-      parentId: replyTo ? replyTo.id : null,
-    };
-    const nextList = [...prevList, newComment].slice(-MAX_COMMENTS_PER_POST);
-    return { ...prev, [commentsPost.id]: nextList };
-  });
-
-  addNotification(
-    t('feed.notifications.addedComment', { defaultValue: '“{{title}}” gönderisine bir yorum ekledin.', title: titleForNotification }),
-    commentsPost.id,
-  );
-
-  setCommentInput('');
-  setReplyTo(null);
-};
-
-const handleLikeComment = (comment: Comment) => {
-  setCommentsByPost(prev => {
-    const list = Array.isArray(prev[comment.postId]) ? prev[comment.postId] : [];
-    return { ...prev, [comment.postId]: list.map(c => (c.id === comment.id ? { ...c, likes: (c.likes || 0) + 1 } : c)) };
-  });
-};
-
-const handleDeleteComment = (target: Comment) => {
-  setCommentsByPost(prev => {
-    const list = Array.isArray(prev[target.postId]) ? prev[target.postId] : [];
-    const toDelete = new Set<string>([target.id]);
-
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (const c of list) {
-        if (c.parentId && toDelete.has(c.parentId) && !toDelete.has(c.id)) {
-          toDelete.add(c.id);
-          changed = true;
-        }
-      }
+    if (!isExternalLocal(post) && !isMinePost) {
+      Alert.alert(
+        t('feed.freeVideo.title', 'Video'),
+        t('feed.postActions.noPermission', 'Bu kart sana ait değil. Silemezsin.'),
+        [{ text: t('common.cancel', 'İptal'), style: 'cancel' }],
+      );
+      return;
     }
 
-    const remaining = list.filter(c => !toDelete.has(c.id));
-    return { ...prev, [target.postId]: remaining };
-  });
+    Alert.alert(t('feed.freeVideo.title', 'Video'), t('feed.freeVideo.message', 'Bu videoyla ne yapmak istersin?'), [
+      { text: t('feed.freeVideo.delete', 'Videoyu sil'), style: 'destructive', onPress: () => safeRemove(post) },
+      { text: t('common.cancel', 'İptal'), style: 'cancel' },
+    ]);
+  };
 
-  if (replyTo && replyTo.id === target.id) setReplyTo(null);
-};
+  const handleOpenDetail = (post: Post) => {
+    stopAllVideos();
+    setSelectedPost(post);
+    setDetailVisible(true);
+  };
 
-const handleShareToPlatform = async (post: Post, platformLabel: string) => {
-  try {
-    // ✅ dışa paylaşım öncesi video kapat (RAM rahatlasın)
+  const handleCloseDetail = () => setDetailVisible(false);
+
+  const openComments = (post: Post) => {
+    const disabled = commentsDisabledByPost[post.id];
+    if (disabled) {
+      Alert.alert(
+        t('feed.comments.disabledTitle', 'Yorumlar kapalı'),
+        t('feed.comments.disabledMessage', 'Bu gönderide yorumlar kapalı.'),
+      );
+      return;
+    }
+
     stopAllVideos();
 
-    const mainText = (post as any).note || (post as any).body || (post as any).title || t('feed.share.defaultText', 'Shared from Viral');
-    const viralPromo = '\n\nCreated on Viral 🎯\n\nDiscover Viral:\nhttps://viral.app';
+    setCommentsPost(post);
+    setCommentsVisible(true);
+    setReplyTo(null);
+    setCommentInput('');
 
-    const message = t('feed.share.shareText', {
-      defaultValue: '{{platform}} share:\n{{text}}',
-      platform: platformLabel,
-      text: mainText + viralPromo,
+    (() => {
+      try {
+        const pid = String((post as any)?.id ?? '').trim();
+        if (!pid) return;
+
+        if (!/^\d+$/.test(pid)) return;
+
+        fetch(`${API_BASE_URL}/posts/${encodeURIComponent(pid)}/comments?limit=200`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
+          .then(async r => {
+            const j = await r.json().catch(() => null);
+            return { ok: r.ok, status: r.status, json: j };
+          })
+          .then(({ ok, status, json }) => {
+            if (!ok) {
+              console.log('[FeedScreen] comments fetch non-200:', status, json);
+              return;
+            }
+
+            const items = Array.isArray(json?.items) ? json.items : [];
+
+            const mapped: Comment[] = items
+              .map((c: any) => ({
+                id: String(c?.id ?? ''),
+                postId: pid,
+                author: String(c?.author ?? 'misafir'),
+                text: String(c?.text ?? ''),
+                ts: typeof c?.createdAt === 'string' ? Date.parse(c.createdAt) : Date.now(),
+                likes: typeof c?.likes === 'number' ? c.likes : 0,
+                parentId: c?.parentId ? String(c.parentId) : null,
+                authorAvatarUri: c?.authorAvatarUri ?? c?.authorAvatarUrl ?? null,
+              }))
+              .filter(x => x.id && x.text);
+
+            setCommentsByPost(prev => ({ ...prev, [pid]: mapped.slice().reverse().slice(-MAX_COMMENTS_PER_POST) }));
+          })
+          .catch(e => console.log('[FeedScreen] comments fetch error:', e));
+      } catch (e) {
+        console.log('[FeedScreen] comments fetch outer error:', e);
+      }
+    })();
+  };
+
+  const closeComments = () => {
+    setCommentsVisible(false);
+    setCommentsPost(null);
+    setReplyTo(null);
+    setCommentInput('');
+  };
+
+  useEffect(() => {
+    if (!commentsVisible) return;
+    commentsAtTopRef.current = true;
+  }, [commentsVisible, commentsPost?.id]);
+
+  const handleSendComment = () => {
+    const text = commentInput.trim();
+    if (!text || !commentsPost) return;
+
+    const postId = String(commentsPost.id);
+
+    const titleForNotification =
+      (commentsPost as any).title || (commentsPost as any).note || t('feed.post.genericTitle', 'Gönderi');
+
+    setCommentsByPost(prev => {
+      const prevList = Array.isArray(prev[postId]) ? prev[postId] : [];
+      const newComment: Comment = {
+        id: String(Date.now()) + Math.random().toString(16).slice(2),
+        postId,
+        author: displayName,
+        text,
+        ts: Date.now(),
+        likes: 0,
+        parentId: replyTo ? replyTo.id : null,
+        authorAvatarUri: myAvatarUri,
+      };
+      const nextList = [...prevList, newComment].slice(-MAX_COMMENTS_PER_POST);
+      return { ...prev, [postId]: nextList };
     });
 
-    // ✅ videoUri local ise url verme (Share sheet gene açılır)
-    const rawUrl = typeof (post as any).videoUri === 'string' ? (post as any).videoUri : undefined;
-    const url = rawUrl && !isExternalLocal(post) ? rawUrl : undefined;
+    addNotification(
+      t('feed.notifications.addedComment', {
+        defaultValue: '“{{title}}” gönderisine bir yorum ekledin.',
+        title: titleForNotification,
+      }),
+      postId,
+    );
 
-    await Share.share(url ? { message, url } : { message });
-  } catch (e) {
-    console.warn('[Share] paylaşım hatası veya iptal:', e);
-    Alert.alert(t('feed.share.errorTitle', 'Paylaşım'), t('feed.share.errorMessage', 'Paylaşım iptal edildi veya bir hata oluştu.'));
-    throw e;
-  }
-};
+    try {
+      addCommentToPost({
+        postId,
+        text,
+        parentId: replyTo ? String(replyTo.id) : null,
+      });
+    } catch (e) {
+      console.log('[FeedScreen] addCommentToPost failed:', e);
+    }
 
-const handleRepost = (post: Post) => safeRepost(post);
+    setCommentInput('');
+    setReplyTo(null);
+  };
 
-const openSharePanelForPost = (post: Post) => {
-  // ✅ panel açarken video kapat
-  stopAllVideos();
+  const handleLikeComment = (comment: Comment) => {
+    setCommentsByPost(prev => {
+      const list = Array.isArray(prev[comment.postId]) ? prev[comment.postId] : [];
+      return {
+        ...prev,
+        [comment.postId]: list.map(c => (c.id === comment.id ? { ...c, likes: (c.likes || 0) + 1 } : c)),
+      };
+    });
+  };
 
-  setSharePanelPost(post);
-  setSharePanelVisible(true);
-};
+  const handleDeleteComment = (target: Comment) => {
+    setCommentsByPost(prev => {
+      const list = Array.isArray(prev[target.postId]) ? prev[target.postId] : [];
+      const toDelete = new Set<string>([target.id]);
+
+      let changed = true;
+      while (changed) {
+        changed = false;
+        for (const c of list) {
+          if (c.parentId && toDelete.has(c.parentId) && !toDelete.has(c.id)) {
+            toDelete.add(c.id);
+            changed = true;
+          }
+        }
+      }
+
+      const remaining = list.filter(c => !toDelete.has(c.id));
+      return { ...prev, [target.postId]: remaining };
+    });
+
+    if (replyTo && replyTo.id === target.id) setReplyTo(null);
+  };
+
+  const handleShareToPlatform = async (post: Post, platformLabel: string) => {
+    try {
+      stopAllVideos();
+
+      const mainText =
+        (post as any).note || (post as any).body || (post as any).title || t('feed.share.defaultText', 'Shared from Viral');
+      const viralPromo = '\n\nCreated on Viral 🎯\n\nDiscover Viral:\nhttps://viral.app';
+
+      const message = t('feed.share.shareText', {
+        defaultValue: '{{platform}} share:\n{{text}}',
+        platform: platformLabel,
+        text: mainText + viralPromo,
+      });
+
+      const rawUrl = typeof (post as any).videoUri === 'string' ? (post as any).videoUri : undefined;
+      const firstImageUrl = getSafeImageUris(post)[0];
+      const url = rawUrl && !isExternalLocal(post) ? rawUrl : firstImageUrl || undefined;
+
+      await Share.share(url ? { message, url } : { message });
+    } catch (e) {
+      console.warn('[Share] paylaşım hatası veya iptal:', e);
+      Alert.alert(
+        t('feed.share.errorTitle', 'Paylaşım'),
+        t('feed.share.errorMessage', 'Paylaşım iptal edildi veya bir hata oluştu.'),
+      );
+      throw e;
+    }
+  };
+
+  const handleRepost = (post: Post) => safeRepost(post);
+
+  const openSharePanelForPost = (post: Post) => {
+    stopAllVideos();
+
+    setSharePanelPost(post);
+    setSharePanelVisible(true);
+  };
 
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
-    // ✅ yenilerken video kapat
     stopAllVideos();
 
     setRefreshing(true);
@@ -1601,20 +1910,16 @@ const openSharePanelForPost = (post: Post) => {
     }
   };
 
-  // ✅ tek video açma yardımcıları (repost embed dahil)
   const openInlineVideo = (instanceId: string, listItemId: string, uri: string) => {
-    // ✅ inline açılırken modal video varsa da kapansın
     setVideoVisible(false);
     setVideoPost(null);
 
     setActiveVideo(prev => {
-      if (prev?.instanceId === instanceId) return null; // aynı video -> kapat
-      // ✅ overlay yok: aktif olunca direkt oynasın, tek video kuralı zaten sağlar
+      if (prev?.instanceId === instanceId) return null;
       return { instanceId, listItemId, uri, paused: false };
     });
   };
 
-  // (kalsın, ileride lazım olabilir)
   const startInlineVideo = (instanceId: string) => {
     setActiveVideo(prev => {
       if (!prev || prev.instanceId !== instanceId) return prev;
@@ -1623,7 +1928,6 @@ const openSharePanelForPost = (post: Post) => {
   };
 
   const stopInlineVideo = () => {
-    // ✅ inline kapatırken modal video da açık kalmasın (çifte oynatma riskini kes)
     stopAllVideos();
   };
 
@@ -1634,8 +1938,6 @@ const openSharePanelForPost = (post: Post) => {
       isHighlighted?: boolean;
       embedded?: boolean;
       onPressCard?: () => void;
-
-      // ✅ EK: repost embedded video çakışmasın diye instanceId + listItemId
       instanceId?: string;
       listItemId?: string;
     },
@@ -1662,7 +1964,12 @@ const openSharePanelForPost = (post: Post) => {
       (typeof (base as any).likes === 'number' && Number.isFinite((base as any).likes) ? (base as any).likes : 0);
 
     const commentsForPost = commentsByPost[base.id] || [];
-    const commentCount = commentsForPost.length;
+    const localLen = commentsForPost.length;
+
+    const serverCountRaw = (base as any)?.commentCount;
+    const serverCount = typeof serverCountRaw === 'number' && Number.isFinite(serverCountRaw) ? serverCountRaw : 0;
+
+    const commentCount = localLen > 0 ? Math.max(serverCount, localLen) : serverCount;
     const commentsDisabled = !!commentsDisabledByPost[base.id];
 
     const reshareCount =
@@ -1687,11 +1994,13 @@ const openSharePanelForPost = (post: Post) => {
     const instanceId = String(options?.instanceId ?? postId);
 
     const videoUri = typeof anyBase?.videoUri === 'string' ? String(anyBase.videoUri) : '';
+    const imageUris = getSafeImageUris(anyBase);
+    const hasImages = imageUris.length > 0;
 
     const isThisVideoActive = !!videoUri && activeVideo?.instanceId === instanceId;
-    const isThisVideoPaused = !isThisVideoActive || !!activeVideo?.paused;
+    const isThisVideoPaused = isThisVideoActive ? !!activeVideo?.paused : true;
 
-    // ✅ SERBEST VİDEO PAYLAŞIM CARDI (INLINE)
+    // ✅ SERBEST VİDEO PAYLAŞIM CARDI
     if (isFreeVideoPost) {
       return (
         <Pressable
@@ -1729,7 +2038,6 @@ const openSharePanelForPost = (post: Post) => {
 
           {anyBase.note ? <Text style={styles.freeVideoCaption}>{anyBase.note}</Text> : null}
 
-          {/* ✅ Video INLINE: HER ZAMAN MOUNT — ilk frame gelir */}
           <Pressable
             style={styles.freeVideoPlayerWrapper}
             onPress={() => {
@@ -1737,20 +2045,17 @@ const openSharePanelForPost = (post: Post) => {
               openInlineVideo(instanceId, listItemId, videoUri);
             }}
           >
-            {/* ✅ aktif değilken video alanı tıklanamaz (native play ile ikinci video başlamasın) */}
             <View style={styles.freeVideoPlayer} pointerEvents={isThisVideoActive ? 'auto' : 'none'}>
               <Video
                 source={{ uri: videoUri }}
                 style={{ width: '100%', height: '100%' }}
-                // ✅ sadece aktif videoda kontrol olsun (aktif değilken kullanıcı play'e basamasın)
                 controls={isThisVideoActive}
                 resizeMode="contain"
-                // ✅ sadece aktif video oynasın, aktif değilse kesin pause
                 paused={!isThisVideoActive || isThisVideoPaused}
                 repeat={false}
                 playInBackground={false}
                 playWhenInactive={false}
-                useTextureView={true} // ✅ Android siyah ekran fix
+                useTextureView={true}
                 onError={e => {
                   console.warn('[Feed] inline video error:', e);
                   stopInlineVideo();
@@ -1772,7 +2077,6 @@ const openSharePanelForPost = (post: Post) => {
                     <Pressable
                       key={label}
                       onPress={() => {
-                        // ✅ sadece inline değil, modal video da kapansın
                         stopAllVideos();
                         handleShareToPlatform(base, label);
                       }}
@@ -1795,7 +2099,10 @@ const openSharePanelForPost = (post: Post) => {
                 </Pressable>
               )}
 
-              <Pressable style={({ pressed }) => [styles.shareTriggerBtn, pressed && styles.shareTriggerBtnPressed]} onPress={() => openSharePanelForPost(base)}>
+              <Pressable
+                style={({ pressed }) => [styles.shareTriggerBtn, pressed && styles.shareTriggerBtnPressed]}
+                onPress={() => openSharePanelForPost(base)}
+              >
                 <Text style={styles.shareTriggerText}>🌐</Text>
               </Pressable>
 
@@ -1842,7 +2149,7 @@ const openSharePanelForPost = (post: Post) => {
       );
     }
 
-    // 🔵 GÖREV KARTI
+    // 🔵 GÖREV / NORMAL KART
     return (
       <Pressable
         style={[styles.card, isHighlighted && styles.cardHighlighted, embedded && styles.embeddedCard]}
@@ -1923,6 +2230,25 @@ const openSharePanelForPost = (post: Post) => {
           );
         })()}
 
+        {/* ✅ NEW: çoklu foto gösterimi */}
+        {hasImages && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.postImagesRow}
+            style={styles.postImagesWrap}
+          >
+            {imageUris.map((imgUri, idx) => (
+              <Image
+                key={`${base.id}_img_${idx}`}
+                source={{ uri: imgUri }}
+                style={styles.postImageThumb}
+                resizeMode="cover"
+              />
+            ))}
+          </ScrollView>
+        )}
+
         {taskSharedTargets.length > 0 && (
           <View style={styles.taskSharedRow}>
             <Text style={styles.taskSharedLabel}>{t('feed.share.alsoSharedOn', 'Şurada da paylaşıldı:')}</Text>
@@ -1934,7 +2260,6 @@ const openSharePanelForPost = (post: Post) => {
           </View>
         )}
 
-        {/* ✅ Görev kartında videoUri varsa: INLINE oynat (tek aktif) */}
         {anyBase.videoUri ? (
           <View style={styles.videoInfoRow}>
             <Text style={styles.videoInfo}>{t('feed.video.info', '📹 Bu kartla birlikte bir video planlandı.')}</Text>
@@ -1952,32 +2277,37 @@ const openSharePanelForPost = (post: Post) => {
               </Text>
             </Pressable>
 
-            {isThisVideoActive ? (
-              <View style={[styles.freeVideoPlayerWrapper, { marginTop: 10 }]}>
-                <View style={styles.freeVideoPlayer}>
-                  <Video
-                    source={{ uri: videoUri }}
-                    style={{ width: '100%', height: '100%' }}
-                    controls
-                    resizeMode="contain"
-                    paused={isThisVideoPaused}
-                    repeat={false}
-                    playInBackground={false}
-                    playWhenInactive={false}
-                    useTextureView={true}
-                    onError={e => {
-                      console.warn('[Feed] inline task video error:', e);
-                      stopInlineVideo();
-                    }}
-                    onEnd={() => stopInlineVideo()}
-                  />
-                </View>
-
-                <View style={styles.videoWatermark}>
-                  <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
-                </View>
+            <Pressable
+              style={[styles.freeVideoPlayerWrapper, { marginTop: 10 }]}
+              onPress={(e: any) => {
+                e?.stopPropagation?.();
+                if (!videoUri) return;
+                openInlineVideo(instanceId, listItemId, videoUri);
+              }}
+            >
+              <View style={styles.freeVideoPlayer} pointerEvents={isThisVideoActive ? 'auto' : 'none'}>
+                <Video
+                  source={{ uri: videoUri }}
+                  style={{ width: '100%', height: '100%' }}
+                  controls={isThisVideoActive}
+                  resizeMode="contain"
+                  paused={!isThisVideoActive || isThisVideoPaused}
+                  repeat={false}
+                  playInBackground={false}
+                  playWhenInactive={false}
+                  useTextureView={true}
+                  onError={e => {
+                    console.warn('[Feed] inline task video error:', e);
+                    stopInlineVideo();
+                  }}
+                  onEnd={() => stopInlineVideo()}
+                />
               </View>
-            ) : null}
+
+              <View style={styles.videoWatermark}>
+                <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
+              </View>
+            </Pressable>
           </View>
         ) : null}
 
@@ -1995,7 +2325,10 @@ const openSharePanelForPost = (post: Post) => {
               </Pressable>
             )}
 
-            <Pressable style={({ pressed }) => [styles.shareTriggerBtn, pressed && styles.shareTriggerBtnPressed]} onPress={() => openSharePanelForPost(base)}>
+            <Pressable
+              style={({ pressed }) => [styles.shareTriggerBtn, pressed && styles.shareTriggerBtnPressed]}
+              onPress={() => openSharePanelForPost(base)}
+            >
               <Text style={styles.shareTriggerText}>🌐</Text>
             </Pressable>
 
@@ -2008,7 +2341,7 @@ const openSharePanelForPost = (post: Post) => {
         </View>
       </Pressable>
     );
-  };
+  };  
 
   const renderItem = ({ item }: ListRenderItemInfo<Post>) => {
     const anyItem: any = item;
@@ -2041,11 +2374,14 @@ const openSharePanelForPost = (post: Post) => {
       const repostAvatarUri: string | null =
         (repostIsMine ? (myAvatarUri ? String(myAvatarUri).trim() : null) : null) || resolveAvatarUri(anyItem) || null;
 
-      // ✅ repost embedded instanceId: orijinal kartla çakışmasın
       const embeddedInstanceId = `embed:${String(item.id)}:${String(originalPost.id)}`;
 
       return (
-        <Pressable style={[styles.card, isHighlighted && styles.cardHighlighted]} onPress={goToOriginal} onLongPress={() => handlePostLongPress(item)}>
+        <Pressable
+          style={[styles.card, isHighlighted && styles.cardHighlighted]}
+          onPress={goToOriginal}
+          onLongPress={() => handlePostLongPress(item)}
+        >
           <View style={styles.freeVideoHeaderRow}>
             <Pressable style={styles.authorRow} onPress={goToOriginal}>
               {repostAvatarUri ? (
@@ -2071,20 +2407,40 @@ const openSharePanelForPost = (post: Post) => {
               embedded: true,
               onPressCard: goToOriginal,
               instanceId: embeddedInstanceId,
-              listItemId: String(item.id), // ✅ viewability bununla kapanır
+              listItemId: String(item.id),
             })}
           </Pressable>
         </Pressable>
       );
     }
 
-    return renderFullPostCard(item, { isHighlighted, instanceId: String(item.id), listItemId: String(item.id) });
+    return renderFullPostCard(item, {
+      isHighlighted,
+      instanceId: String(item.id),
+      listItemId: String(item.id),
+    });
   };
 
-  const currentComments: Comment[] = commentsPost && commentsByPost[commentsPost.id] ? commentsByPost[commentsPost.id] : [];
+  const currentComments: Comment[] =
+    commentsPost && commentsByPost[commentsPost.id] ? commentsByPost[commentsPost.id] : [];
+
+  const commentsAtTopRef = useRef(true);
+
+  const commentListLayoutHRef = useRef(0);
+  const commentListContentHRef = useRef(0);
+
+  const updateCommentsTopForNonScrollable = () => {
+    const layoutH = commentListLayoutHRef.current || 0;
+    const contentH = commentListContentHRef.current || 0;
+
+    if (layoutH > 0 && contentH > 0 && contentH <= layoutH + 1) {
+      commentsAtTopRef.current = true;
+    }
+  };
 
   const commentsDisabledForCurrent = commentsPost && commentsDisabledByPost[commentsPost.id];
-  const isCurrentPostOwner = !!commentsPost && (((commentsPost as any).author || displayName) === displayName);
+  const isCurrentPostOwner =
+    !!commentsPost && ((((commentsPost as any).author || displayName) === displayName));
 
   const renderCommentsTree = () => {
     if (currentComments.length === 0) return null;
@@ -2092,28 +2448,50 @@ const openSharePanelForPost = (post: Post) => {
     const sorted = currentComments.slice().sort((a, b) => a.ts - b.ts);
 
     const roots = sorted.filter(c => !c.parentId);
+
     const renderThread = (comment: Comment, depth: number): React.ReactNode[] => {
       const replies = sorted.filter(c => c.parentId === comment.id);
       const isReply = depth > 0;
       const timeLabel = new Date(comment.ts).toLocaleTimeString();
       const authorInitial = (comment.author?.trim?.()[0] || '?').toUpperCase();
 
+      const avatarUri =
+        comment.author === displayName
+          ? myAvatarUri
+          : (comment.authorAvatarUri ? String(comment.authorAvatarUri).trim() : null);
+
       const node = (
         <Pressable
           key={comment.id}
-          style={({ pressed }) => [styles.commentRow, isReply && styles.commentRowReply, pressed && styles.commentRowPressed]}
+          style={({ pressed }) => [
+            styles.commentRow,
+            isReply && styles.commentRowReply,
+            pressed && styles.commentRowPressed,
+          ]}
           delayLongPress={300}
           onLongPress={() => {
             if (comment.author !== displayName) return;
-            Alert.alert(t('feed.comments.actionsTitle', 'Yorum işlemi'), t('feed.comments.deleteQuestion', 'Bu yorumu silmek istiyor musun?'), [
-              { text: t('common.cancel', 'Vazgeç'), style: 'cancel' },
-              { text: t('feed.comments.delete', 'Yorumu sil'), style: 'destructive', onPress: () => handleDeleteComment(comment) },
-            ]);
+            Alert.alert(
+              t('feed.comments.actionsTitle', 'Yorum işlemi'),
+              t('feed.comments.deleteQuestion', 'Bu yorumu silmek istiyor musun?'),
+              [
+                { text: t('common.cancel', 'Vazgeç'), style: 'cancel' },
+                {
+                  text: t('feed.comments.delete', 'Yorumu sil'),
+                  style: 'destructive',
+                  onPress: () => handleDeleteComment(comment),
+                },
+              ],
+            );
           }}
         >
-          <View style={styles.commentAvatar}>
-            <Text style={styles.commentAvatarInitial}>{authorInitial}</Text>
-          </View>
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.commentAvatarImage} />
+          ) : (
+            <View style={styles.commentAvatar}>
+              <Text style={styles.commentAvatarInitial}>{authorInitial}</Text>
+            </View>
+          )}
 
           <View style={[styles.commentContent, isReply && styles.commentReplyContent]}>
             <View style={styles.commentHeaderRow}>
@@ -2122,10 +2500,11 @@ const openSharePanelForPost = (post: Post) => {
             </View>
             <Text style={styles.commentText}>{comment.text}</Text>
             <View style={styles.commentFooterRow}>
-              <Pressable style={({ pressed }) => [styles.commentLikeBtn, pressed && styles.commentLikeBtnPressed]} onPress={() => handleLikeComment(comment)}>
-                <Text style={styles.commentLikeText}>
-                ❤️ {comment.likes || 0}
-               </Text>
+              <Pressable
+                style={({ pressed }) => [styles.commentLikeBtn, pressed && styles.commentLikeBtnPressed]}
+                onPress={() => handleLikeComment(comment)}
+              >
+                <Text style={styles.commentLikeText}>❤️ {comment.likes || 0}</Text>
               </Pressable>
               <Pressable
                 style={({ pressed }) => [styles.commentReplyBtn, pressed && styles.commentReplyBtnPressed]}
@@ -2144,27 +2523,52 @@ const openSharePanelForPost = (post: Post) => {
     return roots.flatMap(root => renderThread(root, 0));
   };
 
+  const [commentsAtTop, setCommentsAtTop] = useState(true);
+
   const commentDragResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        const startY = gestureState.moveY - gestureState.dy;
-        return gestureState.dy > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && startY < 260;
+      onMoveShouldSetPanResponderCapture: (_, g) => {
+        if (g.dy <= 1) return false;
+        if (Math.abs(g.dy) <= Math.abs(g.dx)) return false;
+
+        if (currentComments.length === 0) return true;
+
+        return !!commentsAtTopRef.current;
       },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 60) closeComments();
+
+      onPanResponderTerminationRequest: () => false,
+
+      onPanResponderRelease: (_, g) => {
+        const shouldClose =
+          g.dy > 10 ||
+          g.vy > 0.22 ||
+          (g.dy > 8 && g.vy > 0.12);
+
+        if (shouldClose) closeComments();
       },
     }),
   ).current;
 
   const renderNotifications = () => {
     if (notifications.length === 0) {
-      return <Text style={styles.notificationsEmptyText}>{t('feed.notifications.empty', 'Henüz bildirimin yok. Yorum yazdıkça ve ayarlarla oynadıkça burada gözükecek.')}</Text>;
+      return (
+        <Text style={styles.notificationsEmptyText}>
+          {t(
+            'feed.notifications.empty',
+            'Henüz bildirimin yok. Yorum yazdıkça ve ayarlarla oynadıkça burada gözükecek.',
+          )}
+        </Text>
+      );
     }
 
     return (
       <ScrollView contentContainerStyle={styles.notificationsList} keyboardShouldPersistTaps="handled">
         {notifications.map(n => (
-          <Pressable key={n.id} style={({ pressed }) => [styles.notificationItem, pressed && styles.notificationItemPressed]} onPress={() => handleNotificationPress(n)}>
+          <Pressable
+            key={n.id}
+            style={({ pressed }) => [styles.notificationItem, pressed && styles.notificationItemPressed]}
+            onPress={() => handleNotificationPress(n)}
+          >
             <Text style={[styles.notificationText, !n.read && styles.notificationTextUnread]}>{n.text}</Text>
             <Text style={styles.notificationTime}>{new Date(n.ts).toLocaleString()}</Text>
           </Pressable>
@@ -2176,7 +2580,15 @@ const openSharePanelForPost = (post: Post) => {
   const renderFilterChip = (label: string, value: FeedFilter) => {
     const active = filter === value;
     return (
-      <Pressable key={value} style={({ pressed }) => [styles.filterChip, active && styles.filterChipActive, pressed && styles.filterChipPressed]} onPress={() => setFilter(value)}>
+      <Pressable
+        key={value}
+        style={({ pressed }) => [
+          styles.filterChip,
+          active && styles.filterChipActive,
+          pressed && styles.filterChipPressed,
+        ]}
+        onPress={() => setFilter(value)}
+      >
         <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>{label}</Text>
       </Pressable>
     );
@@ -2191,14 +2603,23 @@ const openSharePanelForPost = (post: Post) => {
             <Image source={VIRAL_LOGO} style={styles.headerLogo} />
             <Text style={styles.headerTitle}>{t('feed.headerTitle', 'Akış')}</Text>
           </View>
-          <Text style={styles.headerSub}>{t('feed.headerSub', { defaultValue: 'Merhaba, {{name}} 👋', name: firstName })}</Text>
-          <Text style={styles.headerTagline}>{t('feed.headerTagline', 'Görevlerin, videoların ve paylaşımların — hepsi burada birleşiyor.')}</Text>
+          <Text style={styles.headerSub}>
+            {t('feed.headerSub', { defaultValue: 'Merhaba, {{name}} 👋', name: firstName })}
+          </Text>
+          <Text style={styles.headerTagline}>
+            {t('feed.headerTagline', 'Görevlerin, videoların ve paylaşımların — hepsi burada birleşiyor.')}
+          </Text>
         </View>
-        <Pressable style={({ pressed }) => [styles.bellBtn, pressed && styles.bellBtnPressed]} onPress={() => setNotificationsVisible(true)}>
+        <Pressable
+          style={({ pressed }) => [styles.bellBtn, pressed && styles.bellBtnPressed]}
+          onPress={() => setNotificationsVisible(true)}
+        >
           <Text style={styles.bellIcon}>🔔</Text>
           {unreadNotificationCount > 0 && (
             <View style={styles.bellBadge}>
-              <Text style={styles.bellBadgeText}>{unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}</Text>
+              <Text style={styles.bellBadgeText}>
+                {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+              </Text>
             </View>
           )}
         </Pressable>
@@ -2222,14 +2643,21 @@ const openSharePanelForPost = (post: Post) => {
                 style={[
                   styles.focusNetworkBadge,
                   hasNewFocusRequests && { opacity: 1 },
-                  { transform: [{ scale: hasNewFocusRequests ? combinedScale : 1 }], opacity: hasNewFocusRequests ? pulseOpacity : 1 },
+                  {
+                    transform: [{ scale: hasNewFocusRequests ? combinedScale : 1 }],
+                    opacity: hasNewFocusRequests ? pulseOpacity : 1,
+                  },
                 ]}
               >
-                <Text style={styles.focusNetworkBadgeText}>{pendingFocusRequestsCount > 99 ? '99+' : pendingFocusRequestsCount}</Text>
+                <Text style={styles.focusNetworkBadgeText}>
+                  {pendingFocusRequestsCount > 99 ? '99+' : pendingFocusRequestsCount}
+                </Text>
               </Animated.View>
             )}
 
-            {hasNewFocusRequests && <Animated.View style={[styles.focusNetworkNewDot, { opacity: pulseOpacity }]} />}
+            {hasNewFocusRequests && (
+              <Animated.View style={[styles.focusNetworkNewDot, { opacity: pulseOpacity }]} />
+            )}
           </View>
         </Pressable>
       </View>
@@ -2259,13 +2687,20 @@ const openSharePanelForPost = (post: Post) => {
             {feedError ? (
               <>
                 <Text style={styles.emptyText}>{feedError}</Text>
-                <Pressable style={({ pressed }) => [styles.emptyCtaBtn, pressed && styles.emptyCtaBtnPressed]} onPress={() => safeHydrate()}>
+                <Pressable
+                  style={({ pressed }) => [styles.emptyCtaBtn, pressed && styles.emptyCtaBtnPressed]}
+                  onPress={() => safeHydrate()}
+                >
                   <Text style={styles.emptyCtaText}>{t('common.retry', 'Tekrar dene')}</Text>
                 </Pressable>
               </>
             ) : (
               <>
-                <Text style={styles.emptyText}>{hydrated ? t('feed.empty.noPosts', 'Henüz gönderi yok.') : t('feed.empty.loading', 'Akış yükleniyor...')}</Text>
+                <Text style={styles.emptyText}>
+                  {hydrated
+                    ? t('feed.empty.noPosts', 'Henüz gönderi yok.')
+                    : t('feed.empty.loading', 'Akış yükleniyor...')}
+                </Text>
                 {hydrated && (
                   <Pressable
                     style={({ pressed }) => [styles.emptyCtaBtn, pressed && styles.emptyCtaBtnPressed]}
@@ -2275,7 +2710,9 @@ const openSharePanelForPost = (post: Post) => {
                       go('Upload');
                     }}
                   >
-                    <Text style={styles.emptyCtaText}>{t('feed.empty.cta', 'İlk görevini / videonu oluştur')}</Text>
+                    <Text style={styles.emptyCtaText}>
+                      {t('feed.empty.cta', 'İlk görevini / videonu oluştur')}
+                    </Text>
                   </Pressable>
                 )}
               </>
@@ -2294,8 +2731,7 @@ const openSharePanelForPost = (post: Post) => {
             }, 250);
           } catch {}
         }}
-        // ✅ Perf / OOM sigortası
-        removeClippedSubviews={false} // ✅ MECBUR: Android + Video + clipped = Surface/Texture leak/OOM
+        removeClippedSubviews={false}
         windowSize={5}
         initialNumToRender={6}
         maxToRenderPerBatch={6}
@@ -2304,9 +2740,6 @@ const openSharePanelForPost = (post: Post) => {
         onViewableItemsChanged={onViewableItemsChanged}
         onScrollBeginDrag={() => setActiveVideo(null)}
         onMomentumScrollBegin={() => setActiveVideo(null)}
-        // ✅ Scroll başlayınca oynayan video dursun (tek video / crash fix)
-        // onScrollBeginDrag={() => setActiveVideo(null)}      // ✅ MECBUR: aynı handler 2 kez yazılmıştı, silmedim — devre dışı
-        // onMomentumScrollBegin={() => setActiveVideo(null)}  // ✅ MECBUR: aynı handler 2 kez yazılmıştı, silmedim — devre dışı
       />
 
       {/* FAB */}
@@ -2346,7 +2779,11 @@ const openSharePanelForPost = (post: Post) => {
               </View>
             </View>
 
-            <Text style={styles.modalTitle}>{(selectedPost as any).title || (selectedPost as any).note || t('feed.post.genericTitle', 'Paylaşım')}</Text>
+            <Text style={styles.modalTitle}>
+              {(selectedPost as any).title ||
+                (selectedPost as any).note ||
+                t('feed.post.genericTitle', 'Paylaşım')}
+            </Text>
 
             {(selectedPost as any).isTaskCard && (
               <View style={styles.taskBadgeRow}>
@@ -2355,11 +2792,17 @@ const openSharePanelForPost = (post: Post) => {
               </View>
             )}
 
-            {isExternalLocal(selectedPost) && <Text style={{ color: '#AAB0C5', fontSize: 11, marginBottom: 6 }}>{t('feed.external.badge', 'Dış paylaşım')}</Text>}
+            {isExternalLocal(selectedPost) && (
+              <Text style={{ color: '#AAB0C5', fontSize: 11, marginBottom: 6 }}>
+                {t('feed.external.badge', 'Dış paylaşım')}
+              </Text>
+            )}
 
             <Text style={styles.modalTime}>{getTimeLabel(selectedPost)}</Text>
 
-            {(selectedPost as any).body ? <Text style={styles.modalBody}>{(selectedPost as any).body}</Text> : null}
+            {(selectedPost as any).body ? (
+              <Text style={styles.modalBody}>{(selectedPost as any).body}</Text>
+            ) : null}
 
             {(selectedPost as any).note ? (
               <Text style={styles.modalNote}>
@@ -2367,18 +2810,47 @@ const openSharePanelForPost = (post: Post) => {
               </Text>
             ) : null}
 
+            {/* ✅ NEW: detay modal çoklu foto */}
+            {getSafeImageUris(selectedPost).length > 0 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.modalImagesRow}
+                style={styles.modalImagesWrap}
+              >
+                {getSafeImageUris(selectedPost).map((imgUri, idx) => (
+                  <Image
+                    key={`modal_img_${idx}`}
+                    source={{ uri: imgUri }}
+                    style={styles.modalImageThumb}
+                    resizeMode="cover"
+                  />
+                ))}
+              </ScrollView>
+            )}
+
             {(selectedPost as any).shareTargets && (selectedPost as any).shareTargets.length > 0 && (
               <Text style={styles.modalShare}>
-                {t('feed.share.plannedShort', 'Planlanan paylaşım')} {(selectedPost as any).shareTargets.join(', ')}
+                {t('feed.share.plannedShort', 'Planlanan paylaşım')}{' '}
+                {(selectedPost as any).shareTargets.join(', ')}
               </Text>
             )}
 
-            {(selectedPost as any).videoUri ? <Text style={styles.modalVideo}>{t('feed.video.info', '📹 Bu kartla birlikte bir video planlandı.')}</Text> : null}
+            {(selectedPost as any).videoUri ? (
+              <Text style={styles.modalVideo}>
+                {t('feed.video.info', '📹 Bu kartla birlikte bir video planlandı.')}
+              </Text>
+            ) : null}
 
             <View style={styles.modalFooterRow}>
               <Text style={styles.modalAuthor}>{(selectedPost as any).author || displayName}</Text>
               <AnimatedLikeButton
-                likes={typeof (selectedPost as any).likes === 'number' && Number.isFinite((selectedPost as any).likes) ? (selectedPost as any).likes : 0}
+                likes={
+                  typeof (selectedPost as any).likes === 'number' &&
+                  Number.isFinite((selectedPost as any).likes)
+                    ? (selectedPost as any).likes
+                    : 0
+                }
                 onPress={() => safeLike(selectedPost)}
               />
             </View>
@@ -2408,10 +2880,20 @@ const openSharePanelForPost = (post: Post) => {
                   return (
                     <Pressable
                       key={label}
-                      style={({ pressed }) => [styles.sharePlatformChip, isSelected && styles.sharePlatformChipSelected, pressed && styles.sharePlatformChipPressed]}
+                      style={({ pressed }) => [
+                        styles.sharePlatformChip,
+                        isSelected && styles.sharePlatformChipSelected,
+                        pressed && styles.sharePlatformChipPressed,
+                      ]}
                       onPress={() => setSelectedSharePlatform(label)}
                     >
-                      <Text style={[styles.sharePlatformChipText, isSelected && styles.sharePlatformChipTextSelected]} numberOfLines={1}>
+                      <Text
+                        style={[
+                          styles.sharePlatformChipText,
+                          isSelected && styles.sharePlatformChipTextSelected,
+                        ]}
+                        numberOfLines={1}
+                      >
                         {label}
                       </Text>
                     </Pressable>
@@ -2423,32 +2905,46 @@ const openSharePanelForPost = (post: Post) => {
             {selectedSharePlatform && (
               <View style={{ marginTop: 12 }}>
                 <View style={styles.sharePreviewBox}>
-                  <Text style={styles.sharePreviewTitle}>{t('feed.share.previewTitle', 'Paylaşım önizlemesi')}</Text>
+                  <Text style={styles.sharePreviewTitle}>
+                    {t('feed.share.previewTitle', 'Paylaşım önizlemesi')}
+                  </Text>
                   <Text style={styles.sharePreviewBody}>
-                    {(sharePost as any).note || (sharePost as any).body || (sharePost as any).title || t('feed.share.previewFallback', 'Paylaşım metni')}
+                    {(sharePost as any).note ||
+                      (sharePost as any).body ||
+                      (sharePost as any).title ||
+                      t('feed.share.previewFallback', 'Paylaşım metni')}
                   </Text>
                 </View>
               </View>
             )}
 
             <View style={styles.shareSheetFooter}>
-              <Pressable style={({ pressed }) => [styles.modalCloseBtn, pressed && { backgroundColor: '#e0e0e0' }]} onPress={closeShareModal}>
+              <Pressable
+                style={({ pressed }) => [styles.modalCloseBtn, pressed && { backgroundColor: '#e0e0e0' }]}
+                onPress={closeShareModal}
+              >
                 <Text style={styles.modalCloseText}>{t('common.cancel', 'Vazgeç')}</Text>
               </Pressable>
 
               <Pressable
-                style={({ pressed }) => [styles.shareConfirmBtn, pressed && styles.shareConfirmBtnPressed, !selectedSharePlatform && { opacity: 0.4 }]}
+                style={({ pressed }) => [
+                  styles.shareConfirmBtn,
+                  pressed && styles.shareConfirmBtnPressed,
+                  !selectedSharePlatform && { opacity: 0.4 },
+                ]}
                 onPress={handleConfirmShare}
                 disabled={!selectedSharePlatform}
               >
-                <Text style={styles.shareConfirmText}>{t('feed.share.simulateButton', 'Paylaş (simülasyon)')}</Text>
+                <Text style={styles.shareConfirmText}>
+                  {t('feed.share.simulateButton', 'Paylaş (simülasyon)')}
+                </Text>
               </Pressable>
             </View>
           </View>
         </Modal>
       )}
 
-      {/* ✅ Video sheet (ESKİ) — modal istemiyorsun: satır silmeden devre dışı */}
+      {/* Video sheet (eski) */}
       {false && videoPost && (videoPost as any).videoUri && (
         <Modal
           visible={videoVisible}
@@ -2456,13 +2952,13 @@ const openSharePanelForPost = (post: Post) => {
           animationType="slide"
           onRequestClose={() => {
             setVideoVisible(false);
-            setVideoPost(null); // ✅ OOM FIX: tam unmount
+            setVideoPost(null);
           }}
         >
           <TouchableWithoutFeedback
             onPress={() => {
               setVideoVisible(false);
-              setVideoPost(null); // ✅ OOM FIX: tam unmount
+              setVideoPost(null);
             }}
           >
             <View style={styles.modalBackdrop} />
@@ -2471,11 +2967,19 @@ const openSharePanelForPost = (post: Post) => {
           <View style={styles.videoSheet}>
             <View style={styles.modalHandle} />
             <Text style={styles.videoSheetTitle} numberOfLines={2}>
-              {t('feed.video.sheetTitlePrefix', 'Videolu kart:')} {(videoPost as any).title || (videoPost as any).note || t('feed.post.genericTitle', 'Gönderi')}
+              {t('feed.video.sheetTitlePrefix', 'Videolu kart:')}{' '}
+              {(videoPost as any).title ||
+                (videoPost as any).note ||
+                t('feed.post.genericTitle', 'Gönderi')}
             </Text>
 
             <View style={styles.videoPlayerWrapper}>
-              <Video source={{ uri: (videoPost as any).videoUri }} style={styles.videoPlayer} controls resizeMode="contain" />
+              <Video
+                source={{ uri: (videoPost as any).videoUri }}
+                style={styles.videoPlayer}
+                controls
+                resizeMode="contain"
+              />
               <View style={styles.videoWatermark}>
                 <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
               </View>
@@ -2485,7 +2989,7 @@ const openSharePanelForPost = (post: Post) => {
               style={styles.modalCloseBtn}
               onPress={() => {
                 setVideoVisible(false);
-                setVideoPost(null); // ✅ OOM FIX: tam unmount
+                setVideoPost(null);
               }}
             >
               <Text style={styles.modalCloseText}>{t('common.close', 'Kapat')}</Text>
@@ -2497,15 +3001,34 @@ const openSharePanelForPost = (post: Post) => {
       {/* 💬 Yorum ekranı */}
       {commentsPost && (
         <Modal visible={commentsVisible} transparent={false} animationType="slide" onRequestClose={closeComments}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.commentScreenRoot} {...commentDragResponder.panHandlers}>
-            <View style={styles.commentSheet}>
-              <View style={styles.commentDragZone}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={[styles.commentScreenRoot, { flex: 1 }]}
+            {...commentDragResponder.panHandlers}
+          >
+            <View style={[styles.commentSheet, { flex: 1 }]}>
+              <Pressable
+                style={[
+                  styles.commentDragZone,
+                  {
+                    flexGrow: 0,
+                    flexShrink: 0,
+                    paddingVertical: 10,
+                    alignItems: 'center',
+                  },
+                ]}
+                hitSlop={{ top: 20, bottom: 20, left: 40, right: 40 }}
+                {...commentDragResponder.panHandlers}
+              >
                 <View style={styles.modalHandle} />
-              </View>
+              </Pressable>
 
               <View style={styles.commentTitleRow}>
                 <Text style={styles.commentTitle} numberOfLines={2}>
-                  {t('feed.comments.title', 'Yorumlar')} · {(commentsPost as any).title || (commentsPost as any).note || t('feed.post.genericTitle', 'Gönderi')}
+                  {t('feed.comments.title', 'Yorumlar')} ·{' '}
+                  {(commentsPost as any).title ||
+                    (commentsPost as any).note ||
+                    t('feed.post.genericTitle', 'Gönderi')}
                 </Text>
 
                 {isCurrentPostOwner && (
@@ -2517,8 +3040,15 @@ const openSharePanelForPost = (post: Post) => {
                     ]}
                     onPress={() => toggleCommentsDisabledForPost(commentsPost.id)}
                   >
-                    <Text style={[styles.commentsToggleText, commentsDisabledForCurrent && styles.commentsToggleTextActive]}>
-                      {commentsDisabledForCurrent ? t('feed.comments.toggleOpen', 'Yorumları aç') : t('feed.comments.toggleClose', 'Yorumları kapat')}
+                    <Text
+                      style={[
+                        styles.commentsToggleText,
+                        commentsDisabledForCurrent && styles.commentsToggleTextActive,
+                      ]}
+                    >
+                      {commentsDisabledForCurrent
+                        ? t('feed.comments.toggleOpen', 'Yorumları aç')
+                        : t('feed.comments.toggleClose', 'Yorumları kapat')}
                     </Text>
                   </Pressable>
                 )}
@@ -2535,11 +3065,36 @@ const openSharePanelForPost = (post: Post) => {
                 </View>
               )}
 
-              <View style={styles.commentListWrapper}>
+              <View
+                style={[styles.commentListWrapper, { flex: 1, minHeight: 0 }]}
+                onLayout={e => {
+                  commentListLayoutHRef.current = e.nativeEvent.layout?.height ?? 0;
+                  updateCommentsTopForNonScrollable();
+                }}
+              >
                 {currentComments.length === 0 ? (
-                  <Text style={styles.commentEmptyText}>{t('feed.comments.empty', 'Henüz yorum yok. İlk yorumu sen yaz. 🙂')}</Text>
+                  <Text style={styles.commentEmptyText}>
+                    {t('feed.comments.empty', 'Henüz yorum yok. İlk yorumu sen yaz. 🙂')}
+                  </Text>
                 ) : (
-                  <ScrollView contentContainerStyle={styles.commentList} keyboardShouldPersistTaps="handled">
+                  <ScrollView
+                    style={{ flex: 1 }}
+                    contentContainerStyle={[styles.commentList, { paddingBottom: 120 }]}
+                    keyboardShouldPersistTaps="handled"
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator={false}
+                    onContentSizeChange={(_, h) => {
+                      commentListContentHRef.current = h ?? 0;
+                      updateCommentsTopForNonScrollable();
+                    }}
+                    onScroll={e => {
+                      const y = e.nativeEvent.contentOffset?.y ?? 0;
+                      const isTop = y <= 0;
+                      commentsAtTopRef.current = isTop;
+                      setCommentsAtTop(isTop);
+                    }}
+                    scrollEventThrottle={16}
+                  >
                     {renderCommentsTree()}
                   </ScrollView>
                 )}
@@ -2548,7 +3103,11 @@ const openSharePanelForPost = (post: Post) => {
               {!commentsDisabledForCurrent && (
                 <View style={styles.emojiRow}>
                   {['❤️', '👏', '🔥', '😂', '😍', '😮', '😢'].map(emoji => (
-                    <Pressable key={emoji} style={({ pressed }) => [styles.emojiChip, pressed && styles.emojiChipPressed]} onPress={() => setCommentInput(prev => (prev ? prev + ' ' + emoji : emoji))}>
+                    <Pressable
+                      key={emoji}
+                      style={({ pressed }) => [styles.emojiChip, pressed && styles.emojiChipPressed]}
+                      onPress={() => setCommentInput(prev => (prev ? prev + ' ' + emoji : emoji))}
+                    >
                       <Text style={styles.emojiText}>{emoji}</Text>
                     </Pressable>
                   ))}
@@ -2556,7 +3115,12 @@ const openSharePanelForPost = (post: Post) => {
               )}
 
               {commentsDisabledForCurrent ? (
-                <Text style={styles.commentsDisabledInfo}>{t('feed.comments.disabledInfo', 'Bu gönderide yorumlar kapalı. Sadece mevcut yorumları görebilirsin.')}</Text>
+                <Text style={styles.commentsDisabledInfo}>
+                  {t(
+                    'feed.comments.disabledInfo',
+                    'Bu gönderide yorumlar kapalı. Sadece mevcut yorumları görebilirsin.',
+                  )}
+                </Text>
               ) : (
                 <View style={styles.commentInputRow}>
                   <TextInput
@@ -2571,7 +3135,11 @@ const openSharePanelForPost = (post: Post) => {
                     multiline
                   />
                   <Pressable
-                    style={({ pressed }) => [styles.commentSendBtn, pressed && styles.commentSendBtnPressed, !commentInput.trim() && { opacity: 0.4 }]}
+                    style={({ pressed }) => [
+                      styles.commentSendBtn,
+                      pressed && styles.commentSendBtnPressed,
+                      !commentInput.trim() && { opacity: 0.4 },
+                    ]}
                     onPress={handleSendComment}
                     disabled={!commentInput.trim()}
                   >
@@ -2585,7 +3153,12 @@ const openSharePanelForPost = (post: Post) => {
       )}
 
       {/* 🔔 Bildirim sheet'i */}
-      <Modal visible={notificationsVisible} transparent animationType="slide" onRequestClose={() => setNotificationsVisible(false)}>
+      <Modal
+        visible={notificationsVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setNotificationsVisible(false)}
+      >
         <TouchableWithoutFeedback onPress={() => setNotificationsVisible(false)}>
           <View style={styles.modalBackdrop} />
         </TouchableWithoutFeedback>
@@ -2595,8 +3168,16 @@ const openSharePanelForPost = (post: Post) => {
           <View style={styles.notificationsHeaderRow}>
             <Text style={styles.notificationsTitle}>{t('feed.notifications.title', 'Bildirimler')}</Text>
             {notifications.length > 0 && (
-              <Pressable style={({ pressed }) => [styles.notificationsMarkAllBtn, pressed && styles.notificationsMarkAllBtnPressed]} onPress={markAllNotificationsRead}>
-                <Text style={styles.notificationsMarkAllText}>{t('feed.notifications.markAll', 'Tümünü okundu işaretle')}</Text>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.notificationsMarkAllBtn,
+                  pressed && styles.notificationsMarkAllBtnPressed,
+                ]}
+                onPress={markAllNotificationsRead}
+              >
+                <Text style={styles.notificationsMarkAllText}>
+                  {t('feed.notifications.markAll', 'Tümünü okundu işaretle')}
+                </Text>
               </Pressable>
             )}
           </View>
@@ -2635,7 +3216,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 6,
     justifyContent: 'space-between',
-    backgroundColor: '#0B0C10', // üst şerit de koyu
+    backgroundColor: '#0B0C10',
   },
   headerTextBlock: {
     flex: 1,
@@ -2647,7 +3228,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   headerLogo: {
-    width: 34, // logo büyütüldü
+    width: 34,
     height: 34,
     marginRight: 8,
   },
@@ -2714,7 +3295,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E50914', // 🔴 Viral kırmızısı
+    backgroundColor: '#E50914',
   },
   focusNetworkBtnInner: {
     flexDirection: 'row',
@@ -2726,8 +3307,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-
-  // ✅ Focus Network istek sayısı badge (pro)
   focusNetworkBadge: {
     marginLeft: 10,
     minWidth: 22,
@@ -2739,7 +3318,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
-
     shadowColor: '#000000',
     shadowOpacity: 0.22,
     shadowRadius: 8,
@@ -2751,8 +3329,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#FFFFFF',
   },
-
-  // ✅ “Yeni istek” noktası
   focusNetworkNewDot: {
     width: 8,
     height: 8,
@@ -2764,14 +3340,14 @@ const styles = StyleSheet.create({
   // FİLTRE CHIPLERİ
   filterRow: {
     flexDirection: 'row',
-    flexWrap: 'nowrap', // tek satırda kalsın
+    flexWrap: 'nowrap',
     paddingHorizontal: 10,
     marginTop: 8,
     marginBottom: 4,
     alignItems: 'center',
   },
   filterChip: {
-    paddingHorizontal: 8, // daralt
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 999,
     borderWidth: 1,
@@ -2913,6 +3489,24 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: '#000000',
+  },
+
+  // ✅ NEW: çoklu foto galeri
+  postImagesWrap: {
+    marginTop: 2,
+    marginBottom: 8,
+  },
+  postImagesRow: {
+    paddingTop: 2,
+    paddingBottom: 2,
+    gap: 8,
+  },
+  postImageThumb: {
+    width: 148,
+    height: 148,
+    borderRadius: 12,
+    backgroundColor: '#202433',
+    marginRight: 8,
   },
 
   videoWatermark: {
@@ -3115,16 +3709,16 @@ const styles = StyleSheet.create({
   },
 
   videoInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     marginTop: 4,
     marginBottom: 8,
   },
   videoInfo: {
-    flex: 1,
     fontSize: 12,
     color: '#D7DBF0',
     marginRight: 6,
+    marginBottom: 6,
   },
   videoPlayBtn: {
     borderRadius: 100,
@@ -3227,6 +3821,24 @@ const styles = StyleSheet.create({
     color: '#C2C7E2',
     marginBottom: 4,
   },
+
+  // ✅ NEW: detay modal foto galeri
+  modalImagesWrap: {
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  modalImagesRow: {
+    paddingVertical: 2,
+    gap: 8,
+  },
+  modalImageThumb: {
+    width: 180,
+    height: 180,
+    borderRadius: 12,
+    backgroundColor: '#202433',
+    marginRight: 8,
+  },
+
   modalShare: {
     fontSize: 12,
     color: '#A5ACC8',
@@ -3381,8 +3993,11 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   commentDragZone: {
+    paddingTop: 10,
+    paddingBottom: 10,
     alignItems: 'center',
-    marginBottom: 4,
+    justifyContent: 'center',
+    height: 36,
   },
   commentTitleRow: {
     flexDirection: 'row',
@@ -3472,6 +4087,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
+  },
+  // ✅ NEW: yorum avatar image
+  commentAvatarImage: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    marginRight: 8,
+    backgroundColor: '#242840',
   },
   commentAvatarInitial: {
     fontSize: 13,
@@ -3749,6 +4372,4 @@ const styles = StyleSheet.create({
   },
 });
 
-
-
-  
+export default FeedScreen;

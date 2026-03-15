@@ -605,7 +605,8 @@
   "title": "Acciones de la publicación",
   "message": "¿Qué quieres hacer con esta publicación?",
   "archive": "Archivar tarjeta",
-  "delete": "Eliminar tarjeta"
+  "delete": "Eliminar tarjeta",
+  "noPermission": "Esta tarjeta no es tuya. No puedes eliminarla."
   },
     "time": {
       "justNow": "justo ahora",
@@ -634,7 +635,7 @@
   "welcome": {
     "title": "Bienvenido 👋",
     "subtitle": "Formulario de registro para usuarios reales."
-  },
+  }, 
   "login": {
     "title": "Iniciar sesión",
     "subtitle": "Inicia sesión con tu correo/teléfono y contraseña.",
@@ -681,6 +682,83 @@
     "newPasswordConfirmPlaceholder": "Nueva contraseña (confirmar)",
     "updateButton": "Actualizar contraseña",
     "backToLogin": "← Volver a iniciar sesión"
+  }
+ },
+"focusNetwork": {
+  "title": "Red Focus",
+  "subtitle": "Aquí solo ves las publicaciones de las personas que elegiste.",
+  "tabs": {
+    "network": "Mi red",
+    "discover": "Descubrir",
+    "requests": "Solicitudes"
+  },
+  "search": {
+    "networkPlaceholder": "Buscar en tu red (@usuario, nombre)...",
+    "discoverPlaceholder": "Descubrir: @handle / nombre / correo / teléfono...",
+    "requestsPlaceholder": "Buscar en solicitudes..."
+  },
+  "sections": {
+    "network": "Mi red",
+    "discover": "Descubrir",
+    "incomingRequests": "Solicitudes recibidas"
+  },
+  "count": {
+    "people": "{{count}} personas",
+    "requests": "{{count}} solicitudes"
+  },
+  "summary": {
+    "inNetwork": "En la red Focus.",
+    "alreadyInNetwork": "Ya está en tu red.",
+    "incomingRequest": "Te envió una solicitud.",
+    "outgoingPending": "Solicitud enviada (pendiente).",
+    "discoverFallback": "Agregar desde la lista de descubrimiento.",
+    "requestPending": "La solicitud de amistad está pendiente."
+  },
+  "actions": {
+    "detail": "Detalle",
+    "accept": "Aceptar",
+    "decline": "Rechazar",
+    "sendRequest": "Enviar solicitud",
+    "addPerson": "Agregar persona",
+    "removeFromNetwork": "Eliminar de la red",
+    "inMyNetwork": "En mi red",
+    "pending": "Pendiente",
+    "requestExists": "Solicitud existente"
+  },
+  "banner": {
+    "newRequestTitle": "Nueva solicitud de conexión",
+    "newRequestBody": "{{count}} nuevas solicitudes. Toca para ver."
+  },
+  "empty": {
+    "noSearchMatch": "No se encontró ninguna persona coincidente.",
+    "noResults": "No hay resultados por ahora.",
+    "noPendingRequests": "No hay solicitudes pendientes."
+  },
+  "note": {
+    "backendDiscover": "Nota: la lista Descubrir viene del backend. Si no hay conexión, los resultados pueden no actualizarse."
+  },
+  "detail": {
+    "rule1": "• Sistema de amistad: enviar solicitud → la otra persona acepta.",
+    "rule2": "• No hay conexión forzada. Todo avanza con aprobación.",
+    "rule3": "• Si no hay conexión, las acciones pueden fallar."
+  },
+  "alerts": {
+    "loginRequiredTitle": "Inicio de sesión requerido",
+    "loginRequiredBody": "Se requiere una sesión de usuario para esta acción.",
+    "alreadyInNetworkTitle": "Ya está en tu red",
+    "alreadyInNetworkBody": "Esta persona ya está en tu Red Focus.",
+    "pendingTitle": "Pendiente",
+    "pendingBody": "Ya enviaste una solicitud a esta persona. Espera a que la acepte.",
+    "requestExistsTitle": "Existe una solicitud",
+    "requestExistsBody": "Esta persona ya te envió una solicitud. Puedes aceptarla desde la pestaña «Solicitudes».",
+    "actionFailedWithConnection": "La acción falló. (¿Conexión?)",
+    "declineFailed": "No se pudo rechazar.",
+    "requestSendFailed": "No se pudo enviar la solicitud. (¿Conexión?)",
+    "acceptFailed": "No se pudo aceptar. (¿Conexión?)"
+  },
+  "net": {
+    "invalidBaseUrl": "API_BASE_URL parece no válido.",
+    "onlineFetchError": "Error de carga en línea de Red Focus"
   }
  }
 }

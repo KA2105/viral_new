@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  DeviceEventEmitter,
 } from 'react-native';
 import './src/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -28,10 +29,13 @@ import InstagramLogsScreen from './src/screens/InstagramLogsScreen';
 import FocusNetworkScreen from './src/screens/FocusNetworkScreen';
 import AgeGateScreen from './src/screens/AgeGateScreen';
 
-import { DeviceEventEmitter } from 'react-native';
-
-// ✅ EK: API health-check için base url
-import { API_BASE_URL } from './src/config/api';
+// ✅ EK: API health-check + forgot/reset password için
+import {
+  API_BASE_URL,
+  getUserMessage,
+  postForgotPassword,
+  postResetPassword,
+} from './src/config/api';
 
 type Screen =
   | 'Feed'
@@ -83,8 +87,6 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
     profile,
     saveProfile,
     loginWithCredentials,
-    requestPasswordReset,
-    resetPassword,
 
     switchUser,
     uiError,
@@ -96,13 +98,11 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
     isSyncing,
     lastError,
 
-    // ✅ EK: signOut/logout güvenli erişim (handleSwitchUserUi fallback için)
     signOut: _signOut,
     logout: _logout,
     reset: _reset,
   } = useAuth() as any;
 
-  // ✅ EK: signOut fallback zinciri (AuthScreen scope’unda garanti)
   const signOut =
     _signOut ??
     _logout ??
@@ -111,11 +111,10 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
       console.warn('[AuthScreen] signOut/logout fonksiyonu bulunamadı.');
     });
 
-  type AuthMode = 'register' | 'login' | 'forgotStep1' | 'forgotStep2';
-  type ResetChannel = 'email' | 'phone';
-
   const [mode, setMode] = useState<AuthMode>('register');
   const [registerPending, setRegisterPending] = useState(false);
+  const [forgotPending, setForgotPending] = useState(false);
+  const [resetPending, setResetPending] = useState(false);
 
   // ✅ Login formu: identifier + password
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -212,10 +211,10 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
       });
 
       if (!result?.ok) {
-        Alert.alert(
-          t('common.error', 'Hata'),
-          result?.error || t('auth.register.failed', 'Kayıt oluşturulamadı.'),
-        );
+        const readable =
+          parseAuthBackendError(result?.error) ||
+          t('auth.register.failed', 'Kayıt oluşturulamadı.');
+        Alert.alert(t('common.error', 'Hata'), readable);
         return;
       }
 
@@ -276,58 +275,72 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
     setResetCodeInput('');
     setResetNewPassword('');
     setResetNewPasswordConfirm('');
+    setResetChannel('email');
     setMode('forgotStep1');
   };
 
-  const handleSendResetCode = () => {
+  const handleSendResetCode = async () => {
+    if (forgotPending) return;
+
     if (!resetValue.trim()) {
       Alert.alert(
         t('common.warning', 'Uyarı'),
-        t('auth.forgot.valueRequired', 'Lütfen e-posta veya telefon bilgini gir.'),
+        resetChannel === 'email'
+          ? t('auth.forgot.emailRequired', 'Lütfen kayıtlı e-posta adresini gir.')
+          : t('auth.forgot.phoneRequired', 'Lütfen kayıtlı telefon numaranı gir.'),
       );
       return;
     }
 
-    const result = requestPasswordReset({
-      via: resetChannel,
-      value: resetValue.trim(),
-    });
+    try {
+      if (typeof clearUiError === 'function') clearUiError();
+      setForgotPending(true);
 
-    if (!result.ok) {
+      const result = await postForgotPassword({
+        identifier: resetValue.trim(),
+      });
+
+      Alert.alert(
+        t('auth.forgot.codeSentTitle', 'Kod gönderildi'),
+        result?.message || t('auth.forgot.codeSentBody', 'Doğrulama kodu gönderildi.'),
+      );
+
+      // ✅ Telefon tarafı backend’de henüz tam aktif değil; step2’ye sadece email için geç
+      if (resetChannel === 'email') {
+        setMode('forgotStep2');
+      }
+    } catch (e) {
+      console.warn('[AuthScreen] handleSendResetCode error:', e);
       Alert.alert(
         t('common.error', 'Hata'),
-        result.error || t('auth.forgot.codeFailed', 'Kod gönderilemedi.'),
+        getUserMessage(e, t('auth.forgot.codeFailed', 'Kod gönderilemedi.')),
       );
-      return;
+    } finally {
+      setForgotPending(false);
     }
-
-    if (result.code) {
-      const channelLabel =
-        resetChannel === 'email'
-          ? t('auth.forgot.channelEmail', 'E-posta')
-          : t('auth.forgot.channelPhone', 'Telefon');
-      Alert.alert(
-        t('auth.forgot.codeSentTitle', 'Kod gönderildi'),
-        t('auth.forgot.codeSentSim', `Simülasyon (${channelLabel}): Kod ${result.code}`),
-      );
-    } else {
-      Alert.alert(
-        t('auth.forgot.codeSentTitle', 'Kod gönderildi'),
-        t('auth.forgot.codeSentBody', 'Şifre sıfırlama kodun gönderildi (simülasyon).'),
-      );
-    }
-
-    setMode('forgotStep2');
   };
 
-  const handleResetPassword = () => {
-    if (!resetCodeInput.trim()) {
+  const handleResetPassword = async () => {
+    if (resetPending) return;
+
+    const cleanCode = resetCodeInput.replace(/\D+/g, '').slice(0, 6);
+
+    if (!cleanCode) {
       Alert.alert(
         t('common.warning', 'Uyarı'),
         t('auth.forgot.codeRequired', 'Doğrulama kodunu gir.'),
       );
       return;
     }
+
+    if (cleanCode.length !== 6) {
+      Alert.alert(
+        t('common.warning', 'Uyarı'),
+        t('auth.forgot.codeMustBe6', 'Doğrulama kodu 6 haneli olmalı.'),
+      );
+      return;
+    }
+
     if (!resetNewPassword || !resetNewPasswordConfirm) {
       Alert.alert(
         t('common.warning', 'Uyarı'),
@@ -335,6 +348,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
       );
       return;
     }
+
     if (resetNewPassword !== resetNewPasswordConfirm) {
       Alert.alert(
         t('common.warning', 'Uyarı'),
@@ -343,24 +357,46 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
       return;
     }
 
-    const result = resetPassword({
-      code: resetCodeInput.trim(),
-      newPassword: resetNewPassword,
-    });
-
-    if (!result.ok) {
+    if (resetNewPassword.length < 8) {
       Alert.alert(
-        t('common.error', 'Hata'),
-        result.error || t('auth.forgot.updateFailed', 'Şifre sıfırlanamadı.'),
+        t('common.warning', 'Uyarı'),
+        t('auth.forgot.passwordMin8', 'Yeni şifre en az 8 karakter olmalı.'),
       );
       return;
     }
 
-    Alert.alert(
-      t('common.success', 'Başarılı'),
-      t('auth.forgot.updatedBody', 'Şifren güncellendi. Şimdi yeni şifrenle giriş yapabilirsin.'),
-    );
-    setMode('login');
+    try {
+      if (typeof clearUiError === 'function') clearUiError();
+      setResetPending(true);
+
+      const result = await postResetPassword({
+        identifier: resetValue.trim(),
+        code: cleanCode,
+        newPassword: resetNewPassword,
+      });
+
+      Alert.alert(
+        t('common.success', 'Başarılı'),
+        result?.message ||
+          t(
+            'auth.forgot.updatedBody',
+            'Şifren güncellendi. Şimdi yeni şifrenle giriş yapabilirsin.',
+          ),
+      );
+
+      setResetCodeInput('');
+      setResetNewPassword('');
+      setResetNewPasswordConfirm('');
+      setMode('login');
+    } catch (e) {
+      console.warn('[AuthScreen] handleResetPassword error:', e);
+      Alert.alert(
+        t('common.error', 'Hata'),
+        getUserMessage(e, t('auth.forgot.updateFailed', 'Şifre sıfırlanamadı.')),
+      );
+    } finally {
+      setResetPending(false);
+    }
   };
 
   const handleSwitchUserUi = () => {
@@ -521,7 +557,10 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.authLinkBtn, { marginTop: 6 }]} onPress={handleSwitchUserUi}>
+        <TouchableOpacity
+          style={[styles.authLinkBtn, { marginTop: 6 }]}
+          onPress={handleSwitchUserUi}
+        >
           <Text style={styles.authLinkText}>
             {t('auth.login.switchUser', 'Kullanıcı Değiştir')}
           </Text>
@@ -591,18 +630,37 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
           autoCapitalize="none"
         />
 
-        <TouchableOpacity style={styles.authButton} onPress={handleSendResetCode}>
+        <TouchableOpacity
+          style={styles.authButton}
+          onPress={handleSendResetCode}
+          disabled={forgotPending}
+        >
           <Text style={styles.authButtonText}>
-            {t('auth.forgot.sendCode', 'Doğrulama Kodu Gönder')}
+            {forgotPending
+              ? t('common.loading', 'Gönderiliyor...')
+              : t('auth.forgot.sendCode', 'Doğrulama Kodu Gönder')}
           </Text>
         </TouchableOpacity>
 
+        {forgotPending ? (
+          <View style={{ marginTop: 10, alignItems: 'center' }}>
+            <ActivityIndicator />
+          </View>
+        ) : null}
+
         <TouchableOpacity style={styles.authLinkBtn} onPress={() => setMode('login')}>
-          <Text style={styles.authLinkText}>{t('auth.login.backToLogin', '← Giriş ekranına dön')}</Text>
+          <Text style={styles.authLinkText}>
+            {t('auth.login.backToLogin', '← Giriş ekranına dön')}
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.authLinkBtn, { marginTop: 6 }]} onPress={handleSwitchUserUi}>
-          <Text style={styles.authLinkText}>{t('auth.login.switchUser', 'Kullanıcı Değiştir')}</Text>
+        <TouchableOpacity
+          style={[styles.authLinkBtn, { marginTop: 6 }]}
+          onPress={handleSwitchUserUi}
+        >
+          <Text style={styles.authLinkText}>
+            {t('auth.login.switchUser', 'Kullanıcı Değiştir')}
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -613,14 +671,17 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
     return (
       <View style={styles.authRoot}>
         <Text style={styles.authTitle}>{t('auth.forgot.verifyTitle', 'Kodu Doğrula')}</Text>
-        <Text style={styles.authSubtitle}>{t('auth.forgot.verifySubtitle', 'Gelen doğrulama kodunu ve yeni şifreni gir.')}</Text>
+        <Text style={styles.authSubtitle}>
+          {t('auth.forgot.verifySubtitle', 'Gelen doğrulama kodunu ve yeni şifreni gir.')}
+        </Text>
 
         <TextInput
           placeholder={t('auth.forgot.codePlaceholder', 'Doğrulama kodu')}
           value={resetCodeInput}
-          onChangeText={setResetCodeInput}
+          onChangeText={(v) => setResetCodeInput(v.replace(/\D+/g, '').slice(0, 6))}
           style={styles.authInput}
           keyboardType="number-pad"
+          maxLength={6}
         />
 
         <View style={styles.authPasswordRow}>
@@ -631,7 +692,10 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
             style={[styles.authInput, styles.authPasswordInput]}
             secureTextEntry={!showResetNewPassword}
           />
-          <TouchableOpacity style={styles.authShowPasswordBtn} onPress={() => setShowResetNewPassword(p => !p)}>
+          <TouchableOpacity
+            style={styles.authShowPasswordBtn}
+            onPress={() => setShowResetNewPassword((p) => !p)}
+          >
             <Text style={styles.authShowPasswordText}>
               {showResetNewPassword ? t('common.hide', 'Gizle') : t('common.show', 'Göster')}
             </Text>
@@ -646,23 +710,47 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
             style={[styles.authInput, styles.authPasswordInput]}
             secureTextEntry={!showResetNewPasswordConfirm}
           />
-          <TouchableOpacity style={styles.authShowPasswordBtn} onPress={() => setShowResetNewPasswordConfirm(p => !p)}>
+          <TouchableOpacity
+            style={styles.authShowPasswordBtn}
+            onPress={() => setShowResetNewPasswordConfirm((p) => !p)}
+          >
             <Text style={styles.authShowPasswordText}>
               {showResetNewPasswordConfirm ? t('common.hide', 'Gizle') : t('common.show', 'Göster')}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.authButton} onPress={handleResetPassword}>
-          <Text style={styles.authButtonText}>{t('auth.forgot.updateButton', 'Şifreyi Güncelle')}</Text>
+        <TouchableOpacity
+          style={styles.authButton}
+          onPress={handleResetPassword}
+          disabled={resetPending}
+        >
+          <Text style={styles.authButtonText}>
+            {resetPending
+              ? t('common.loading', 'Güncelleniyor...')
+              : t('auth.forgot.updateButton', 'Şifreyi Güncelle')}
+          </Text>
         </TouchableOpacity>
+
+        {resetPending ? (
+          <View style={{ marginTop: 10, alignItems: 'center' }}>
+            <ActivityIndicator />
+          </View>
+        ) : null}
 
         <TouchableOpacity style={styles.authLinkBtn} onPress={() => setMode('login')}>
-          <Text style={styles.authLinkText}>{t('auth.login.backToLogin', '← Giriş ekranına dön')}</Text>
+          <Text style={styles.authLinkText}>
+            {t('auth.login.backToLogin', '← Giriş ekranına dön')}
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.authLinkBtn, { marginTop: 6 }]} onPress={handleSwitchUserUi}>
-          <Text style={styles.authLinkText}>{t('auth.login.switchUser', 'Kullanıcı Değiştir')}</Text>
+        <TouchableOpacity
+          style={[styles.authLinkBtn, { marginTop: 6 }]}
+          onPress={handleSwitchUserUi}
+        >
+          <Text style={styles.authLinkText}>
+            {t('auth.login.switchUser', 'Kullanıcı Değiştir')}
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -672,7 +760,9 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
   return (
     <View style={styles.authRoot}>
       <Text style={styles.authTitle}>{t('auth.login.title', 'Giriş Yap')}</Text>
-      <Text style={styles.authSubtitle}>{t('auth.login.subtitle', 'E-posta/telefon ve şifren ile giriş yap.')}</Text>
+      <Text style={styles.authSubtitle}>
+        {t('auth.login.subtitle', 'E-posta/telefon ve şifren ile giriş yap.')}
+      </Text>
 
       <TextInput
         placeholder={t('auth.login.identifierPlaceholder', 'E-posta veya Telefon')}
@@ -687,10 +777,17 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
           placeholder={t('auth.login.passwordPlaceholder', 'Şifren')}
           value={loginPassword}
           onChangeText={setLoginPassword}
-          style={[styles.authInput, styles.authPasswordInput, { borderColor: borderFor('password') }]}
+          style={[
+            styles.authInput,
+            styles.authPasswordInput,
+            { borderColor: borderFor('password') },
+          ]}
           secureTextEntry={!showLoginPassword}
         />
-        <TouchableOpacity style={styles.authShowPasswordBtn} onPress={() => setShowLoginPassword(p => !p)}>
+        <TouchableOpacity
+          style={styles.authShowPasswordBtn}
+          onPress={() => setShowLoginPassword((p) => !p)}
+        >
           <Text style={styles.authShowPasswordText}>
             {showLoginPassword ? t('common.hide', 'Gizle') : t('common.show', 'Göster')}
           </Text>
@@ -705,20 +802,31 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
 
       <TouchableOpacity style={styles.authButton} onPress={handleLogin} disabled={isSyncing}>
         <Text style={styles.authButtonText}>
-          {isSyncing ? t('auth.login.loading', 'Giriş...') : t('auth.login.loginButton', 'Giriş Yap')}
+          {isSyncing
+            ? t('auth.login.loading', 'Giriş...')
+            : t('auth.login.loginButton', 'Giriş Yap')}
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.authLinkBtn} onPress={handleStartForgot}>
-        <Text style={styles.authLinkText}>{t('auth.login.forgotPassword', 'Şifremi Unuttum')}</Text>
+        <Text style={styles.authLinkText}>
+          {t('auth.login.forgotPassword', 'Şifremi Unuttum')}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.authLinkBtn} onPress={() => setMode('register')}>
-        <Text style={styles.authLinkText}>{t('auth.register.cta', 'Yeni kullanıcı mısın? Kayıt Ol')}</Text>
+        <Text style={styles.authLinkText}>
+          {t('auth.register.cta', 'Yeni kullanıcı mısın? Kayıt Ol')}
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.authLinkBtn, { marginTop: 6 }]} onPress={handleSwitchUserUi}>
-        <Text style={styles.authLinkText}>{t('auth.login.switchUser', 'Kullanıcı Değiştir')}</Text>
+      <TouchableOpacity
+        style={[styles.authLinkBtn, { marginTop: 6 }]}
+        onPress={handleSwitchUserUi}
+      >
+        <Text style={styles.authLinkText}>
+          {t('auth.login.switchUser', 'Kullanıcı Değiştir')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -885,7 +993,7 @@ const App: React.FC = () => {
         setForceAuthHydrated(true);
       }
     })();
-  }, []);
+  }, [hydrateOnboarding]);
 
   const handleLogout = async () => {
     try {
@@ -940,6 +1048,22 @@ const App: React.FC = () => {
         );
       } catch (e) {
         console.warn('[share_intent] store failed:', e);
+      }
+    });
+
+    return () => sub.remove();
+  }, []);
+
+  // ✅ EK: Onboarding bittiğinde “kayıt/giriş” ekranına ZORLA (misafir kafa karışıklığı biter)
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('viral_force_auth', async (_payload: any) => {
+      try {
+        // garanti: key yaz + state set
+        await AsyncStorage.setItem(FORCE_AUTH_KEY, '1');
+      } catch (e) {
+        console.warn('[App] viral_force_auth set FORCE_AUTH_KEY failed:', e);
+      } finally {
+        setForceAuth(true);
       }
     });
 

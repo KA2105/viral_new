@@ -605,7 +605,8 @@
   "title": "Gönderi işlemleri",
   "message": "Bu gönderi için ne yapmak istersin?",
   "archive": "Kartı arşivle",
-  "delete": "Kartı sil"
+  "delete": "Kartı sil",
+  "noPermission": "Bu kart sana ait değil. Silemezsin."
    },
     "time": {
       "justNow": "az önce",
@@ -630,11 +631,11 @@
   "switch": {
     "title": "Kullanıcı değiştir",
     "body": "Alanlar temizlenecek. Giriş için e-posta/telefon + şifre gerekir."
-  },
+  }, 
   "welcome": {
     "title": "Hoş geldin 👋",
     "subtitle": "Gerçek kullanıcılar için kayıt formu."
-  },
+  },  
   "login": {
     "title": "Giriş Yap",
     "subtitle": "E-posta/telefon ve şifren ile giriş yap.",
@@ -681,6 +682,83 @@
     "newPasswordConfirmPlaceholder": "Yeni şifre (tekrar)",
     "updateButton": "Şifreyi Güncelle",
     "backToLogin": "← Giriş ekranına dön"
+  }
+ },
+ "focusNetwork": {
+  "title": "Focus Ağı",
+  "subtitle": "Burada sadece seçtiğin kişilerin gönderilerini görürsün.",
+  "tabs": {
+    "network": "Ağım",
+    "discover": "Keşfet",
+    "requests": "İstekler"
+  },
+  "search": {
+    "networkPlaceholder": "Ağında ara (@kullanıcı, ad)...",
+    "discoverPlaceholder": "Keşfet: @handle / ad / email / telefon...",
+    "requestsPlaceholder": "İsteklerde ara..."
+  },
+  "sections": {
+    "network": "Ağım",
+    "discover": "Keşfet",
+    "incomingRequests": "Gelen istekler"
+  },
+  "count": {
+    "people": "{{count}} kişi",
+    "requests": "{{count}} istek"
+  },
+  "summary": {
+    "inNetwork": "Focus ağında.",
+    "alreadyInNetwork": "Zaten ağında.",
+    "incomingRequest": "Sana istek göndermiş.",
+    "outgoingPending": "İstek gönderildi (beklemede).",
+    "discoverFallback": "Keşfet listesinden ekle.",
+    "requestPending": "Arkadaşlık isteği bekliyor."
+  },
+  "actions": {
+    "detail": "Detay",
+    "accept": "Kabul et",
+    "decline": "Reddet",
+    "sendRequest": "İstek gönder",
+    "addPerson": "Kişi ekle",
+    "removeFromNetwork": "Ağımdan çıkar",
+    "inMyNetwork": "Ağımda",
+    "pending": "Beklemede",
+    "requestExists": "İstek var"
+  },
+  "banner": {
+    "newRequestTitle": "Yeni bağlantı isteği",
+    "newRequestBody": "{{count}} yeni istek var. Görmek için dokun."
+  },
+  "empty": {
+    "noSearchMatch": "Aramana uygun kişi bulunamadı.",
+    "noResults": "Şu anda sonuç yok.",
+    "noPendingRequests": "Bekleyen istek yok."
+  },
+  "note": {
+    "backendDiscover": "Not: Keşfet listesi backend’den gelir. Bağlantı yoksa sonuçlar güncellenmeyebilir."
+  },
+  "detail": {
+    "rule1": "• Arkadaşlık sistemi: istek gönder → karşı taraf kabul eder.",
+    "rule2": "• Zorla bağlama yok. Her şey onaylı ilerler.",
+    "rule3": "• Bağlantı yoksa işlemler başarısız olabilir."
+  },
+  "alerts": {
+    "loginRequiredTitle": "Giriş gerekli",
+    "loginRequiredBody": "Bu işlem için kullanıcı oturumu gerekli.",
+    "alreadyInNetworkTitle": "Zaten ağında",
+    "alreadyInNetworkBody": "Bu kişi zaten Focus ağında.",
+    "pendingTitle": "Beklemede",
+    "pendingBody": "Bu kişiye zaten istek gönderdin. Kabul etmesini bekle.",
+    "requestExistsTitle": "İstek var",
+    "requestExistsBody": "Bu kişi sana istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.",
+    "actionFailedWithConnection": "İşlem başarısız oldu. (Bağlantı?)",
+    "declineFailed": "Reddetme işlemi başarısız oldu.",
+    "requestSendFailed": "İstek gönderilemedi. (Bağlantı?)",
+    "acceptFailed": "Kabul edilemedi. (Bağlantı?)"
+  },
+  "net": {
+    "invalidBaseUrl": "API_BASE_URL geçersiz görünüyor.",
+    "onlineFetchError": "Focus Ağı online fetch hata"
   }
  }
 }

@@ -3,13 +3,15 @@ import { Platform } from 'react-native';
 
 export const API_PORT = 4000;
 
-// ✅ ÖNEMLİ:
-// Release build'te telefondaki "localhost" = telefonun kendisi demek.
-// Bu yüzden gerçek kullanımda backend'e bağlanamazsın.
-// Çözüm: USB (adb reverse) varsa localhost, yoksa LAN IP.
-// Aşağıdaki yapı bunu otomatik seçer.
+// ✅ Render backend (prod)
+const RENDER_BASE_URL = 'https://viral-new.onrender.com';
 
-type ApiBaseMode = 'adb' | 'lan' | 'custom';
+// ✅ ÖNEMLİ:
+// - Dev (Metro): İstersen yine localhost/adb reverse kullanabilirsin.
+// - Release/Prod test: Render URL kullanılır.
+// Bu dosyada amaç: "mode=adb" yüzünden tekrar localhost'a dönmeyi ENGELLEMEK.
+
+type ApiBaseMode = 'adb' | 'lan' | 'custom' | 'render';
 
 const API_CONFIG = {
   // ✅ PC'nin LAN IP'si (aynı Wi-Fi'de iken çalışır)
@@ -17,12 +19,16 @@ const API_CONFIG = {
   LAN_HOST: '192.168.1.103',
 
   // ✅ İstersen manuel override (boş bırak = kullanılmaz)
+  // Not: Buraya "https://viral-new.onrender.com" yazarsan custom ile de kullanılır.
   CUSTOM_BASE_URL: '',
 
   // ✅ Release'te LAN'a öncelik ver (istersen true yap)
   // - false: önce adb reverse (localhost), olmazsa LAN
   // - true : önce LAN, olmazsa adb reverse
   PREFER_LAN_IN_RELEASE: true,
+
+  // ✅ DEV'de Render'ı zorla kullanmak istiyorsan true yap
+  FORCE_RENDER_IN_DEV: true,
 };
 
 function buildBaseUrl(host: string) {
@@ -30,6 +36,11 @@ function buildBaseUrl(host: string) {
 }
 
 function pickBaseUrl(): { baseUrl: string; mode: ApiBaseMode } {
+  // 0) DEV'de Render zorla
+  if (__DEV__ && API_CONFIG.FORCE_RENDER_IN_DEV) {
+    return { baseUrl: RENDER_BASE_URL, mode: 'render' };
+  }
+
   // 1) Manuel override
   const custom = String(API_CONFIG.CUSTOM_BASE_URL || '').trim();
   if (custom.length) {
@@ -44,21 +55,17 @@ function pickBaseUrl(): { baseUrl: string; mode: ApiBaseMode } {
     return { baseUrl: adb, mode: 'adb' };
   }
 
-  // 3) Release: istersen LAN öncelikli
-  if (API_CONFIG.PREFER_LAN_IN_RELEASE) {
-    return { baseUrl: lan, mode: 'lan' };
-  }
-
-  // 4) Default: önce adb reverse varsay (USB ile), yoksa LAN'a geçeceğiz
-  // Not: Burada direkt "fallback" yapamıyoruz çünkü fetch atınca anlaşılır.
-  // Ama baseUrl seçimini "adb" yapıp, network hatasında LAN'ı deneyeceğiz (apiFetch içinde).
-  return { baseUrl: adb, mode: 'adb' };
+  // 3) Release: Render kullan (LAN/adb yerine)
+  return { baseUrl: RENDER_BASE_URL, mode: 'render' };
 }
 
 const picked = pickBaseUrl();
 
 // ✅ İlk tercih
 export const API_BASE_URL = picked.baseUrl;
+
+// ✅ ALIAS: projede bazı yerler hâlâ API_URL kullanıyor olabilir (özellikle UploadScreen)
+export const API_URL = API_BASE_URL;
 
 // ✅ Token: global (store hydrate/login/register sonrası set edilir)
 let AUTH_TOKEN: string | null = null;
@@ -150,7 +157,7 @@ export function getUserMessage(err: unknown, fallback = 'Bir hata oluştu. Lütf
 }
 
 type FetchOptions = {
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
   body?: any;
   timeoutMs?: number;
@@ -189,7 +196,7 @@ async function apiFetch<T = any>(endpoint: string, options: FetchOptions): Promi
 
   try {
     // 1) İlk deneme (seçilen base)
-    let { res, baseUrl } = await doFetchOnce(API_BASE_URL);
+    let { res } = await doFetchOnce(API_BASE_URL);
 
     // Eğer res.ok değilse normal hata akışı
     if (res.ok) {
@@ -438,6 +445,54 @@ export async function postLogin(payload: AuthLoginPayload): Promise<{ user: Back
   return { user: mapBackendUser(u), token };
 }
 
+export type ForgotPasswordPayload = {
+  identifier: string;
+};
+
+export async function postForgotPassword(
+  payload: ForgotPasswordPayload,
+): Promise<{ ok: boolean; message: string }> {
+  const json = await apiFetch<any>('/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      identifier: payload.identifier,
+    }),
+    timeoutMs: 20000,
+  });
+
+  return {
+    ok: !!json?.ok,
+    message: String(json?.message ?? 'Hesap varsa doğrulama kodu gönderildi.'),
+  };
+}
+
+export type ResetPasswordPayload = {
+  identifier: string;
+  code: string;
+  newPassword: string;
+};
+
+export async function postResetPassword(
+  payload: ResetPasswordPayload,
+): Promise<{ ok: boolean; message: string }> {
+  const json = await apiFetch<any>('/auth/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      identifier: payload.identifier,
+      code: payload.code,
+      newPassword: payload.newPassword,
+    }),
+    timeoutMs: 20000,
+  });
+
+  return {
+    ok: !!json?.ok,
+    message: String(json?.message ?? 'Şifren başarıyla güncellendi.'),
+  };
+}
+
 // ✅ GET ME
 export async function getMe(userId?: number | null): Promise<BackendUser> {
   // Token varsa zaten /me token ile çalışır; yine de compat için query+header tutuyorum.
@@ -489,4 +544,80 @@ export async function putMe(
     });
   }
   return mapBackendUser(u2);
+}
+
+// -------------------- Posts: Like / Comments helpers --------------------
+
+// ✅ Like toggle
+export async function postToggleLike(postId: string | number): Promise<{ ok: boolean; liked: boolean; likeCount: number }> {
+  const pid = String(postId);
+  const json = await apiFetch<any>(`/posts/${encodeURIComponent(pid)}/like`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}), // server body istemiyor ama boş geçiyoruz
+    timeoutMs: 15000,
+  });
+
+  // server: { ok:true, liked, likeCount }
+  return {
+    ok: !!json?.ok,
+    liked: !!json?.liked,
+    likeCount: Number.isFinite(Number(json?.likeCount)) ? Number(json.likeCount) : 0,
+  };
+}
+
+// ✅ Comment create
+export async function postCreateComment(
+  postId: string | number,
+  text: string,
+): Promise<{ ok: boolean; comment?: any }> {
+  const pid = String(postId);
+  const json = await apiFetch<any>(`/posts/${encodeURIComponent(pid)}/comment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+    timeoutMs: 20000,
+  });
+
+  return { ok: !!json?.ok, comment: json?.comment };
+}
+
+// ✅ Comment list
+export async function getPostComments(
+  postId: string | number,
+  limit = 50,
+): Promise<{ ok: boolean; items: any[] }> {
+  const pid = String(postId);
+  const json = await apiFetch<any>(`/posts/${encodeURIComponent(pid)}/comments?limit=${limit}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    timeoutMs: 20000,
+  });
+
+  return { ok: !!json?.ok, items: Array.isArray(json?.items) ? json.items : [] };
+}
+
+// ✅ NEW: Repost (server endpoint eklenince çalışır)
+export async function postRepost(postId: string | number): Promise<{ ok: boolean; post?: any }> {
+  const pid = String(postId);
+
+  // Birden fazla alias deniyoruz (server tarafında hangisini eklediysen)
+  try {
+    const json = await apiFetch<any>(`/posts/${encodeURIComponent(pid)}/repost`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+      timeoutMs: 20000,
+    });
+    return { ok: !!json?.ok, post: json?.post ?? json?.item ?? null };
+  } catch {
+    // fallback
+    const json2 = await apiFetch<any>(`/posts/${encodeURIComponent(pid)}/reshare`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+      timeoutMs: 20000,
+    });
+    return { ok: !!json2?.ok, post: json2?.post ?? json2?.item ?? null };
+  }
 }

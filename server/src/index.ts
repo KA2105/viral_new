@@ -304,14 +304,17 @@ function ensureUploadsDirs() {
   const root = path.join(process.cwd(), 'uploads');
   const videos = path.join(root, 'videos');
   const avatars = path.join(root, 'avatars');
+  const images = path.join(root, 'images');
+
   try {
     fs.mkdirSync(videos, { recursive: true });
     fs.mkdirSync(avatars, { recursive: true });
+    fs.mkdirSync(images, { recursive: true });
   } catch (e) {
     console.error('[UPLOADS] mkdir failed:', e);
   }
 }
-ensureUploadsDirs();
+ensureUploadsDirs(); 
 
 // ✅ Static yayın: /uploads/... artık tüm cihazlardan erişilebilir
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
@@ -358,6 +361,15 @@ const avatarStorage = multer.diskStorage({
   },
 });
 
+const imageStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, path.join(process.cwd(), 'uploads/images')),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || '.jpg') || '.jpg';
+    const name = crypto.randomBytes(16).toString('hex') + ext;
+    cb(null, name);
+  },
+});
+
 const uploadVideo = multer({
   storage: videoStorage,
   limits: { fileSize: 300 * 1024 * 1024 },
@@ -367,6 +379,14 @@ const uploadAvatar = multer({
   storage: avatarStorage,
   limits: { fileSize: 12 * 1024 * 1024 },
 });
+
+const uploadImages = multer({
+  storage: imageStorage,
+  limits: {
+    fileSize: 100 * 1024 * 1024, // tek foto için üst limit
+    files: 10,                   // aynı anda max 10 foto
+  },
+}); 
 
 // ✅ Video upload
 app.post('/uploads/video', uploadVideo.single('file'), async (req, res) => {
@@ -434,6 +454,60 @@ app.post('/upload/avatar', uploadAvatar.single('file'), async (req, res) => {
     return res.status(500).json({ ok: false, error: 'server-error' });
   }
 });
+
+// ✅ Çoklu foto upload
+app.post('/uploads/images', uploadImages.array('files', 10), async (req, res) => {
+  try {
+    const files = ((req as any).files || []) as Express.Multer.File[];
+
+    if (!Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({ ok: false, error: 'no_file', message: 'files are required' });
+    }
+
+    const imagePaths = files.map(f => `/uploads/images/${f.filename}`);
+    const imageUrls = imagePaths.map(p => `${getPublicBaseUrl(req)}${p}`);
+
+    return res.json({
+      ok: true,
+      imagePaths,
+      imageUrls,
+      items: imagePaths.map((imagePath, i) => ({
+        imagePath,
+        imageUrl: imageUrls[i],
+      })),
+    });
+  } catch (e) {
+    console.error('[POST /uploads/images] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ Alias: /upload/images
+app.post('/upload/images', uploadImages.array('files', 10), async (req, res) => {
+  try {
+    const files = ((req as any).files || []) as Express.Multer.File[];
+
+    if (!Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({ ok: false, error: 'no_file', message: 'files are required' });
+    }
+
+    const imagePaths = files.map(f => `/uploads/images/${f.filename}`);
+    const imageUrls = imagePaths.map(p => `${getPublicBaseUrl(req)}${p}`);
+
+    return res.json({
+      ok: true,
+      imagePaths,
+      imageUrls,
+      items: imagePaths.map((imagePath, i) => ({
+        imagePath,
+        imageUrl: imageUrls[i],
+      })),
+    });
+  } catch (e) {
+    console.error('[POST /upload/images] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+}); 
 
 // ✅ Client'e döndürdüğümüz user objesi tek yerde standardize olsun
 function toPublicUser(u: any, req?: express.Request) {
@@ -1708,7 +1782,17 @@ app.post('/friends/remove', async (req, res) => {
 // 🟢 Kart oluşturma – UploadScreen'den gelen /posts isteği
 app.post('/posts', async (req, res) => {
   try {
-    const { taskTitle, note, author, isFreePost, shareTargets, videoUri, createdAt, userId } = req.body ?? {};
+    const {
+      taskTitle,
+      note,
+      author,
+      isFreePost,
+      shareTargets,
+      videoUri,
+      imageUris,
+      createdAt,
+      userId,
+    } = req.body ?? {};
 
     console.log('[API] POST /posts {');
     console.log('  taskTitle   :', taskTitle);
@@ -1717,6 +1801,7 @@ app.post('/posts', async (req, res) => {
     console.log('  isFreePost  :', isFreePost);
     console.log('  shareTargets:', shareTargets);
     console.log('  videoUri    :', videoUri);
+    console.log('  imageUris   :', imageUris);
     console.log('  createdAt   :', createdAt);
     console.log('  userId      :', userId);
     console.log('}');
@@ -1779,6 +1864,11 @@ app.post('/posts', async (req, res) => {
       }
     }
 
+    const safeImageUris = safeParseStringArray(imageUris)
+      .map(x => String(x).trim())
+      .filter(Boolean)
+      .filter(x => !isLocalOnlyUri(x));
+
     const post = await prisma.post.create({
       data: {
         taskTitle: typeof taskTitle === 'string' && taskTitle.trim().length ? taskTitle : null,
@@ -1787,9 +1877,10 @@ app.post('/posts', async (req, res) => {
         isFreePost: freePost,
         shareTargets: shareTargetsJson,
         videoUri: safeVideoUri,
+        imageUris: safeImageUris,
         createdAt: createdAtDate,
         user: userConnect,
-      },
+      } as any,
     });
 
     return res.json({
@@ -1803,7 +1894,7 @@ app.post('/posts', async (req, res) => {
       error: 'server-error',
     });
   }
-});
+}); 
 
 // 🟢 Kart listesi – akış için basit endpoint
 app.get('/posts', async (req, res) => {
@@ -1829,9 +1920,18 @@ app.get('/posts', async (req, res) => {
         shareTargetsParsed = safeParseStringArray(p.shareTargets);
       }
 
+      const safeImages = Array.isArray((p as any).imageUris)
+        ? (p as any).imageUris
+            .map((x: any) => (typeof x === 'string' ? x.trim() : ''))
+            .filter(Boolean)
+            .map((x: string) => toAbsoluteIfPath(req, x))
+            .filter(Boolean)
+        : [];
+
       return {
         ...p,
         shareTargets: shareTargetsParsed,
+        imageUris: safeImages,
       };
     });
 
@@ -1846,7 +1946,7 @@ app.get('/posts', async (req, res) => {
       error: 'server-error',
     });
   }
-});
+}); 
 
 // -------------------- Likes / Comments (Safe + Race-proof) --------------------
 
@@ -2475,44 +2575,54 @@ app.get('/feed', async (req, res) => {
     });
 
     const normalized = posts.map(p => {
-      const anyP: any = p as any;
+  const anyP: any = p as any;
 
-      const authorName =
-        typeof anyP.author === 'string' && anyP.author.trim().length
-          ? anyP.author.trim()
-          : (p as any)?.user?.fullName || (p as any)?.user?.handle || 'misafir';
+  const authorName =
+    typeof anyP.author === 'string' && anyP.author.trim().length
+      ? anyP.author.trim()
+      : (p as any)?.user?.fullName || (p as any)?.user?.handle || 'misafir';
 
-      const rawAvatar = (p as any)?.user?.avatarUri ?? null;
-      const authorAvatarUrl = rawAvatar ? toAbsoluteIfPath(req, rawAvatar) : null;
+  const rawAvatar = (p as any)?.user?.avatarUri ?? null;
+  const authorAvatarUrl = rawAvatar ? toAbsoluteIfPath(req, rawAvatar) : null;
 
-      let safeVideoOut: string | null = null;
-      if (typeof anyP.videoUri === 'string' && anyP.videoUri.trim().length) {
-        const vv = anyP.videoUri.trim();
-        safeVideoOut = isLocalOnlyUri(vv) ? null : toAbsoluteIfPath(req, vv);
-      }
+  let safeVideoOut: string | null = null;
+  if (typeof anyP.videoUri === 'string' && anyP.videoUri.trim().length) {
+    const vv = anyP.videoUri.trim();
+    safeVideoOut = isLocalOnlyUri(vv) ? null : toAbsoluteIfPath(req, vv);
+  }
 
-      return {
-        ...anyP,
+  const safeImageUris = Array.isArray(anyP.imageUris)
+    ? anyP.imageUris
+        .map((x: any) => (typeof x === 'string' ? x.trim() : ''))
+        .filter(Boolean)
+        .filter((x: string) => !isLocalOnlyUri(x))
+        .map((x: string) => toAbsoluteIfPath(req, x))
+        .filter(Boolean)
+    : [];
 
-        user: undefined,
+  return {
+    ...anyP,
 
-        author: authorName,
-        authorAvatarUri: authorAvatarUrl ?? null,
-        authorAvatarUrl: authorAvatarUrl ?? null,
+    user: undefined,
 
-        videoUri: safeVideoOut,
+    author: authorName,
+    authorAvatarUri: authorAvatarUrl ?? null,
+    authorAvatarUrl: authorAvatarUrl ?? null,
 
-        userId: anyP.userId ?? (p as any)?.user?.id ?? null,
-        shareTargets: safeParseStringArray(anyP.shareTargets),
+    videoUri: safeVideoOut,
+    imageUris: safeImageUris,
 
-        reshareCount:
-          typeof anyP.reshareCount === 'number' && Number.isFinite(anyP.reshareCount) ? anyP.reshareCount : 0,
+    userId: anyP.userId ?? (p as any)?.user?.id ?? null,
+    shareTargets: safeParseStringArray(anyP.shareTargets),
 
-        archived: typeof anyP.archived === 'boolean' ? anyP.archived : false,
+    reshareCount:
+      typeof anyP.reshareCount === 'number' && Number.isFinite(anyP.reshareCount) ? anyP.reshareCount : 0,
 
-        lastSharedTargets: Array.isArray(anyP.lastSharedTargets) ? anyP.lastSharedTargets : undefined,
-      };
-    });
+    archived: typeof anyP.archived === 'boolean' ? anyP.archived : false,
+
+    lastSharedTargets: Array.isArray(anyP.lastSharedTargets) ? anyP.lastSharedTargets : undefined,
+  };
+}); 
 
     // ✅ NEW: /feed cevabına commentCount ekle (kolon olmasa bile Comment tablosundan say)
     let normalizedWithCounts = normalized;

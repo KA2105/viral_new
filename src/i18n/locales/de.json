@@ -605,7 +605,8 @@
   "title": "Beitragsaktionen",
   "message": "Was möchtest du mit diesem Beitrag machen?",
   "archive": "Karte archivieren",
-  "delete": "Karte löschen"
+  "delete": "Karte löschen",
+   "noPermission": "Diese Karte gehört dir nicht. Du kannst sie nicht löschen."
    },  
     "time": {
       "justNow": "gerade eben",
@@ -635,7 +636,7 @@
     "title": "Willkommen 👋",
     "subtitle": "Registrierungsformular für echte Nutzer."
   },
-  "login": {
+    "login": {
     "title": "Anmelden",
     "subtitle": "Melde dich mit E-Mail/Telefon und Passwort an.",
     "identifierPlaceholder": "E-Mail oder Telefon",
@@ -681,6 +682,83 @@
     "newPasswordConfirmPlaceholder": "Neues Passwort (Bestätigung)",
     "updateButton": "Passwort aktualisieren",
     "backToLogin": "← Zurück zum Login"
+  }
+ },
+"focusNetwork": {
+  "title": "Focus-Netzwerk",
+  "subtitle": "Hier siehst du nur Beiträge von Personen, die du ausgewählt hast.",
+  "tabs": {
+    "network": "Mein Netzwerk",
+    "discover": "Entdecken",
+    "requests": "Anfragen"
+  },
+  "search": {
+    "networkPlaceholder": "In deinem Netzwerk suchen (@nutzer, name)...",
+    "discoverPlaceholder": "Entdecken: @handle / name / e-mail / telefon...",
+    "requestsPlaceholder": "In Anfragen suchen..."
+  },
+  "sections": {
+    "network": "Mein Netzwerk",
+    "discover": "Entdecken",
+    "incomingRequests": "Eingehende Anfragen"
+  },
+  "count": {
+    "people": "{{count}} Personen",
+    "requests": "{{count}} Anfragen"
+  },
+  "summary": {
+    "inNetwork": "Im Focus-Netzwerk.",
+    "alreadyInNetwork": "Bereits in deinem Netzwerk.",
+    "incomingRequest": "Hat dir eine Anfrage gesendet.",
+    "outgoingPending": "Anfrage gesendet (ausstehend).",
+    "discoverFallback": "Aus der Entdecken-Liste hinzufügen.",
+    "requestPending": "Freundschaftsanfrage wartet."
+  },
+  "actions": {
+    "detail": "Details",
+    "accept": "Akzeptieren",
+    "decline": "Ablehnen",
+    "sendRequest": "Anfrage senden",
+    "addPerson": "Person hinzufügen",
+    "removeFromNetwork": "Aus Netzwerk entfernen",
+    "inMyNetwork": "In meinem Netzwerk",
+    "pending": "Ausstehend",
+    "requestExists": "Anfrage vorhanden"
+  },
+  "banner": {
+    "newRequestTitle": "Neue Verbindungsanfrage",
+    "newRequestBody": "{{count}} neue Anfragen. Tippe, um sie zu sehen."
+  },
+  "empty": {
+    "noSearchMatch": "Keine passende Person gefunden.",
+    "noResults": "Derzeit keine Ergebnisse.",
+    "noPendingRequests": "Keine ausstehenden Anfragen."
+  },
+  "note": {
+    "backendDiscover": "Hinweis: Die Entdecken-Liste kommt vom Backend. Ohne Verbindung werden Ergebnisse möglicherweise nicht aktualisiert."
+  },
+  "detail": {
+    "rule1": "• Freundschaftssystem: Anfrage senden → die andere Person akzeptiert.",
+    "rule2": "• Keine erzwungene Verbindung. Alles läuft mit Zustimmung.",
+    "rule3": "• Ohne Verbindung können Aktionen fehlschlagen."
+  },
+  "alerts": {
+    "loginRequiredTitle": "Anmeldung erforderlich",
+    "loginRequiredBody": "Für diese Aktion ist eine Benutzersitzung erforderlich.",
+    "alreadyInNetworkTitle": "Bereits in deinem Netzwerk",
+    "alreadyInNetworkBody": "Diese Person ist bereits in deinem Focus-Netzwerk.",
+    "pendingTitle": "Ausstehend",
+    "pendingBody": "Du hast dieser Person bereits eine Anfrage gesendet. Warte auf die Annahme.",
+    "requestExistsTitle": "Anfrage vorhanden",
+    "requestExistsBody": "Diese Person hat dir bereits eine Anfrage gesendet. Du kannst sie im Tab „Anfragen“ annehmen.",
+    "actionFailedWithConnection": "Aktion fehlgeschlagen. (Verbindung?)",
+    "declineFailed": "Ablehnen fehlgeschlagen.",
+    "requestSendFailed": "Anfrage konnte nicht gesendet werden. (Verbindung?)",
+    "acceptFailed": "Konnte nicht angenommen werden. (Verbindung?)"
+  },
+  "net": {
+    "invalidBaseUrl": "API_BASE_URL scheint ungültig zu sein.",
+    "onlineFetchError": "Focus-Netzwerk Online-Abruffehler"
   }
  }
 }

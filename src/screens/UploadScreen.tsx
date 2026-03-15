@@ -25,7 +25,9 @@ import {
 } from 'react-native-image-picker';
 import { useUploadDraft } from '../store/useUploadDraft';
 import { useTranslation } from 'react-i18next';
-import { API_URL } from '../services/api';
+
+// ✅ ÖNEMLİ: UploadScreen API_URL'yi services/api'den değil, tek kaynak olan config/api'den almalı
+import { API_BASE_URL as API_URL } from '../config/api';
 
 type SocialPlatformId =
   | 'facebook'
@@ -91,39 +93,60 @@ export const markNextUploadAsFree = () => {
 const MAX_FREE_DURATION = 60; // Ücretsiz kullanıcı
 const MAX_APP_DURATION = 180; // Uygulamanın üst limiti (3 dakika)
 
+// ✅ Çoklu foto limit
+const MAX_IMAGE_COUNT = 10;
+
 // ✅ BRAND COLOR
 const VIRAL_RED = '#E50914';
 
+function normalizeStringArray(input: any): string[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map(x => (typeof x === 'string' ? x.trim() : ''))
+    .filter(Boolean);
+}
+
 // ✅ EK: video upload helper (local uri -> server url)
 // server index.ts’de /uploads/video endpoint’i zaten var demiştin.
-const uploadVideoToServer = async (localUri: string, token?: string | null): Promise<string | null> => {
+const uploadVideoToServer = async (
+  localUri: string,
+  token?: string | null,
+): Promise<string | null> => {
   try {
     const uri = String(localUri || '').trim();
-    if (!uri) return null;
+    if (!uri) {
+      console.warn('[UPLOAD] localUri empty');
+      return null;
+    }
+
+    const endpoint = `${API_URL}/uploads/video`;
+
+    console.log('[UPLOAD][VIDEO] API_URL =', API_URL);
+    console.log('[UPLOAD][VIDEO] endpoint =', endpoint);
+    console.log('[UPLOAD][VIDEO] uri =', uri);
 
     const formData = new FormData();
 
-    // RN FormData file objesi
     formData.append('file', {
       uri,
       type: 'video/mp4',
       name: `video_${Date.now()}.mp4`,
     } as any);
 
-    // Multipart için Content-Type'ı elle set etmiyoruz (boundary sorunları olabiliyor)
     const headers: any = {};
     if (token && String(token).trim().length) {
       headers.Authorization = `Bearer ${String(token).trim()}`;
     }
 
-    const res = await fetch(`${API_URL}/uploads/video`, {
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers,
       body: formData,
     });
 
     if (!res.ok) {
-      console.warn('[Upload] video upload failed:', res.status);
+      const text = await res.text().catch(() => '');
+      console.warn('[UPLOAD][VIDEO] upload failed:', res.status, text);
       return null;
     }
 
@@ -132,9 +155,105 @@ const uploadVideoToServer = async (localUri: string, token?: string | null): Pro
       (json?.videoUrl != null ? String(json.videoUrl).trim() : '') ||
       (json?.url != null ? String(json.url).trim() : '') ||
       '';
+
+    console.log('[UPLOAD][VIDEO] upload ok, url =', url);
+
     return url || null;
   } catch (e) {
-    console.warn('[Upload] video upload error:', e);
+    console.warn('[UPLOAD][VIDEO] upload error:', e);
+    return null;
+  }
+};
+
+// ✅ NEW: çoklu foto upload helper (local uri[] -> server url[])
+const uploadSingleImageToServer = async (
+  localUri: string,
+  token?: string | null,
+): Promise<string | null> => {
+  try {
+    const uri = String(localUri || '').trim();
+    if (!uri) {
+      console.warn('[UPLOAD][IMAGE] localUri empty');
+      return null;
+    }
+
+    const endpoint = `${API_URL}/uploads/image`;
+
+    console.log('[UPLOAD][IMAGE] API_URL =', API_URL);
+    console.log('[UPLOAD][IMAGE] endpoint =', endpoint);
+    console.log('[UPLOAD][IMAGE] uri =', uri);
+
+    const fileNameGuess = uri.split('/').pop()?.trim() || `image_${Date.now()}.jpg`;
+    const lower = fileNameGuess.toLowerCase();
+
+    let mime = 'image/jpeg';
+    if (lower.endsWith('.png')) mime = 'image/png';
+    else if (lower.endsWith('.webp')) mime = 'image/webp';
+    else if (lower.endsWith('.heic')) mime = 'image/heic';
+    else if (lower.endsWith('.heif')) mime = 'image/heif';
+    else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) mime = 'image/jpeg';
+
+    const formData = new FormData();
+
+    formData.append('file', {
+      uri,
+      type: mime,
+      name: fileNameGuess,
+    } as any);
+
+    const headers: any = {};
+    if (token && String(token).trim().length) {
+      headers.Authorization = `Bearer ${String(token).trim()}`;
+    }
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      console.warn('[UPLOAD][IMAGE] upload failed:', res.status, text);
+      return null;
+    }
+
+    const json = await res.json().catch(() => null);
+    const url =
+      (json?.imageUrl != null ? String(json.imageUrl).trim() : '') ||
+      (json?.url != null ? String(json.url).trim() : '') ||
+      '';
+
+    console.log('[UPLOAD][IMAGE] upload ok, url =', url);
+
+    return url || null;
+  } catch (e) {
+    console.warn('[UPLOAD][IMAGE] upload error:', e);
+    return null;
+  }
+};
+
+const uploadImagesToServer = async (
+  localUris: string[],
+  token?: string | null,
+): Promise<string[] | null> => {
+  try {
+    const safeUris = normalizeStringArray(localUris);
+    if (!safeUris.length) return [];
+
+    const uploaded: string[] = [];
+
+    for (const uri of safeUris) {
+      const one = await uploadSingleImageToServer(uri, token);
+      if (!one) {
+        return null;
+      }
+      uploaded.push(one);
+    }
+
+    return uploaded;
+  } catch (e) {
+    console.warn('[UPLOAD][IMAGE] multi upload error:', e);
     return null;
   }
 };
@@ -143,8 +262,7 @@ const UploadScreen: React.FC = () => {
   const { t } = useTranslation();
 
   // Kullanıcı adı (Akışta gösterilecek)
-  // ✅ FIX: profile gerekiyordu (avatar için). Burada ekliyoruz.
-  const { userId, backendUserId, profile, token } = useAuth() as any; // ✅ token eklendi (store’da adı farklıysa burada değiştir)
+  const { userId, backendUserId, profile, token } = useAuth() as any;
 
   // ✅ FIX: Feed'de de kullandığımız mantık: fullName > handle > userId > misafir
   const username: string =
@@ -155,8 +273,7 @@ const UploadScreen: React.FC = () => {
     (userId != null ? String(userId).trim() : '') ||
     t('feed.guestName', 'misafir');
 
-  // ✅ NEW: avatarUri'yi her durumda güvenli normalize et (trim + boşsa null)
-  // Daha sağlam: avatarUri / avatarUrl / avatar varyasyonlarını da tara
+  // ✅ avatar uri normalize
   const authorAvatarUri: string | null = useMemo(() => {
     const raw =
       (profile?.avatarUri != null ? String(profile.avatarUri).trim() : '') ||
@@ -178,9 +295,7 @@ const UploadScreen: React.FC = () => {
   const [cardTitle, setCardTitle] = useState('');
   const [cardDescription, setCardDescription] = useState('');
 
-  const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatformId[]>(
-    [],
-  );
+  const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatformId[]>([]);
   const [plannedTimeLabel] = useState(t('feed.time.justNow'));
 
   const socialStore: any = useSocialAccounts();
@@ -192,6 +307,10 @@ const UploadScreen: React.FC = () => {
   // Video state
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const [videoLabel, setVideoLabel] = useState<string | null>(null);
+
+  // ✅ NEW: çoklu foto state
+  const [imageUris, setImageUris] = useState<string[]>([]);
+  const [imageLabels, setImageLabels] = useState<string[]>([]);
 
   // Kart oluşturuluyor mu?
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -247,7 +366,7 @@ const UploadScreen: React.FC = () => {
   // 🔥 Görev kartı için varsayılan başlık (çok dilli)
   const defaultTitleFromTask = useMemo(() => {
     if (!selectedTask) return '';
-    const prefix = t('tasks.completeCardPrefix'); // "Görev tamamlandı: "
+    const prefix = t('tasks.completeCardPrefix');
     return `${prefix}${selectedTask.title}`;
   }, [selectedTask, t]);
 
@@ -411,16 +530,89 @@ const UploadScreen: React.FC = () => {
     }
   };
 
+  // ✅ NEW: çoklu foto seçmek
+  const pickImages = async () => {
+    try {
+      const options: ImageLibraryOptions = {
+        mediaType: 'photo',
+        selectionLimit: MAX_IMAGE_COUNT,
+        includeExtra: true,
+      };
+
+      const result: ImagePickerResponse = await launchImageLibrary(options);
+
+      if (result.didCancel) {
+        console.log('[Upload] pickImages: user cancelled');
+        return;
+      }
+
+      const assets = Array.isArray(result.assets) ? result.assets : [];
+      const validAssets = assets.filter(a => !!a?.uri);
+
+      if (!validAssets.length) {
+        console.warn('[Upload] pickImages: no valid images');
+        return;
+      }
+
+      const nextUris = validAssets
+        .map(a => String(a.uri || '').trim())
+        .filter(Boolean)
+        .slice(0, MAX_IMAGE_COUNT);
+
+      const nextLabels = validAssets
+        .map((a, index) => {
+          const fileName = String(a.fileName || '').trim();
+          if (fileName) return fileName;
+          return `image_${index + 1}.jpg`;
+        })
+        .slice(0, MAX_IMAGE_COUNT);
+
+      setImageUris(nextUris);
+      setImageLabels(nextLabels);
+
+      console.log('[Upload] pickImages success count:', nextUris.length);
+    } catch (e) {
+      console.warn('[Upload] pickImages error:', e);
+      Alert.alert(
+        t('upload.images.pickErrorTitle', 'Fotoğraflar seçilemedi'),
+        t('upload.images.pickErrorBody', 'Fotoğraf seçerken bir hata oluştu.'),
+      );
+    }
+  };
+
+  const removePickedImageAt = (index: number) => {
+    setImageUris(prev => prev.filter((_, i) => i !== index));
+    setImageLabels(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const clearPickedImages = () => {
+    setImageUris([]);
+    setImageLabels([]);
+  };
+
   // Form geçerli mi?
-  const canSubmit = !!(selectedTask || cardTitle.trim() || cardDescription.trim() || videoUri);
+  const canSubmit = !!(
+    selectedTask ||
+    cardTitle.trim() ||
+    cardDescription.trim() ||
+    videoUri ||
+    imageUris.length > 0
+  );
 
   const handleCreateCard = async () => {
     if (isSubmitting) return;
 
-    const hasFreePostContent = !!cardTitle.trim() || !!cardDescription.trim() || !!videoUri;
+    const hasFreePostContent =
+      !!cardTitle.trim() ||
+      !!cardDescription.trim() ||
+      !!videoUri ||
+      imageUris.length > 0;
 
     if (!selectedTask && !hasFreePostContent) {
-      Alert.alert(t('upload.alerts.missingContentTitle'), t('upload.alerts.missingContentBody'));
+      Alert.alert(
+        t('upload.alerts.missingContentTitle'),
+        t('upload.alerts.missingContentBody'),
+      );
       return;
     }
 
@@ -436,9 +628,7 @@ const UploadScreen: React.FC = () => {
         const titleTrim = cardTitle.trim();
         const descTrim = cardDescription.trim();
 
-        // Başlık boşsa "Görev tamamlandı: <görev>" kullan
         taskTitle = (titleTrim || autoTitle).trim();
-        // Açıklama boşsa yine görev başlığını kullan (eskisi gibi)
         note = (descTrim || baseTitle).trim();
       } else {
         const titleTrim = cardTitle.trim();
@@ -459,8 +649,7 @@ const UploadScreen: React.FC = () => {
 
       const isFreePost = forceFreePost || !selectedTask;
 
-      // ✅ EK: video varsa önce server’a upload et ve URL al
-      // (Instagram share için local uri'yi ayrıca kullanacağız)
+      // ✅ video varsa upload et
       let finalVideoUri: string | null = videoUri;
 
       if (videoUri) {
@@ -480,19 +669,36 @@ const UploadScreen: React.FC = () => {
         finalVideoUri = uploadedUrl;
       }
 
-      // 🟢 1) Önce yerel feed'e kartı ekle (videoUri artık URL olabilir)
+      // ✅ çoklu foto varsa upload et
+      let finalImageUris: string[] = normalizeStringArray(imageUris);
+
+      if (imageUris.length > 0) {
+        const uploadedImages = await uploadImagesToServer(imageUris, token);
+
+        if (!uploadedImages) {
+          Alert.alert(
+            t('upload.images.uploadFailedTitle', 'Fotoğraflar yüklenemedi'),
+            t(
+              'upload.images.uploadFailedBody',
+              'Fotoğraflar sunucuya yüklenemedi. İnternet/Server kontrol et.',
+            ),
+          );
+          return;
+        }
+
+        finalImageUris = normalizeStringArray(uploadedImages);
+      }
+
+      // 🟢 1) Önce yerel feed'e kartı ekle
       addTaskCardFromTask({
         taskTitle,
         note,
         author: username,
         shareTargets,
         videoUri: finalVideoUri,
+        imageUris: finalImageUris,
         isFreePost,
-        authorUserId: backendUserId ?? null,
-
-        // ✅ FIX: Feed post-bazlı avatar çözümü ile uyumlu olsun
         authorAvatarUri,
-        avatarUri: authorAvatarUri,
       });
 
       // 🟢 2) Sonra backend'e post kaydı gönder
@@ -504,11 +710,10 @@ const UploadScreen: React.FC = () => {
         author: username,
         isFreePost,
         shareTargets,
-        videoUri: finalVideoUri, // ✅ URL
+        videoUri: finalVideoUri,
+        imageUris: finalImageUris,
         createdAt,
         userId: backendUserId ?? null,
-
-        // ✅ FIX: payload’a da ekle (backend görmezden gelse bile sorun yok)
         authorAvatarUri,
         avatarUri: authorAvatarUri,
       };
@@ -538,13 +743,13 @@ const UploadScreen: React.FC = () => {
       }
 
       // Instagram paylaşımı
-      // ⚠️ Instagram için genelde local uri gerekli → burada videoUri (local) kullanıyoruz.
+      // ⚠️ Instagram için genelde local uri gerekli
       if (selectedPlatforms.includes('instagram')) {
         const caption = (note || taskTitle || '').trim();
 
         requestInstagramShare({
           caption: caption || t('feed.share.defaultText'),
-          videoUri, // local uri
+          videoUri,
           username,
         });
       }
@@ -564,9 +769,12 @@ const UploadScreen: React.FC = () => {
         setCardDescription('');
         setForceFreePost(true);
       }
+
       setSelectedPlatforms([]);
       setVideoUri(null);
       setVideoLabel(null);
+      setImageUris([]);
+      setImageLabels([]);
     } finally {
       setIsSubmitting(false);
     }
@@ -574,16 +782,22 @@ const UploadScreen: React.FC = () => {
 
   const isFreePostPreview = forceFreePost || !selectedTask;
 
-  const screenTitle = isFreePostPreview ? t('upload.screenTitleFree') : t('upload.screenTitleTask');
+  const screenTitle = isFreePostPreview
+    ? t('upload.screenTitleFree')
+    : t('upload.screenTitleTask');
 
-  const modeHelperText = isFreePostPreview ? t('upload.mode.freeDescription') : t('upload.mode.taskDescription');
+  const modeHelperText = isFreePostPreview
+    ? t('upload.mode.freeDescription')
+    : t('upload.mode.taskDescription');
 
   // Önizleme kartı için başlık
   const previewTitle =
     (cardTitle || '').trim() ||
     (isFreePostPreview
       ? t('upload.preview.noTaskSelected')
-      : defaultTitleFromTask || selectedTask?.title || t('upload.preview.noTaskSelected'));
+      : defaultTitleFromTask ||
+        selectedTask?.title ||
+        t('upload.preview.noTaskSelected'));
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -751,6 +965,88 @@ const UploadScreen: React.FC = () => {
         </View>
       </View>
 
+      {/* 2.6) Çoklu fotoğraf (opsiyonel) */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>
+          {t('upload.images.label', 'Fotoğraflar')}
+        </Text>
+        <Text style={styles.videoHint}>
+          {t(
+            'upload.images.hint',
+            'Birden fazla fotoğraf seçebilirsin.',
+          )}
+        </Text>
+
+        <View style={styles.videoRow}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.videoBtn,
+              pressed && styles.videoBtnPressed,
+            ]}
+            onPress={pickImages}
+          >
+            <Text style={styles.videoBtnText}>
+              {imageUris.length > 0
+                ? t('upload.images.change', 'Fotoğrafları değiştir')
+                : t('upload.images.pick', 'Fotoğraf seç')}
+            </Text>
+          </Pressable>
+
+          <View style={styles.videoInfoBox}>
+            <Text style={styles.videoInfoText} numberOfLines={2}>
+              {imageUris.length > 0
+                ? t('upload.images.selectedCount', {
+                    count: imageUris.length,
+                    defaultValue: `${imageUris.length} fotoğraf seçildi`,
+                  })
+                : t('upload.images.notSelected', 'Fotoğraf seçilmedi')}
+            </Text>
+          </View>
+        </View>
+
+        {imageUris.length > 0 && (
+          <>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.imagePreviewRow}
+            >
+              {imageUris.map((uri, index) => (
+                <View key={`${uri}_${index}`} style={styles.imagePreviewItem}>
+                  <Image source={{ uri }} style={styles.imagePreviewThumb} />
+                  <Pressable
+                    onPress={() => removePickedImageAt(index)}
+                    style={({ pressed }) => [
+                      styles.removeImageBtn,
+                      pressed && styles.removeImageBtnPressed,
+                    ]}
+                  >
+                    <Text style={styles.removeImageBtnText}>×</Text>
+                  </Pressable>
+                  <Text style={styles.imagePreviewLabel} numberOfLines={1}>
+                    {imageLabels[index] || `image_${index + 1}.jpg`}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={styles.imageActionsRow}>
+              <Pressable
+                onPress={clearPickedImages}
+                style={({ pressed }) => [
+                  styles.clearImagesBtn,
+                  pressed && styles.clearImagesBtnPressed,
+                ]}
+              >
+                <Text style={styles.clearImagesBtnText}>
+                  {t('upload.images.clearAll', 'Tümünü temizle')}
+                </Text>
+              </Pressable>
+            </View>
+          </>
+        )}
+      </View>
+
       {/* 3) Planlanan paylaşım platformları */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>
@@ -872,6 +1168,7 @@ const UploadScreen: React.FC = () => {
           plannedTimeLabel={plannedTimeLabel}
           hasVideo={!!videoUri}
           videoLabel={videoLabel}
+          imageUris={imageUris}
         />
       </View>
 
@@ -914,6 +1211,7 @@ type TaskPreviewCardProps = {
   hasVideo?: boolean;
   videoLabel?: string | null;
   isFreePost?: boolean;
+  imageUris?: string[];
 };
 
 const TaskPreviewCard: React.FC<TaskPreviewCardProps> = ({
@@ -924,9 +1222,11 @@ const TaskPreviewCard: React.FC<TaskPreviewCardProps> = ({
   hasVideo,
   videoLabel,
   isFreePost,
+  imageUris,
 }) => {
   const { t } = useTranslation();
   const platforms = SOCIAL_PLATFORMS.filter(p => platformIds.includes(p.id));
+  const safeImageUris = normalizeStringArray(imageUris);
 
   const titlePrefix = isFreePost
     ? t('upload.preview.freePrefix')
@@ -982,6 +1282,31 @@ const TaskPreviewCard: React.FC<TaskPreviewCardProps> = ({
           <Text style={styles.cardVideoText}>
             {t('upload.preview.videoLabel', { label: videoText })}
           </Text>
+        )}
+
+        {safeImageUris.length > 0 && (
+          <>
+            <Text style={styles.cardVideoText}>
+              {t('upload.preview.imagesLabel', {
+                count: safeImageUris.length,
+                defaultValue: `${safeImageUris.length} fotoğraf eklendi`,
+              })}
+            </Text>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.cardImagesRow}
+            >
+              {safeImageUris.map((uri, index) => (
+                <Image
+                  key={`${uri}_${index}`}
+                  source={{ uri }}
+                  style={styles.cardImageThumb}
+                />
+              ))}
+            </ScrollView>
+          </>
         )}
       </View>
     </View>
@@ -1136,6 +1461,63 @@ const styles = StyleSheet.create({
   videoInfoText: {
     fontSize: 12,
     color: '#555',
+  },
+  imagePreviewRow: {
+    paddingTop: 10,
+    gap: 10,
+  },
+  imagePreviewItem: {
+    width: 96,
+  },
+  imagePreviewThumb: {
+    width: 96,
+    height: 96,
+    borderRadius: 12,
+    backgroundColor: '#eee',
+  },
+  imagePreviewLabel: {
+    marginTop: 4,
+    fontSize: 10,
+    color: '#555',
+  },
+  removeImageBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeImageBtnPressed: {
+    opacity: 0.85,
+  },
+  removeImageBtnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+    lineHeight: 16,
+  },
+  imageActionsRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  clearImagesBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: '#f0f0f0',
+  },
+  clearImagesBtnPressed: {
+    backgroundColor: '#e2e2e2',
+  },
+  clearImagesBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#444',
   },
   platformRow: {
     flexDirection: 'row',
@@ -1295,12 +1677,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#555',
   },
+  cardImagesRow: {
+    paddingTop: 8,
+    gap: 8,
+  },
+  cardImageThumb: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+    backgroundColor: '#eee',
+  },
   footer: {
     marginTop: 8,
     marginBottom: 24,
   },
   primaryButton: {
-    backgroundColor: VIRAL_RED, // ✅ Viral Kırmızısı
+    backgroundColor: VIRAL_RED,
     paddingVertical: 12,
     borderRadius: 999,
     alignItems: 'center',
