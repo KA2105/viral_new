@@ -380,6 +380,11 @@ const uploadAvatar = multer({
   limits: { fileSize: 12 * 1024 * 1024 },
 });
 
+const uploadImage = multer({
+  storage: imageStorage,
+  limits: { fileSize: 100 * 1024 * 1024 },
+});
+
 const uploadImages = multer({
   storage: imageStorage,
   limits: {
@@ -508,6 +513,67 @@ app.post('/upload/images', uploadImages.array('files', 10), async (req, res) => 
     return res.status(500).json({ ok: false, error: 'server-error' });
   }
 }); 
+
+const uploadImage = multer({
+  storage: imageStorage,
+  limits: { fileSize: 100 * 1024 * 1024 },
+});
+
+// ✅ Tek foto upload
+app.post('/uploads/image', uploadImage.single('file'), async (req, res) => {
+  try {
+    const f = (req as any).file as Express.Multer.File | undefined;
+
+    if (!f) {
+      return res.status(400).json({
+        ok: false,
+        error: 'no_file',
+        message: 'file is required',
+      });
+    }
+
+    const imagePath = `/uploads/images/${f.filename}`;
+    const imageUrl = `${getPublicBaseUrl(req)}${imagePath}`;
+
+    return res.json({
+      ok: true,
+      imagePath,
+      imageUrl,
+      url: imageUrl,
+    });
+  } catch (e) {
+    console.error('[POST /uploads/image] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// ✅ Alias: /upload/image
+app.post('/upload/image', uploadImage.single('file'), async (req, res) => {
+  try {
+    const f = (req as any).file as Express.Multer.File | undefined;
+
+    if (!f) {
+      return res.status(400).json({
+        ok: false,
+        error: 'no_file',
+        message: 'file is required',
+      });
+    }
+
+    const imagePath = `/uploads/images/${f.filename}`;
+    const imageUrl = `${getPublicBaseUrl(req)}${imagePath}`;
+
+    return res.json({
+      ok: true,
+      imagePath,
+      imageUrl,
+      url: imageUrl,
+    });
+  } catch (e) {
+    console.error('[POST /upload/image] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
 
 // ✅ Client'e döndürdüğümüz user objesi tek yerde standardize olsun
 function toPublicUser(u: any, req?: express.Request) {
