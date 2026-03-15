@@ -1075,6 +1075,11 @@ export default function FeedScreen({ go }: Props) {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
 
+  // ✅ NEW: foto viewer state
+  const [imageViewerVisible, setImageViewerVisible] = useState(false);
+  const [viewerImages, setViewerImages] = useState<string[]>([]);
+  const [viewerIndex, setViewerIndex] = useState(0);
+  
   const [sharePost, setSharePost] = useState<Post | null>(null);
   const [shareVisible, setShareVisible] = useState(false);
   const [selectedSharePlatform, setSelectedSharePlatform] = useState<string | null>(null);
@@ -1687,6 +1692,21 @@ export default function FeedScreen({ go }: Props) {
 
   const handleCloseDetail = () => setDetailVisible(false);
 
+ // ✅ NEW: foto viewer aç/kapat
+const openImageViewer = (post: Post, index: number) => {
+  const imgs = getSafeImageUris(post);
+  if (!imgs.length) return;
+
+  stopAllVideos();
+  setViewerImages(imgs);
+  setViewerIndex(index);
+  setImageViewerVisible(true);
+};
+
+const closeImageViewer = () => {
+  setImageViewerVisible(false);
+}; 
+
   const openComments = (post: Post) => {
     const disabled = commentsDisabledByPost[post.id];
     if (disabled) {
@@ -1932,387 +1952,210 @@ export default function FeedScreen({ go }: Props) {
   };
 
   // 🔥 Tüm gönderiler için ortak kart render fonksiyonu
-  const renderFullPostCard = (
-    base: Post,
-    options?: {
-      isHighlighted?: boolean;
-      embedded?: boolean;
-      onPressCard?: () => void;
-      instanceId?: string;
-      listItemId?: string;
-    },
-  ) => {
-    const anyBase: any = base;
+const renderFullPostCard = (
+  base: Post,
+  options?: {
+    isHighlighted?: boolean;
+    embedded?: boolean;
+    onPressCard?: () => void;
+    instanceId?: string;
+    listItemId?: string;
+  },
+) => {
+  const anyBase: any = base;
 
-    const isFreeVideoPost = !base.isTaskCard && !!anyBase.videoUri;
-    const isHighlighted = options?.isHighlighted ?? false;
-    const embedded = options?.embedded ?? false;
+  const isFreeVideoPost = !base.isTaskCard && !!anyBase.videoUri;
+  const isHighlighted = options?.isHighlighted ?? false;
+  const embedded = options?.embedded ?? false;
 
-    const cardTitleText = anyBase.title || anyBase.note || t('feed.post.genericTitle', 'Paylaşım');
+  const cardTitleText = anyBase.title || anyBase.note || t('feed.post.genericTitle', 'Paylaşım');
 
-    const cardDisplayName = anyBase.author || displayName;
-    const avatarInitial = (cardDisplayName[0] || displayName[0] || 'U').toUpperCase();
+  const cardDisplayName = anyBase.author || displayName;
+  const avatarInitial = (cardDisplayName[0] || displayName[0] || 'U').toUpperCase();
 
-    const isMinePost =
-      anyBase.ownerId === userId ||
-      anyBase.userId === userId ||
-      anyBase.authorId === userId ||
-      (anyBase.author && (anyBase.author === displayName || (fullNameStr && anyBase.author === fullNameStr)));
+  const isMinePost =
+    anyBase.ownerId === userId ||
+    anyBase.userId === userId ||
+    anyBase.authorId === userId ||
+    (anyBase.author && (anyBase.author === displayName || (fullNameStr && anyBase.author === fullNameStr)));
 
-    const likeCount =
-      (typeof anyBase.likes === 'number' && Number.isFinite(anyBase.likes) ? anyBase.likes : undefined) ??
-      (typeof (base as any).likes === 'number' && Number.isFinite((base as any).likes) ? (base as any).likes : 0);
+  const likeCount =
+    (typeof anyBase.likes === 'number' && Number.isFinite(anyBase.likes) ? anyBase.likes : undefined) ??
+    (typeof (base as any).likes === 'number' && Number.isFinite((base as any).likes) ? (base as any).likes : 0);
 
-    const commentsForPost = commentsByPost[base.id] || [];
-    const localLen = commentsForPost.length;
+  const commentsForPost = commentsByPost[base.id] || [];
+  const localLen = commentsForPost.length;
 
-    const serverCountRaw = (base as any)?.commentCount;
-    const serverCount = typeof serverCountRaw === 'number' && Number.isFinite(serverCountRaw) ? serverCountRaw : 0;
+  const serverCountRaw = (base as any)?.commentCount;
+  const serverCount = typeof serverCountRaw === 'number' && Number.isFinite(serverCountRaw) ? serverCountRaw : 0;
 
-    const commentCount = localLen > 0 ? Math.max(serverCount, localLen) : serverCount;
-    const commentsDisabled = !!commentsDisabledByPost[base.id];
+  const commentCount = localLen > 0 ? Math.max(serverCount, localLen) : serverCount;
+  const commentsDisabled = !!commentsDisabledByPost[base.id];
 
-    const reshareCount =
-      (typeof anyBase.reshareCount === 'number' && Number.isFinite(anyBase.reshareCount) ? anyBase.reshareCount : undefined) ??
-      (typeof anyBase.repostCount === 'number' && Number.isFinite(anyBase.repostCount) ? anyBase.repostCount : 0) ??
-      0;
+  const reshareCount =
+    (typeof anyBase.reshareCount === 'number' && Number.isFinite(anyBase.reshareCount) ? anyBase.reshareCount : undefined) ??
+    (typeof anyBase.repostCount === 'number' && Number.isFinite(anyBase.repostCount) ? anyBase.repostCount : 0) ??
+    0;
 
-    const sharedTargets =
-      anyBase.lastSharedTargets && anyBase.lastSharedTargets.length > 0
-        ? anyBase.lastSharedTargets
-        : anyBase.shareTargets && anyBase.shareTargets.length > 0
-        ? anyBase.shareTargets
-        : [];
+  const sharedTargets =
+    anyBase.lastSharedTargets && anyBase.lastSharedTargets.length > 0
+      ? anyBase.lastSharedTargets
+      : anyBase.shareTargets && anyBase.shareTargets.length > 0
+      ? anyBase.shareTargets
+      : [];
 
-    const taskSharedTargets = base.isTaskCard && sharedTargets.length > 0 ? sharedTargets : [];
+  const taskSharedTargets = base.isTaskCard && sharedTargets.length > 0 ? sharedTargets : [];
 
-    const cardAvatarUri: string | null =
-      (isMinePost ? (myAvatarUri != null ? String(myAvatarUri).trim() : '') : '') || resolveAvatarUri(anyBase) || null;
+  const cardAvatarUri: string | null =
+    (isMinePost ? (myAvatarUri != null ? String(myAvatarUri).trim() : '') : '') || resolveAvatarUri(anyBase) || null;
 
-    const postId = String((base as any)?.id ?? '');
-    const listItemId = String(options?.listItemId ?? postId);
-    const instanceId = String(options?.instanceId ?? postId);
+  const postId = String((base as any)?.id ?? '');
+  const listItemId = String(options?.listItemId ?? postId);
+  const instanceId = String(options?.instanceId ?? postId);
 
-    const videoUri = typeof anyBase?.videoUri === 'string' ? String(anyBase.videoUri) : '';
-    const imageUris = getSafeImageUris(anyBase);
-    const hasImages = imageUris.length > 0;
+  const videoUri = typeof anyBase?.videoUri === 'string' ? String(anyBase.videoUri) : '';
+  const imageUris = getSafeImageUris(anyBase);
+  const hasImages = imageUris.length > 0;
+  const isSingleImage = imageUris.length === 1;
+  const isMultiImage = imageUris.length > 1;
 
-    const isThisVideoActive = !!videoUri && activeVideo?.instanceId === instanceId;
-    const isThisVideoPaused = isThisVideoActive ? !!activeVideo?.paused : true;
+  const isThisVideoActive = !!videoUri && activeVideo?.instanceId === instanceId;
+  const isThisVideoPaused = isThisVideoActive ? !!activeVideo?.paused : true;
 
-    // ✅ SERBEST VİDEO PAYLAŞIM CARDI
-    if (isFreeVideoPost) {
-      return (
-        <Pressable
-          style={[styles.card, isHighlighted && styles.cardHighlighted, embedded && styles.embeddedCard]}
-          onLongPress={() => handlePostLongPress(base)}
-        >
-          <View style={styles.freeVideoHeaderRow}>
-            <View style={styles.authorRow}>
-              {cardAvatarUri ? (
-                <Image source={{ uri: cardAvatarUri }} style={styles.authorAvatar} />
-              ) : (
-                <View style={styles.authorAvatarFallback}>
-                  <Text style={styles.authorAvatarInitial}>{avatarInitial}</Text>
-                </View>
-              )}
-              <View>
-                <Text style={styles.authorName} numberOfLines={1}>
-                  {cardDisplayName}
-                </Text>
-                <Text style={styles.freeVideoTimeText}>{getTimeLabel(base)}</Text>
-              </View>
-            </View>
-
-            <Pressable
-              style={({ pressed }) => [styles.freeVideoMenuBtn, pressed && styles.freeVideoMenuBtnPressed]}
-              onPress={() => handleFreeVideoActions(base)}
-            >
-              <Text style={styles.freeVideoMenuIcon}>⋯</Text>
-            </Pressable>
-          </View>
-
-          {isExternalLocal(base) && (
-            <Text style={{ color: '#AAB0C5', fontSize: 11, marginBottom: 4 }}>{t('feed.external.badge', 'Dış paylaşım')}</Text>
-          )}
-
-          {anyBase.note ? <Text style={styles.freeVideoCaption}>{anyBase.note}</Text> : null}
-
-          <Pressable
-            style={styles.freeVideoPlayerWrapper}
-            onPress={() => {
-              if (!videoUri) return;
-              openInlineVideo(instanceId, listItemId, videoUri);
-            }}
-          >
-            <View style={styles.freeVideoPlayer} pointerEvents={isThisVideoActive ? 'auto' : 'none'}>
-              <Video
-                source={{ uri: videoUri }}
-                style={{ width: '100%', height: '100%' }}
-                controls={isThisVideoActive}
-                resizeMode="contain"
-                paused={!isThisVideoActive || isThisVideoPaused}
-                repeat={false}
-                playInBackground={false}
-                playWhenInactive={false}
-                useTextureView={true}
-                onError={e => {
-                  console.warn('[Feed] inline video error:', e);
-                  stopInlineVideo();
-                }}
-                onEnd={() => stopInlineVideo()}
-              />
-            </View>
-
-            <View style={styles.videoWatermark}>
-              <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
-            </View>
-          </Pressable>
-
-          <View style={styles.row}>
-            <View style={styles.freeVideoShareLeft}>
-              {sharedTargets.length > 0 && (
-                <View style={styles.sharedPlatformsRow}>
-                  {sharedTargets.map((label: string) => (
-                    <Pressable
-                      key={label}
-                      onPress={() => {
-                        stopAllVideos();
-                        handleShareToPlatform(base, label);
-                      }}
-                    >
-                      <Image source={getPlatformIcon(label)} style={styles.sharedPlatformIcon} resizeMode="contain" />
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </View>
-
-            <View style={styles.actions}>
-              {commentsDisabled ? (
-                <View style={styles.commentsOffPill}>
-                  <Text style={styles.commentsOffText}>{t('feed.comments.offLabel', 'Yorumlar kapalı')}</Text>
-                </View>
-              ) : (
-                <Pressable style={({ pressed }) => [styles.commentBtn, pressed && styles.commentBtnPressed]} onPress={() => openComments(base)}>
-                  <Text style={styles.commentBtnText}>💬 {commentCount}</Text>
-                </Pressable>
-              )}
-
-              <Pressable
-                style={({ pressed }) => [styles.shareTriggerBtn, pressed && styles.shareTriggerBtnPressed]}
-                onPress={() => openSharePanelForPost(base)}
-              >
-                <Text style={styles.shareTriggerText}>🌐</Text>
-              </Pressable>
-
-              {isExternalLocal(base) &&
-                (() => {
-                  const contentText =
-                    (anyBase.body != null ? String(anyBase.body) : '').trim() ||
-                    (anyBase.note != null ? String(anyBase.note) : '').trim() ||
-                    (anyBase.text != null ? String(anyBase.text) : '').trim() ||
-                    (anyBase.content != null ? String(anyBase.content) : '').trim() ||
-                    '';
-
-                  const linkText =
-                    (anyBase.url != null ? String(anyBase.url) : '').trim() ||
-                    (anyBase.link != null ? String(anyBase.link) : '').trim() ||
-                    (contentText ? extractFirstUrl(contentText) : null) ||
-                    '';
-
-                  if (!linkText) return null;
-
-                  return (
-                    <Pressable
-                      style={({ pressed }) => [styles.externalLinkBtn, pressed && styles.shareTriggerBtnPressed, { marginRight: 6 }]}
-                      onPress={(e: any) => {
-                        e?.stopPropagation?.();
-                        try {
-                          Linking.openURL(linkText);
-                        } catch {}
-                      }}
-                    >
-                      <Text style={styles.externalLinkIcon}>🔗</Text>
-                    </Pressable>
-                  );
-                })()}
-
-              <Pressable style={({ pressed }) => [styles.repostBtn, pressed && styles.repostBtnPressed]} onPress={() => handleRepost(base)}>
-                <Text style={styles.repostBtnText}>🔁 {reshareCount}</Text>
-              </Pressable>
-
-              <AnimatedLikeButton likes={likeCount} onPress={() => safeLike(base)} />
-            </View>
-          </View>
-        </Pressable>
-      );
-    }
-
-    // 🔵 GÖREV / NORMAL KART
+  // ✅ SERBEST VİDEO PAYLAŞIM CARDI
+  if (isFreeVideoPost) {
     return (
       <Pressable
         style={[styles.card, isHighlighted && styles.cardHighlighted, embedded && styles.embeddedCard]}
-        onPress={() => {
-          if (options?.onPressCard) options.onPressCard();
-          else handleOpenDetail(base);
-        }}
         onLongPress={() => handlePostLongPress(base)}
       >
-        <View style={styles.cardHeader}>
-          <View style={{ flex: 1, paddingRight: 8 }}>
-            <Text style={styles.title}>{cardTitleText}</Text>
-            {base.isTaskCard && (
-              <View style={styles.taskBadgeRow}>
-                <Image source={VIRAL_LOGO} style={styles.taskBadgeLogo} />
-                <Text style={styles.badge}>{t('feed.badges.taskCard', 'Görev kartı')}</Text>
+        <View style={styles.freeVideoHeaderRow}>
+          <View style={styles.authorRow}>
+            {cardAvatarUri ? (
+              <Image source={{ uri: cardAvatarUri }} style={styles.authorAvatar} />
+            ) : (
+              <View style={styles.authorAvatarFallback}>
+                <Text style={styles.authorAvatarInitial}>{avatarInitial}</Text>
               </View>
             )}
-            {isExternalLocal(base) && (
-              <Text style={{ color: '#AAB0C5', fontSize: 11, marginTop: 4 }}>{t('feed.external.badge', 'Dış paylaşım')}</Text>
-            )}
-          </View>
-          <Text style={styles.time} numberOfLines={1}>
-            {getTimeLabel(base)}
-          </Text>
-        </View>
-
-        <View style={styles.cardAuthorRow}>
-          {cardAvatarUri ? (
-            <Image source={{ uri: cardAvatarUri }} style={styles.authorAvatar} />
-          ) : (
-            <View style={styles.authorAvatarFallback}>
-              <Text style={styles.authorAvatarInitial}>{avatarInitial}</Text>
-            </View>
-          )}
-          <Text style={styles.cardAuthorName} numberOfLines={1}>
-            {cardDisplayName}
-          </Text>
-        </View>
-
-        {(() => {
-          const contentTextRaw =
-            (anyBase.body != null ? String(anyBase.body) : '').trim() ||
-            (anyBase.note != null ? String(anyBase.note) : '').trim() ||
-            (anyBase.text != null ? String(anyBase.text) : '').trim() ||
-            (anyBase.content != null ? String(anyBase.content) : '').trim() ||
-            '';
-
-          const linkText =
-            (anyBase.url != null ? String(anyBase.url) : '').trim() ||
-            (anyBase.link != null ? String(anyBase.link) : '').trim() ||
-            (contentTextRaw ? extractFirstUrl(contentTextRaw) : null) ||
-            '';
-
-          const contentText =
-            linkText && contentTextRaw.includes(linkText)
-              ? contentTextRaw.replace(linkText, '').replace(/\n{3,}/g, '\n\n').trim()
-              : contentTextRaw;
-
-          return (
-            <>
-              {contentText ? <Text style={styles.body}>{contentText}</Text> : null}
-
-              {!!linkText && (
-                <Pressable
-                  onPress={(e: any) => {
-                    e?.stopPropagation?.();
-                    try {
-                      Linking.openURL(linkText);
-                    } catch {}
-                  }}
-                  style={{ marginTop: 6 }}
-                >
-                  <Text style={[styles.body, { textDecorationLine: 'underline', opacity: 0.9 }]}>{linkText}</Text>
-                </Pressable>
-              )}
-            </>
-          );
-        })()}
-
-        {/* ✅ NEW: çoklu foto gösterimi */}
-        {hasImages && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.postImagesRow}
-            style={styles.postImagesWrap}
-          >
-            {imageUris.map((imgUri, idx) => (
-              <Image
-                key={`${base.id}_img_${idx}`}
-                source={{ uri: imgUri }}
-                style={styles.postImageThumb}
-                resizeMode="cover"
-              />
-            ))}
-          </ScrollView>
-        )}
-
-        {taskSharedTargets.length > 0 && (
-          <View style={styles.taskSharedRow}>
-            <Text style={styles.taskSharedLabel}>{t('feed.share.alsoSharedOn', 'Şurada da paylaşıldı:')}</Text>
-            <View style={styles.sharedPlatformsRow}>
-              {taskSharedTargets.map((label: string) => (
-                <Image key={label} source={getPlatformIcon(label)} style={styles.sharedPlatformIcon} resizeMode="contain" />
-              ))}
-            </View>
-          </View>
-        )}
-
-        {anyBase.videoUri ? (
-          <View style={styles.videoInfoRow}>
-            <Text style={styles.videoInfo}>{t('feed.video.info', '📹 Bu kartla birlikte bir video planlandı.')}</Text>
-
-            <Pressable
-              style={({ pressed }) => [styles.videoPlayBtn, pressed && styles.videoPlayBtnPressed]}
-              onPress={(e: any) => {
-                e?.stopPropagation?.();
-                if (!videoUri) return;
-                openInlineVideo(instanceId, listItemId, videoUri);
-              }}
-            >
-              <Text style={styles.videoPlayText}>
-                {isThisVideoActive ? t('feed.video.closeInline', 'Videoyu kapat') : t('feed.video.watch', 'Videoyu izle')}
+            <View>
+              <Text style={styles.authorName} numberOfLines={1}>
+                {cardDisplayName}
               </Text>
-            </Pressable>
-
-            <Pressable
-              style={[styles.freeVideoPlayerWrapper, { marginTop: 10 }]}
-              onPress={(e: any) => {
-                e?.stopPropagation?.();
-                if (!videoUri) return;
-                openInlineVideo(instanceId, listItemId, videoUri);
-              }}
-            >
-              <View style={styles.freeVideoPlayer} pointerEvents={isThisVideoActive ? 'auto' : 'none'}>
-                <Video
-                  source={{ uri: videoUri }}
-                  style={{ width: '100%', height: '100%' }}
-                  controls={isThisVideoActive}
-                  resizeMode="contain"
-                  paused={!isThisVideoActive || isThisVideoPaused}
-                  repeat={false}
-                  playInBackground={false}
-                  playWhenInactive={false}
-                  useTextureView={true}
-                  onError={e => {
-                    console.warn('[Feed] inline task video error:', e);
-                    stopInlineVideo();
-                  }}
-                  onEnd={() => stopInlineVideo()}
-                />
-              </View>
-
-              <View style={styles.videoWatermark}>
-                <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
-              </View>
-            </Pressable>
+              <Text style={styles.freeVideoTimeText}>{getTimeLabel(base)}</Text>
+            </View>
           </View>
-        ) : null}
 
-        <View style={styles.cardFooterRow}>
-          <View style={{ flex: 1 }} />
+          <Pressable
+            style={({ pressed }) => [styles.freeVideoMenuBtn, pressed && styles.freeVideoMenuBtnPressed]}
+            onPress={() => handleFreeVideoActions(base)}
+          >
+            <Text style={styles.freeVideoMenuIcon}>⋯</Text>
+          </Pressable>
+        </View>
+
+        {isExternalLocal(base) && (
+          <Text style={{ color: '#AAB0C5', fontSize: 11, marginBottom: 4 }}>
+            {t('feed.external.badge', 'Dış paylaşım')}
+          </Text>
+        )}
+
+        {anyBase.note ? <Text style={styles.freeVideoCaption}>{anyBase.note}</Text> : null}
+
+        {/* ✅ Tek foto */}
+{isSingleImage && (
+  <Pressable
+    style={styles.postSingleImageWrap}
+    onPress={(e: any) => {
+      e?.stopPropagation?.();
+      stopAllVideos();
+      openImageViewer(base, 0);
+    }}
+  >
+    <Image
+      source={{ uri: imageUris[0] }}
+      style={styles.postSingleImage}
+      resizeMode="cover"
+    />
+  </Pressable>
+)}
+
+{/* ✅ Çoklu foto */}
+{isMultiImage && (
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    contentContainerStyle={styles.postImagesRow}
+    style={styles.postImagesWrap}
+  >
+    {imageUris.map((imgUri, idx) => (
+      <Pressable
+        key={`${base.id}_img_${idx}`}
+        onPress={(e: any) => {
+          e?.stopPropagation?.();
+          stopAllVideos();
+          openImageViewer(base, idx);
+        }}
+      >
+        <Image
+          source={{ uri: imgUri }}
+          style={styles.postImageThumb}
+          resizeMode="cover"
+        />
+      </Pressable>
+    ))}
+  </ScrollView>
+)}
+
+        <Pressable
+          style={styles.freeVideoPlayerWrapper}
+          onPress={() => {
+            if (!videoUri) return;
+            openInlineVideo(instanceId, listItemId, videoUri);
+          }}
+        >
+          <View style={styles.freeVideoPlayer} pointerEvents={isThisVideoActive ? 'auto' : 'none'}>
+            <Video
+              source={{ uri: videoUri }}
+              style={{ width: '100%', height: '100%' }}
+              controls={isThisVideoActive}
+              resizeMode="contain"
+              paused={!isThisVideoActive || isThisVideoPaused}
+              repeat={false}
+              playInBackground={false}
+              playWhenInactive={false}
+              useTextureView={true}
+              onError={e => {
+                console.warn('[Feed] inline video error:', e);
+                stopInlineVideo();
+              }}
+              onEnd={() => stopInlineVideo()}
+            />
+          </View>
+
+          <View style={styles.videoWatermark}>
+            <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
+          </View>
+        </Pressable>
+
+        <View style={styles.row}>
+          <View style={styles.freeVideoShareLeft}>
+            {sharedTargets.length > 0 && (
+              <View style={styles.sharedPlatformsRow}>
+                {sharedTargets.map((label: string) => (
+                  <Pressable
+                    key={label}
+                    onPress={() => {
+                      stopAllVideos();
+                      handleShareToPlatform(base, label);
+                    }}
+                  >
+                    <Image source={getPlatformIcon(label)} style={styles.sharedPlatformIcon} resizeMode="contain" />
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
 
           <View style={styles.actions}>
             {commentsDisabled ? (
@@ -2332,6 +2175,38 @@ export default function FeedScreen({ go }: Props) {
               <Text style={styles.shareTriggerText}>🌐</Text>
             </Pressable>
 
+            {isExternalLocal(base) &&
+              (() => {
+                const contentText =
+                  (anyBase.body != null ? String(anyBase.body) : '').trim() ||
+                  (anyBase.note != null ? String(anyBase.note) : '').trim() ||
+                  (anyBase.text != null ? String(anyBase.text) : '').trim() ||
+                  (anyBase.content != null ? String(anyBase.content) : '').trim() ||
+                  '';
+
+                const linkText =
+                  (anyBase.url != null ? String(anyBase.url) : '').trim() ||
+                  (anyBase.link != null ? String(anyBase.link) : '').trim() ||
+                  (contentText ? extractFirstUrl(contentText) : null) ||
+                  '';
+
+                if (!linkText) return null;
+
+                return (
+                  <Pressable
+                    style={({ pressed }) => [styles.externalLinkBtn, pressed && styles.shareTriggerBtnPressed, { marginRight: 6 }]}
+                    onPress={(e: any) => {
+                      e?.stopPropagation?.();
+                      try {
+                        Linking.openURL(linkText);
+                      } catch {}
+                    }}
+                  >
+                    <Text style={styles.externalLinkIcon}>🔗</Text>
+                  </Pressable>
+                );
+              })()}
+
             <Pressable style={({ pressed }) => [styles.repostBtn, pressed && styles.repostBtnPressed]} onPress={() => handleRepost(base)}>
               <Text style={styles.repostBtnText}>🔁 {reshareCount}</Text>
             </Pressable>
@@ -2341,662 +2216,902 @@ export default function FeedScreen({ go }: Props) {
         </View>
       </Pressable>
     );
-  };  
+  }
 
-  const renderItem = ({ item }: ListRenderItemInfo<Post>) => {
-    const anyItem: any = item;
-
-    const originalPostId: string | undefined =
-      (anyItem.repostOfId as string | undefined) ?? (anyItem.originalPostId as string | undefined);
-
-    const originalPost =
-      originalPostId && originalPostId !== item.id
-        ? (Array.isArray(allPosts) ? allPosts : []).find(p => p.id === originalPostId) || null
-        : null;
-
-    const isRepost = !!originalPost;
-    const isHighlighted = highlightedPostId === item.id;
-
-    if (isRepost && originalPost) {
-      const repostDisplayName = (item as any).author || displayName;
-      const repostAvatarInitial = (repostDisplayName[0] || displayName[0] || 'U').toUpperCase();
-
-      const goToOriginal = () => {
-        goToOriginalPost(originalPost.id);
-      };
-
-      const repostIsMine =
-        anyItem.ownerId === userId ||
-        anyItem.userId === userId ||
-        anyItem.authorId === userId ||
-        (anyItem.author && (anyItem.author === displayName || (fullNameStr && anyItem.author === fullNameStr)));
-
-      const repostAvatarUri: string | null =
-        (repostIsMine ? (myAvatarUri ? String(myAvatarUri).trim() : null) : null) || resolveAvatarUri(anyItem) || null;
-
-      const embeddedInstanceId = `embed:${String(item.id)}:${String(originalPost.id)}`;
-
-      return (
-        <Pressable
-          style={[styles.card, isHighlighted && styles.cardHighlighted]}
-          onPress={goToOriginal}
-          onLongPress={() => handlePostLongPress(item)}
-        >
-          <View style={styles.freeVideoHeaderRow}>
-            <Pressable style={styles.authorRow} onPress={goToOriginal}>
-              {repostAvatarUri ? (
-                <Image source={{ uri: repostAvatarUri }} style={styles.authorAvatar} />
-              ) : (
-                <View style={styles.authorAvatarFallback}>
-                  <Text style={styles.authorAvatarInitial}>{repostAvatarInitial}</Text>
-                </View>
-              )}
-              <View>
-                <Text style={styles.authorName} numberOfLines={1}>
-                  {repostDisplayName}
-                </Text>
-                <Text style={styles.freeVideoTimeText}>{getTimeLabel(item)}</Text>
-              </View>
-            </Pressable>
-          </View>
-
-          <Text style={styles.repostLabel}>🔁</Text>
-
-          <Pressable style={styles.repostInnerContainer} onPress={goToOriginal}>
-            {renderFullPostCard(originalPost, {
-              embedded: true,
-              onPressCard: goToOriginal,
-              instanceId: embeddedInstanceId,
-              listItemId: String(item.id),
-            })}
-          </Pressable>
-        </Pressable>
-      );
-    }
-
-    return renderFullPostCard(item, {
-      isHighlighted,
-      instanceId: String(item.id),
-      listItemId: String(item.id),
-    });
-  };
-
-  const currentComments: Comment[] =
-    commentsPost && commentsByPost[commentsPost.id] ? commentsByPost[commentsPost.id] : [];
-
-  const commentsAtTopRef = useRef(true);
-
-  const commentListLayoutHRef = useRef(0);
-  const commentListContentHRef = useRef(0);
-
-  const updateCommentsTopForNonScrollable = () => {
-    const layoutH = commentListLayoutHRef.current || 0;
-    const contentH = commentListContentHRef.current || 0;
-
-    if (layoutH > 0 && contentH > 0 && contentH <= layoutH + 1) {
-      commentsAtTopRef.current = true;
-    }
-  };
-
-  const commentsDisabledForCurrent = commentsPost && commentsDisabledByPost[commentsPost.id];
-  const isCurrentPostOwner =
-    !!commentsPost && ((((commentsPost as any).author || displayName) === displayName));
-
-  const renderCommentsTree = () => {
-    if (currentComments.length === 0) return null;
-
-    const sorted = currentComments.slice().sort((a, b) => a.ts - b.ts);
-
-    const roots = sorted.filter(c => !c.parentId);
-
-    const renderThread = (comment: Comment, depth: number): React.ReactNode[] => {
-      const replies = sorted.filter(c => c.parentId === comment.id);
-      const isReply = depth > 0;
-      const timeLabel = new Date(comment.ts).toLocaleTimeString();
-      const authorInitial = (comment.author?.trim?.()[0] || '?').toUpperCase();
-
-      const avatarUri =
-        comment.author === displayName
-          ? myAvatarUri
-          : (comment.authorAvatarUri ? String(comment.authorAvatarUri).trim() : null);
-
-      const node = (
-        <Pressable
-          key={comment.id}
-          style={({ pressed }) => [
-            styles.commentRow,
-            isReply && styles.commentRowReply,
-            pressed && styles.commentRowPressed,
-          ]}
-          delayLongPress={300}
-          onLongPress={() => {
-            if (comment.author !== displayName) return;
-            Alert.alert(
-              t('feed.comments.actionsTitle', 'Yorum işlemi'),
-              t('feed.comments.deleteQuestion', 'Bu yorumu silmek istiyor musun?'),
-              [
-                { text: t('common.cancel', 'Vazgeç'), style: 'cancel' },
-                {
-                  text: t('feed.comments.delete', 'Yorumu sil'),
-                  style: 'destructive',
-                  onPress: () => handleDeleteComment(comment),
-                },
-              ],
-            );
-          }}
-        >
-          {avatarUri ? (
-            <Image source={{ uri: avatarUri }} style={styles.commentAvatarImage} />
-          ) : (
-            <View style={styles.commentAvatar}>
-              <Text style={styles.commentAvatarInitial}>{authorInitial}</Text>
-            </View>
-          )}
-
-          <View style={[styles.commentContent, isReply && styles.commentReplyContent]}>
-            <View style={styles.commentHeaderRow}>
-              <Text style={styles.commentAuthor}>{comment.author}</Text>
-              <Text style={styles.commentTime}>{timeLabel}</Text>
-            </View>
-            <Text style={styles.commentText}>{comment.text}</Text>
-            <View style={styles.commentFooterRow}>
-              <Pressable
-                style={({ pressed }) => [styles.commentLikeBtn, pressed && styles.commentLikeBtnPressed]}
-                onPress={() => handleLikeComment(comment)}
-              >
-                <Text style={styles.commentLikeText}>❤️ {comment.likes || 0}</Text>
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.commentReplyBtn, pressed && styles.commentReplyBtnPressed]}
-                onPress={() => setReplyTo(comment)}
-              >
-                <Text style={styles.commentReplyText}>{t('feed.comments.reply', 'Yanıtla')}</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Pressable>
-      );
-
-      return [node, ...replies.flatMap(r => renderThread(r, depth + 1))];
-    };
-
-    return roots.flatMap(root => renderThread(root, 0));
-  };
-
-  const [commentsAtTop, setCommentsAtTop] = useState(true);
-
-  const commentDragResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponderCapture: (_, g) => {
-        if (g.dy <= 1) return false;
-        if (Math.abs(g.dy) <= Math.abs(g.dx)) return false;
-
-        if (currentComments.length === 0) return true;
-
-        return !!commentsAtTopRef.current;
-      },
-
-      onPanResponderTerminationRequest: () => false,
-
-      onPanResponderRelease: (_, g) => {
-        const shouldClose =
-          g.dy > 10 ||
-          g.vy > 0.22 ||
-          (g.dy > 8 && g.vy > 0.12);
-
-        if (shouldClose) closeComments();
-      },
-    }),
-  ).current;
-
-  const renderNotifications = () => {
-    if (notifications.length === 0) {
-      return (
-        <Text style={styles.notificationsEmptyText}>
-          {t(
-            'feed.notifications.empty',
-            'Henüz bildirimin yok. Yorum yazdıkça ve ayarlarla oynadıkça burada gözükecek.',
-          )}
-        </Text>
-      );
-    }
-
-    return (
-      <ScrollView contentContainerStyle={styles.notificationsList} keyboardShouldPersistTaps="handled">
-        {notifications.map(n => (
-          <Pressable
-            key={n.id}
-            style={({ pressed }) => [styles.notificationItem, pressed && styles.notificationItemPressed]}
-            onPress={() => handleNotificationPress(n)}
-          >
-            <Text style={[styles.notificationText, !n.read && styles.notificationTextUnread]}>{n.text}</Text>
-            <Text style={styles.notificationTime}>{new Date(n.ts).toLocaleString()}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-    );
-  };
-
-  const renderFilterChip = (label: string, value: FeedFilter) => {
-    const active = filter === value;
-    return (
-      <Pressable
-        key={value}
-        style={({ pressed }) => [
-          styles.filterChip,
-          active && styles.filterChipActive,
-          pressed && styles.filterChipPressed,
-        ]}
-        onPress={() => setFilter(value)}
-      >
-        <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>{label}</Text>
-      </Pressable>
-    );
-  };
-
+  // 🔵 GÖREV / NORMAL KART
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <View style={styles.headerTextBlock}>
-          <View style={styles.headerTitleRow}>
-            <Image source={VIRAL_LOGO} style={styles.headerLogo} />
-            <Text style={styles.headerTitle}>{t('feed.headerTitle', 'Akış')}</Text>
-          </View>
-          <Text style={styles.headerSub}>
-            {t('feed.headerSub', { defaultValue: 'Merhaba, {{name}} 👋', name: firstName })}
-          </Text>
-          <Text style={styles.headerTagline}>
-            {t('feed.headerTagline', 'Görevlerin, videoların ve paylaşımların — hepsi burada birleşiyor.')}
-          </Text>
-        </View>
-        <Pressable
-          style={({ pressed }) => [styles.bellBtn, pressed && styles.bellBtnPressed]}
-          onPress={() => setNotificationsVisible(true)}
-        >
-          <Text style={styles.bellIcon}>🔔</Text>
-          {unreadNotificationCount > 0 && (
-            <View style={styles.bellBadge}>
-              <Text style={styles.bellBadgeText}>
-                {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
-              </Text>
+    <Pressable
+      style={[styles.card, isHighlighted && styles.cardHighlighted, embedded && styles.embeddedCard]}
+      onPress={() => {
+        if (options?.onPressCard) options.onPressCard();
+        else handleOpenDetail(base);
+      }}
+      onLongPress={() => handlePostLongPress(base)}
+    >
+      <View style={styles.cardHeader}>
+        <View style={{ flex: 1, paddingRight: 8 }}>
+          <Text style={styles.title}>{cardTitleText}</Text>
+          {base.isTaskCard && (
+            <View style={styles.taskBadgeRow}>
+              <Image source={VIRAL_LOGO} style={styles.taskBadgeLogo} />
+              <Text style={styles.badge}>{t('feed.badges.taskCard', 'Görev kartı')}</Text>
             </View>
           )}
-        </Pressable>
+          {isExternalLocal(base) && (
+            <Text style={{ color: '#AAB0C5', fontSize: 11, marginTop: 4 }}>
+              {t('feed.external.badge', 'Dış paylaşım')}
+            </Text>
+          )}
+        </View>
+        <Text style={styles.time} numberOfLines={1}>
+          {getTimeLabel(base)}
+        </Text>
       </View>
 
-      {/* Focus Ağı */}
-      <View style={styles.focusNetworkBar}>
-        <Pressable
-          style={({ pressed }) => [styles.focusNetworkButton, pressed && { opacity: 0.9 }]}
-          onPress={async () => {
-            await markFocusRequestsSeen();
-            setActiveVideo(null);
-            go('FocusNetwork');
-          }}
-        >
-          <View style={styles.focusNetworkBtnInner}>
-            <Text style={styles.focusNetworkText}>{t('feed.focusNetwork.button', 'Focus Ağına Git')}</Text>
-
-            {pendingFocusRequestsCount > 0 && (
-              <Animated.View
-                style={[
-                  styles.focusNetworkBadge,
-                  hasNewFocusRequests && { opacity: 1 },
-                  {
-                    transform: [{ scale: hasNewFocusRequests ? combinedScale : 1 }],
-                    opacity: hasNewFocusRequests ? pulseOpacity : 1,
-                  },
-                ]}
-              >
-                <Text style={styles.focusNetworkBadgeText}>
-                  {pendingFocusRequestsCount > 99 ? '99+' : pendingFocusRequestsCount}
-                </Text>
-              </Animated.View>
-            )}
-
-            {hasNewFocusRequests && (
-              <Animated.View style={[styles.focusNetworkNewDot, { opacity: pulseOpacity }]} />
-            )}
+      <View style={styles.cardAuthorRow}>
+        {cardAvatarUri ? (
+          <Image source={{ uri: cardAvatarUri }} style={styles.authorAvatar} />
+        ) : (
+          <View style={styles.authorAvatarFallback}>
+            <Text style={styles.authorAvatarInitial}>{avatarInitial}</Text>
           </View>
-        </Pressable>
+        )}
+        <Text style={styles.cardAuthorName} numberOfLines={1}>
+          {cardDisplayName}
+        </Text>
       </View>
 
-      <View style={styles.filterRow}>
-        {renderFilterChip(t('feed.filters.all', 'Tümü'), 'all')}
-        {renderFilterChip(t('feed.filters.mine', 'Benim '), 'mine')}
-        {renderFilterChip(t('feed.filters.tasks', 'Görev kartları'), 'task')}
-        {renderFilterChip(t('feed.filters.video', 'Video'), 'video')}
-        {renderFilterChip(t('feed.filters.external', 'Dış aktivite'), 'external')}
-      </View>
+      {(() => {
+        const contentTextRaw =
+          (anyBase.body != null ? String(anyBase.body) : '').trim() ||
+          (anyBase.note != null ? String(anyBase.note) : '').trim() ||
+          (anyBase.text != null ? String(anyBase.text) : '').trim() ||
+          (anyBase.content != null ? String(anyBase.content) : '').trim() ||
+          '';
 
-      {refreshMessageVisible && (
-        <View style={styles.refreshBanner}>
-          <Text style={styles.refreshBannerText}>{t('feed.refreshBanner', 'Akış yenilendi.')}</Text>
+        const linkText =
+          (anyBase.url != null ? String(anyBase.url) : '').trim() ||
+          (anyBase.link != null ? String(anyBase.link) : '').trim() ||
+          (contentTextRaw ? extractFirstUrl(contentTextRaw) : null) ||
+          '';
+
+        const contentText =
+          linkText && contentTextRaw.includes(linkText)
+            ? contentTextRaw.replace(linkText, '').replace(/\n{3,}/g, '\n\n').trim()
+            : contentTextRaw;
+
+        return (
+          <>
+            {contentText ? <Text style={styles.body}>{contentText}</Text> : null}
+
+            {!!linkText && (
+              <Pressable
+                onPress={(e: any) => {
+                  e?.stopPropagation?.();
+                  try {
+                    Linking.openURL(linkText);
+                  } catch {}
+                }}
+                style={{ marginTop: 6 }}
+              >
+                <Text style={[styles.body, { textDecorationLine: 'underline', opacity: 0.9 }]}>{linkText}</Text>
+              </Pressable>
+            )}
+          </>
+        );
+      })()}
+
+      {/* ✅ Tek foto */}
+{isSingleImage && (
+  <Pressable
+    style={styles.postSingleImageWrap}
+    onPress={(e: any) => {
+      e?.stopPropagation?.();
+      stopAllVideos();
+      openImageViewer(base, 0);
+    }}
+  >
+    <Image
+      source={{ uri: imageUris[0] }}
+      style={styles.postSingleImage}
+      resizeMode="cover"
+    />
+  </Pressable>
+)}
+
+{/* ✅ Çoklu foto */}
+{isMultiImage && (
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    contentContainerStyle={styles.postImagesRow}
+    style={styles.postImagesWrap}
+  >
+    {imageUris.map((imgUri, idx) => (
+      <Pressable
+        key={`${base.id}_img_${idx}`}
+        onPress={(e: any) => {
+          e?.stopPropagation?.();
+          stopAllVideos();
+          openImageViewer(base, idx);
+        }}
+      >
+        <Image
+          source={{ uri: imgUri }}
+          style={styles.postImageThumb}
+          resizeMode="cover"
+        />
+      </Pressable>
+    ))}
+  </ScrollView>
+)}
+
+      {taskSharedTargets.length > 0 && (
+        <View style={styles.taskSharedRow}>
+          <Text style={styles.taskSharedLabel}>{t('feed.share.alsoSharedOn', 'Şurada da paylaşıldı:')}</Text>
+          <View style={styles.sharedPlatformsRow}>
+            {taskSharedTargets.map((label: string) => (
+              <Image key={label} source={getPlatformIcon(label)} style={styles.sharedPlatformIcon} resizeMode="contain" />
+            ))}
+          </View>
         </View>
       )}
 
-      <FlatList
-        ref={listRef}
-        data={sortedFilteredPosts}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={sortedFilteredPosts.length ? styles.list : styles.listEmptyContainer}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            {feedError ? (
-              <>
-                <Text style={styles.emptyText}>{feedError}</Text>
-                <Pressable
-                  style={({ pressed }) => [styles.emptyCtaBtn, pressed && styles.emptyCtaBtnPressed]}
-                  onPress={() => safeHydrate()}
-                >
-                  <Text style={styles.emptyCtaText}>{t('common.retry', 'Tekrar dene')}</Text>
-                </Pressable>
-              </>
-            ) : (
-              <>
-                <Text style={styles.emptyText}>
-                  {hydrated
-                    ? t('feed.empty.noPosts', 'Henüz gönderi yok.')
-                    : t('feed.empty.loading', 'Akış yükleniyor...')}
-                </Text>
-                {hydrated && (
-                  <Pressable
-                    style={({ pressed }) => [styles.emptyCtaBtn, pressed && styles.emptyCtaBtnPressed]}
-                    onPress={() => {
-                      markNextUploadAsFree();
-                      setActiveVideo(null);
-                      go('Upload');
-                    }}
-                  >
-                    <Text style={styles.emptyCtaText}>
-                      {t('feed.empty.cta', 'İlk görevini / videonu oluştur')}
-                    </Text>
-                  </Pressable>
-                )}
-              </>
-            )}
-          </View>
-        }
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        onScrollToIndexFailed={info => {
-          try {
-            const offset = (info.averageItemLength || 80) * (info.index || 0);
-            listRef.current?.scrollToOffset({ offset: Math.max(0, offset), animated: true });
-            setTimeout(() => {
-              try {
-                listRef.current?.scrollToIndex({ index: info.index, animated: true });
-              } catch {}
-            }, 250);
-          } catch {}
-        }}
-        removeClippedSubviews={false}
-        windowSize={5}
-        initialNumToRender={6}
-        maxToRenderPerBatch={6}
-        updateCellsBatchingPeriod={50}
-        viewabilityConfig={viewabilityConfig}
-        onViewableItemsChanged={onViewableItemsChanged}
-        onScrollBeginDrag={() => setActiveVideo(null)}
-        onMomentumScrollBegin={() => setActiveVideo(null)}
-      />
+      {anyBase.videoUri ? (
+        <View style={styles.videoInfoRow}>
+          <Text style={styles.videoInfo}>{t('feed.video.info', '📹 Bu kartla birlikte bir video planlandı.')}</Text>
 
-      {/* FAB */}
-      <Pressable
-        style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
-        onPress={() => {
-          markNextUploadAsFree();
-          setActiveVideo(null);
-          go('Upload');
-        }}
-      >
-        <Text style={styles.fabIcon}>＋</Text>
-      </Pressable>
-
-      {/* Detay modal */}
-      {selectedPost && (
-        <Modal visible={detailVisible} transparent animationType="slide" onRequestClose={handleCloseDetail}>
-          <TouchableWithoutFeedback onPress={handleCloseDetail}>
-            <View style={styles.modalBackdrop} />
-          </TouchableWithoutFeedback>
-
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHandle} />
-
-            <View style={styles.modalFooterRow}>
-              <View style={styles.authorRow}>
-                {safeModalAvatarUri ? (
-                  <Image source={{ uri: safeModalAvatarUri }} style={styles.authorAvatar} />
-                ) : (
-                  <View style={styles.authorAvatarFallback}>
-                    <Text style={styles.authorAvatarInitial}>{modalAvatarInitial}</Text>
-                  </View>
-                )}
-                <Text style={styles.authorName} numberOfLines={1}>
-                  {modalDisplayName}
-                </Text>
-              </View>
-            </View>
-
-            <Text style={styles.modalTitle}>
-              {(selectedPost as any).title ||
-                (selectedPost as any).note ||
-                t('feed.post.genericTitle', 'Paylaşım')}
+          <Pressable
+            style={({ pressed }) => [styles.videoPlayBtn, pressed && styles.videoPlayBtnPressed]}
+            onPress={(e: any) => {
+              e?.stopPropagation?.();
+              if (!videoUri) return;
+              openInlineVideo(instanceId, listItemId, videoUri);
+            }}
+          >
+            <Text style={styles.videoPlayText}>
+              {isThisVideoActive ? t('feed.video.closeInline', 'Videoyu kapat') : t('feed.video.watch', 'Videoyu izle')}
             </Text>
+          </Pressable>
 
-            {(selectedPost as any).isTaskCard && (
-              <View style={styles.taskBadgeRow}>
-                <Image source={VIRAL_LOGO} style={styles.taskBadgeLogo} />
-                <Text style={styles.modalBadge}>{t('feed.badges.taskCard', 'Görev kartı')}</Text>
-              </View>
-            )}
-
-            {isExternalLocal(selectedPost) && (
-              <Text style={{ color: '#AAB0C5', fontSize: 11, marginBottom: 6 }}>
-                {t('feed.external.badge', 'Dış paylaşım')}
-              </Text>
-            )}
-
-            <Text style={styles.modalTime}>{getTimeLabel(selectedPost)}</Text>
-
-            {(selectedPost as any).body ? (
-              <Text style={styles.modalBody}>{(selectedPost as any).body}</Text>
-            ) : null}
-
-            {(selectedPost as any).note ? (
-              <Text style={styles.modalNote}>
-                {t('feed.labels.descriptionPrefix', 'Açıklama:')} {(selectedPost as any).note}
-              </Text>
-            ) : null}
-
-            {/* ✅ NEW: detay modal çoklu foto */}
-            {getSafeImageUris(selectedPost).length > 0 && (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.modalImagesRow}
-                style={styles.modalImagesWrap}
-              >
-                {getSafeImageUris(selectedPost).map((imgUri, idx) => (
-                  <Image
-                    key={`modal_img_${idx}`}
-                    source={{ uri: imgUri }}
-                    style={styles.modalImageThumb}
-                    resizeMode="cover"
-                  />
-                ))}
-              </ScrollView>
-            )}
-
-            {(selectedPost as any).shareTargets && (selectedPost as any).shareTargets.length > 0 && (
-              <Text style={styles.modalShare}>
-                {t('feed.share.plannedShort', 'Planlanan paylaşım')}{' '}
-                {(selectedPost as any).shareTargets.join(', ')}
-              </Text>
-            )}
-
-            {(selectedPost as any).videoUri ? (
-              <Text style={styles.modalVideo}>
-                {t('feed.video.info', '📹 Bu kartla birlikte bir video planlandı.')}
-              </Text>
-            ) : null}
-
-            <View style={styles.modalFooterRow}>
-              <Text style={styles.modalAuthor}>{(selectedPost as any).author || displayName}</Text>
-              <AnimatedLikeButton
-                likes={
-                  typeof (selectedPost as any).likes === 'number' &&
-                  Number.isFinite((selectedPost as any).likes)
-                    ? (selectedPost as any).likes
-                    : 0
-                }
-                onPress={() => safeLike(selectedPost)}
+          <Pressable
+            style={[styles.freeVideoPlayerWrapper, { marginTop: 10 }]}
+            onPress={(e: any) => {
+              e?.stopPropagation?.();
+              if (!videoUri) return;
+              openInlineVideo(instanceId, listItemId, videoUri);
+            }}
+          >
+            <View style={styles.freeVideoPlayer} pointerEvents={isThisVideoActive ? 'auto' : 'none'}>
+              <Video
+                source={{ uri: videoUri }}
+                style={{ width: '100%', height: '100%' }}
+                controls={isThisVideoActive}
+                resizeMode="contain"
+                paused={!isThisVideoActive || isThisVideoPaused}
+                repeat={false}
+                playInBackground={false}
+                playWhenInactive={false}
+                useTextureView={true}
+                onError={e => {
+                  console.warn('[Feed] inline task video error:', e);
+                  stopInlineVideo();
+                }}
+                onEnd={() => stopInlineVideo()}
               />
             </View>
 
-            <Pressable style={styles.modalCloseBtn} onPress={handleCloseDetail}>
-              <Text style={styles.modalCloseText}>{t('common.close', 'Kapat')}</Text>
+            <View style={styles.videoWatermark}>
+              <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
+            </View>
+          </Pressable>
+        </View>
+      ) : null}
+
+      <View style={styles.cardFooterRow}>
+        <View style={{ flex: 1 }} />
+
+        <View style={styles.actions}>
+          {commentsDisabled ? (
+            <View style={styles.commentsOffPill}>
+              <Text style={styles.commentsOffText}>{t('feed.comments.offLabel', 'Yorumlar kapalı')}</Text>
+            </View>
+          ) : (
+            <Pressable style={({ pressed }) => [styles.commentBtn, pressed && styles.commentBtnPressed]} onPress={() => openComments(base)}>
+              <Text style={styles.commentBtnText}>💬 {commentCount}</Text>
+            </Pressable>
+          )}
+
+          <Pressable
+            style={({ pressed }) => [styles.shareTriggerBtn, pressed && styles.shareTriggerBtnPressed]}
+            onPress={() => openSharePanelForPost(base)}
+          >
+            <Text style={styles.shareTriggerText}>🌐</Text>
+          </Pressable>
+
+          <Pressable style={({ pressed }) => [styles.repostBtn, pressed && styles.repostBtnPressed]} onPress={() => handleRepost(base)}>
+            <Text style={styles.repostBtnText}>🔁 {reshareCount}</Text>
+          </Pressable>
+
+          <AnimatedLikeButton likes={likeCount} onPress={() => safeLike(base)} />
+        </View>
+      </View>
+    </Pressable>
+  );
+};
+
+const renderItem = ({ item }: ListRenderItemInfo<Post>) => {
+  const anyItem: any = item;
+
+  const originalPostId: string | undefined =
+    (anyItem.repostOfId as string | undefined) ?? (anyItem.originalPostId as string | undefined);
+
+  const originalPost =
+    originalPostId && originalPostId !== item.id
+      ? (Array.isArray(allPosts) ? allPosts : []).find(p => p.id === originalPostId) || null
+      : null;
+
+  const isRepost = !!originalPost;
+  const isHighlighted = highlightedPostId === item.id;
+
+  if (isRepost && originalPost) {
+    const repostDisplayName = (item as any).author || displayName;
+    const repostAvatarInitial = (repostDisplayName[0] || displayName[0] || 'U').toUpperCase();
+
+    const goToOriginal = () => {
+      goToOriginalPost(originalPost.id);
+    };
+
+    const repostIsMine =
+      anyItem.ownerId === userId ||
+      anyItem.userId === userId ||
+      anyItem.authorId === userId ||
+      (anyItem.author && (anyItem.author === displayName || (fullNameStr && anyItem.author === fullNameStr)));
+
+    const repostAvatarUri: string | null =
+      (repostIsMine ? (myAvatarUri ? String(myAvatarUri).trim() : null) : null) || resolveAvatarUri(anyItem) || null;
+
+    const embeddedInstanceId = `embed:${String(item.id)}:${String(originalPost.id)}`;
+
+    return (
+      <Pressable
+        style={[styles.card, isHighlighted && styles.cardHighlighted]}
+        onPress={goToOriginal}
+        onLongPress={() => handlePostLongPress(item)}
+      >
+        <View style={styles.freeVideoHeaderRow}>
+          <Pressable style={styles.authorRow} onPress={goToOriginal}>
+            {repostAvatarUri ? (
+              <Image source={{ uri: repostAvatarUri }} style={styles.authorAvatar} />
+            ) : (
+              <View style={styles.authorAvatarFallback}>
+                <Text style={styles.authorAvatarInitial}>{repostAvatarInitial}</Text>
+              </View>
+            )}
+            <View>
+              <Text style={styles.authorName} numberOfLines={1}>
+                {repostDisplayName}
+              </Text>
+              <Text style={styles.freeVideoTimeText}>{getTimeLabel(item)}</Text>
+            </View>
+          </Pressable>
+        </View>
+
+        <Text style={styles.repostLabel}>🔁</Text>
+
+        <Pressable style={styles.repostInnerContainer} onPress={goToOriginal}>
+          {renderFullPostCard(originalPost, {
+            embedded: true,
+            onPressCard: goToOriginal,
+            instanceId: embeddedInstanceId,
+            listItemId: String(item.id),
+          })}
+        </Pressable>
+      </Pressable>
+    );
+  }
+
+  return renderFullPostCard(item, {
+    isHighlighted,
+    instanceId: String(item.id),
+    listItemId: String(item.id),
+  });
+};
+
+const currentComments: Comment[] =
+  commentsPost && commentsByPost[commentsPost.id] ? commentsByPost[commentsPost.id] : [];
+
+const commentsAtTopRef = useRef(true);
+
+const commentListLayoutHRef = useRef(0);
+const commentListContentHRef = useRef(0);
+
+const updateCommentsTopForNonScrollable = () => {
+  const layoutH = commentListLayoutHRef.current || 0;
+  const contentH = commentListContentHRef.current || 0;
+
+  if (layoutH > 0 && contentH > 0 && contentH <= layoutH + 1) {
+    commentsAtTopRef.current = true;
+  }
+};
+
+const commentsDisabledForCurrent = commentsPost && commentsDisabledByPost[commentsPost.id];
+const isCurrentPostOwner =
+  !!commentsPost && ((((commentsPost as any).author || displayName) === displayName));
+
+const renderCommentsTree = () => {
+  if (currentComments.length === 0) return null;
+
+  const sorted = currentComments.slice().sort((a, b) => a.ts - b.ts);
+
+  const roots = sorted.filter(c => !c.parentId);
+
+  const renderThread = (comment: Comment, depth: number): React.ReactNode[] => {
+    const replies = sorted.filter(c => c.parentId === comment.id);
+    const isReply = depth > 0;
+    const timeLabel = new Date(comment.ts).toLocaleTimeString();
+    const authorInitial = (comment.author?.trim?.()[0] || '?').toUpperCase();
+
+    const avatarUri =
+      comment.author === displayName
+        ? myAvatarUri
+        : (comment.authorAvatarUri ? String(comment.authorAvatarUri).trim() : null);
+
+    const node = (
+      <Pressable
+        key={comment.id}
+        style={({ pressed }) => [
+          styles.commentRow,
+          isReply && styles.commentRowReply,
+          pressed && styles.commentRowPressed,
+        ]}
+        delayLongPress={300}
+        onLongPress={() => {
+          if (comment.author !== displayName) return;
+          Alert.alert(
+            t('feed.comments.actionsTitle', 'Yorum işlemi'),
+            t('feed.comments.deleteQuestion', 'Bu yorumu silmek istiyor musun?'),
+            [
+              { text: t('common.cancel', 'Vazgeç'), style: 'cancel' },
+              {
+                text: t('feed.comments.delete', 'Yorumu sil'),
+                style: 'destructive',
+                onPress: () => handleDeleteComment(comment),
+              },
+            ],
+          );
+        }}
+      >
+        {avatarUri ? (
+          <Image source={{ uri: avatarUri }} style={styles.commentAvatarImage} />
+        ) : (
+          <View style={styles.commentAvatar}>
+            <Text style={styles.commentAvatarInitial}>{authorInitial}</Text>
+          </View>
+        )}
+
+        <View style={[styles.commentContent, isReply && styles.commentReplyContent]}>
+          <View style={styles.commentHeaderRow}>
+            <Text style={styles.commentAuthor}>{comment.author}</Text>
+            <Text style={styles.commentTime}>{timeLabel}</Text>
+          </View>
+          <Text style={styles.commentText}>{comment.text}</Text>
+          <View style={styles.commentFooterRow}>
+            <Pressable
+              style={({ pressed }) => [styles.commentLikeBtn, pressed && styles.commentLikeBtnPressed]}
+              onPress={() => handleLikeComment(comment)}
+            >
+              <Text style={styles.commentLikeText}>❤️ {comment.likes || 0}</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.commentReplyBtn, pressed && styles.commentReplyBtnPressed]}
+              onPress={() => setReplyTo(comment)}
+            >
+              <Text style={styles.commentReplyText}>{t('feed.comments.reply', 'Yanıtla')}</Text>
             </Pressable>
           </View>
-        </Modal>
-      )}
+        </View>
+      </Pressable>
+    );
 
-      {/* Share modal (eski) */}
-      {sharePost && (
-        <Modal visible={shareVisible} transparent animationType="slide" onRequestClose={closeShareModal}>
-          <TouchableWithoutFeedback onPress={closeShareModal}>
-            <View style={styles.modalBackdrop} />
-          </TouchableWithoutFeedback>
+    return [node, ...replies.flatMap(r => renderThread(r, depth + 1))];
+  };
 
-          <View style={styles.shareSheet}>
-            <View style={styles.modalHandle} />
-            <Text style={styles.shareSheetTitle}>{t('feed.share.choose', 'Paylaşım seç')}</Text>
+  return roots.flatMap(root => renderThread(root, 0));
+};
 
-            {(sharePost as any).shareTargets && (sharePost as any).shareTargets.length > 0 && (
-              <View style={styles.sharePlatformRow}>
-                {(sharePost as any).shareTargets.map((label: string) => {
-                  const isSelected = label === selectedSharePlatform;
-                  return (
-                    <Pressable
-                      key={label}
-                      style={({ pressed }) => [
-                        styles.sharePlatformChip,
-                        isSelected && styles.sharePlatformChipSelected,
-                        pressed && styles.sharePlatformChipPressed,
-                      ]}
-                      onPress={() => setSelectedSharePlatform(label)}
-                    >
-                      <Text
-                        style={[
-                          styles.sharePlatformChipText,
-                          isSelected && styles.sharePlatformChipTextSelected,
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            )}
+const [commentsAtTop, setCommentsAtTop] = useState(true);
 
-            {selectedSharePlatform && (
-              <View style={{ marginTop: 12 }}>
-                <View style={styles.sharePreviewBox}>
-                  <Text style={styles.sharePreviewTitle}>
-                    {t('feed.share.previewTitle', 'Paylaşım önizlemesi')}
+const commentDragResponder = useRef(
+  PanResponder.create({
+    onMoveShouldSetPanResponderCapture: (_, g) => {
+      if (g.dy <= 1) return false;
+      if (Math.abs(g.dy) <= Math.abs(g.dx)) return false;
+
+      if (currentComments.length === 0) return true;
+
+      return !!commentsAtTopRef.current;
+    },
+
+    onPanResponderTerminationRequest: () => false,
+
+    onPanResponderRelease: (_, g) => {
+      const shouldClose =
+        g.dy > 10 ||
+        g.vy > 0.22 ||
+        (g.dy > 8 && g.vy > 0.12);
+
+      if (shouldClose) closeComments();
+    },
+  }),
+).current;
+
+const renderNotifications = () => {
+  if (notifications.length === 0) {
+    return (
+      <Text style={styles.notificationsEmptyText}>
+        {t(
+          'feed.notifications.empty',
+          'Henüz bildirimin yok. Yorum yazdıkça ve ayarlarla oynadıkça burada gözükecek.',
+        )}
+      </Text>
+    );
+  }
+
+  return (
+    <ScrollView contentContainerStyle={styles.notificationsList} keyboardShouldPersistTaps="handled">
+      {notifications.map(n => (
+        <Pressable
+          key={n.id}
+          style={({ pressed }) => [styles.notificationItem, pressed && styles.notificationItemPressed]}
+          onPress={() => handleNotificationPress(n)}
+        >
+          <Text style={[styles.notificationText, !n.read && styles.notificationTextUnread]}>{n.text}</Text>
+          <Text style={styles.notificationTime}>{new Date(n.ts).toLocaleString()}</Text>
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
+};
+
+const renderFilterChip = (label: string, value: FeedFilter) => {
+  const active = filter === value;
+  return (
+    <Pressable
+      key={value}
+      style={({ pressed }) => [
+        styles.filterChip,
+        active && styles.filterChipActive,
+        pressed && styles.filterChipPressed,
+      ]}
+      onPress={() => setFilter(value)}
+    >
+      <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>{label}</Text>
+    </Pressable>
+  );
+};
+
+return (
+  <SafeAreaView style={styles.container}>
+    {/* HEADER */}
+    <View style={styles.header}>
+      <View style={styles.headerTextBlock}>
+        <View style={styles.headerTitleRow}>
+          <Image source={VIRAL_LOGO} style={styles.headerLogo} />
+          <Text style={styles.headerTitle}>{t('feed.headerTitle', 'Akış')}</Text>
+        </View>
+        <Text style={styles.headerSub}>
+          {t('feed.headerSub', { defaultValue: 'Merhaba, {{name}} 👋', name: firstName })}
+        </Text>
+        <Text style={styles.headerTagline}>
+          {t('feed.headerTagline', 'Görevlerin, videoların ve paylaşımların — hepsi burada birleşiyor.')}
+        </Text>
+      </View>
+      <Pressable
+        style={({ pressed }) => [styles.bellBtn, pressed && styles.bellBtnPressed]}
+        onPress={() => setNotificationsVisible(true)}
+      >
+        <Text style={styles.bellIcon}>🔔</Text>
+        {unreadNotificationCount > 0 && (
+          <View style={styles.bellBadge}>
+            <Text style={styles.bellBadgeText}>
+              {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+            </Text>
+          </View>
+        )}
+      </Pressable>
+    </View>
+
+    {/* Focus Ağı */}
+    <View style={styles.focusNetworkBar}>
+      <Pressable
+        style={({ pressed }) => [styles.focusNetworkButton, pressed && { opacity: 0.9 }]}
+        onPress={async () => {
+          await markFocusRequestsSeen();
+          setActiveVideo(null);
+          go('FocusNetwork');
+        }}
+      >
+        <View style={styles.focusNetworkBtnInner}>
+          <Text style={styles.focusNetworkText}>{t('feed.focusNetwork.button', 'Focus Ağına Git')}</Text>
+
+          {pendingFocusRequestsCount > 0 && (
+            <Animated.View
+              style={[
+                styles.focusNetworkBadge,
+                hasNewFocusRequests && { opacity: 1 },
+                {
+                  transform: [{ scale: hasNewFocusRequests ? combinedScale : 1 }],
+                  opacity: hasNewFocusRequests ? pulseOpacity : 1,
+                },
+              ]}
+            >
+              <Text style={styles.focusNetworkBadgeText}>
+                {pendingFocusRequestsCount > 99 ? '99+' : pendingFocusRequestsCount}
+              </Text>
+            </Animated.View>
+          )}
+
+          {hasNewFocusRequests && (
+            <Animated.View style={[styles.focusNetworkNewDot, { opacity: pulseOpacity }]} />
+          )}
+        </View>
+      </Pressable>
+    </View>
+
+    <View style={styles.filterRow}>
+      {renderFilterChip(t('feed.filters.all', 'Tümü'), 'all')}
+      {renderFilterChip(t('feed.filters.mine', 'Benim '), 'mine')}
+      {renderFilterChip(t('feed.filters.tasks', 'Görev kartları'), 'task')}
+      {renderFilterChip(t('feed.filters.video', 'Video'), 'video')}
+      {renderFilterChip(t('feed.filters.external', 'Dış aktivite'), 'external')}
+    </View>
+
+    {refreshMessageVisible && (
+      <View style={styles.refreshBanner}>
+        <Text style={styles.refreshBannerText}>{t('feed.refreshBanner', 'Akış yenilendi.')}</Text>
+      </View>
+    )}
+
+    <FlatList
+      ref={listRef}
+      data={sortedFilteredPosts}
+      renderItem={renderItem}
+      keyExtractor={item => item.id}
+      contentContainerStyle={sortedFilteredPosts.length ? styles.list : styles.listEmptyContainer}
+      ListEmptyComponent={
+        <View style={styles.empty}>
+          {feedError ? (
+            <>
+              <Text style={styles.emptyText}>{feedError}</Text>
+              <Pressable
+                style={({ pressed }) => [styles.emptyCtaBtn, pressed && styles.emptyCtaBtnPressed]}
+                onPress={() => safeHydrate()}
+              >
+                <Text style={styles.emptyCtaText}>{t('common.retry', 'Tekrar dene')}</Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Text style={styles.emptyText}>
+                {hydrated
+                  ? t('feed.empty.noPosts', 'Henüz gönderi yok.')
+                  : t('feed.empty.loading', 'Akış yükleniyor...')}
+              </Text>
+              {hydrated && (
+                <Pressable
+                  style={({ pressed }) => [styles.emptyCtaBtn, pressed && styles.emptyCtaBtnPressed]}
+                  onPress={() => {
+                    markNextUploadAsFree();
+                    setActiveVideo(null);
+                    go('Upload');
+                  }}
+                >
+                  <Text style={styles.emptyCtaText}>
+                    {t('feed.empty.cta', 'İlk görevini / videonu oluştur')}
                   </Text>
-                  <Text style={styles.sharePreviewBody}>
-                    {(sharePost as any).note ||
-                      (sharePost as any).body ||
-                      (sharePost as any).title ||
-                      t('feed.share.previewFallback', 'Paylaşım metni')}
-                  </Text>
+                </Pressable>
+              )}
+            </>
+          )}
+        </View>
+      }
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+      onScrollToIndexFailed={info => {
+        try {
+          const offset = (info.averageItemLength || 80) * (info.index || 0);
+          listRef.current?.scrollToOffset({ offset: Math.max(0, offset), animated: true });
+          setTimeout(() => {
+            try {
+              listRef.current?.scrollToIndex({ index: info.index, animated: true });
+            } catch {}
+          }, 250);
+        } catch {}
+      }}
+      removeClippedSubviews={false}
+      windowSize={5}
+      initialNumToRender={6}
+      maxToRenderPerBatch={6}
+      updateCellsBatchingPeriod={50}
+      viewabilityConfig={viewabilityConfig}
+      onViewableItemsChanged={onViewableItemsChanged}
+      onScrollBeginDrag={() => setActiveVideo(null)}
+      onMomentumScrollBegin={() => setActiveVideo(null)}
+    />
+
+    {/* FAB */}
+    <Pressable
+      style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
+      onPress={() => {
+        markNextUploadAsFree();
+        setActiveVideo(null);
+        go('Upload');
+      }}
+    >
+      <Text style={styles.fabIcon}>＋</Text>
+    </Pressable>
+
+    {/* Detay modal */}
+    {selectedPost && (
+      <Modal visible={detailVisible} transparent animationType="slide" onRequestClose={handleCloseDetail}>
+        <TouchableWithoutFeedback onPress={handleCloseDetail}>
+          <View style={styles.modalBackdrop} />
+        </TouchableWithoutFeedback>
+
+        <View style={styles.modalSheet}>
+          <View style={styles.modalHandle} />
+
+          <View style={styles.modalFooterRow}>
+            <View style={styles.authorRow}>
+              {safeModalAvatarUri ? (
+                <Image source={{ uri: safeModalAvatarUri }} style={styles.authorAvatar} />
+              ) : (
+                <View style={styles.authorAvatarFallback}>
+                  <Text style={styles.authorAvatarInitial}>{modalAvatarInitial}</Text>
                 </View>
-              </View>
-            )}
-
-            <View style={styles.shareSheetFooter}>
-              <Pressable
-                style={({ pressed }) => [styles.modalCloseBtn, pressed && { backgroundColor: '#e0e0e0' }]}
-                onPress={closeShareModal}
-              >
-                <Text style={styles.modalCloseText}>{t('common.cancel', 'Vazgeç')}</Text>
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.shareConfirmBtn,
-                  pressed && styles.shareConfirmBtnPressed,
-                  !selectedSharePlatform && { opacity: 0.4 },
-                ]}
-                onPress={handleConfirmShare}
-                disabled={!selectedSharePlatform}
-              >
-                <Text style={styles.shareConfirmText}>
-                  {t('feed.share.simulateButton', 'Paylaş (simülasyon)')}
-                </Text>
-              </Pressable>
+              )}
+              <Text style={styles.authorName} numberOfLines={1}>
+                {modalDisplayName}
+              </Text>
             </View>
           </View>
-        </Modal>
-      )}
 
-      {/* Video sheet (eski) */}
-      {false && videoPost && (videoPost as any).videoUri && (
-        <Modal
-          visible={videoVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={() => {
+          <Text style={styles.modalTitle}>
+            {(selectedPost as any).title ||
+              (selectedPost as any).note ||
+              t('feed.post.genericTitle', 'Paylaşım')}
+          </Text>
+
+          {(selectedPost as any).isTaskCard && (
+            <View style={styles.taskBadgeRow}>
+              <Image source={VIRAL_LOGO} style={styles.taskBadgeLogo} />
+              <Text style={styles.modalBadge}>{t('feed.badges.taskCard', 'Görev kartı')}</Text>
+            </View>
+          )}
+
+          {isExternalLocal(selectedPost) && (
+            <Text style={{ color: '#AAB0C5', fontSize: 11, marginBottom: 6 }}>
+              {t('feed.external.badge', 'Dış paylaşım')}
+            </Text>
+          )}
+
+          <Text style={styles.modalTime}>{getTimeLabel(selectedPost)}</Text>
+
+          {(selectedPost as any).body ? (
+            <Text style={styles.modalBody}>{(selectedPost as any).body}</Text>
+          ) : null}
+
+          {(selectedPost as any).note ? (
+            <Text style={styles.modalNote}>
+              {t('feed.labels.descriptionPrefix', 'Açıklama:')} {(selectedPost as any).note}
+            </Text>
+          ) : null}
+
+          {(selectedPost as any).shareTargets && (selectedPost as any).shareTargets.length > 0 && (
+            <Text style={styles.modalShare}>
+              {t('feed.share.plannedShort', 'Planlanan paylaşım')}{' '}
+              {(selectedPost as any).shareTargets.join(', ')}
+            </Text>
+          )}
+
+          {(selectedPost as any).videoUri ? (
+            <Text style={styles.modalVideo}>
+              {t('feed.video.info', '📹 Bu kartla birlikte bir video planlandı.')}
+            </Text>
+          ) : null}
+
+          <View style={styles.modalFooterRow}>
+            <Text style={styles.modalAuthor}>{(selectedPost as any).author || displayName}</Text>
+            <AnimatedLikeButton
+              likes={
+                typeof (selectedPost as any).likes === 'number' &&
+                Number.isFinite((selectedPost as any).likes)
+                  ? (selectedPost as any).likes
+                  : 0
+              }
+              onPress={() => safeLike(selectedPost)}
+            />
+          </View>
+
+          <Pressable style={styles.modalCloseBtn} onPress={handleCloseDetail}>
+            <Text style={styles.modalCloseText}>{t('common.close', 'Kapat')}</Text>
+          </Pressable>
+        </View>
+      </Modal>
+    )}
+
+{/* ✅ NEW: Foto viewer */}
+<Modal
+  visible={imageViewerVisible}
+  transparent={false}
+  animationType="fade"
+  onRequestClose={closeImageViewer}
+>
+  <View style={styles.imageViewerContainer}>
+    <FlatList
+      data={viewerImages}
+      horizontal
+      pagingEnabled
+      initialScrollIndex={viewerIndex}
+      keyExtractor={(_, i) => `viewer_${i}`}
+      getItemLayout={(_, index) => ({
+        length: Dimensions.get('window').width,
+        offset: Dimensions.get('window').width * index,
+        index,
+      })}
+      renderItem={({ item }) => (
+        <View style={styles.imageViewerPage}>
+          <Image
+            source={{ uri: item }}
+            style={styles.imageViewerImage}
+            resizeMode="contain"
+          />
+        </View>
+      )}
+      showsHorizontalScrollIndicator={false}
+    />
+
+    <Pressable style={styles.imageViewerClose} onPress={closeImageViewer}>
+      <Text style={styles.imageViewerCloseText}>✕</Text>
+    </Pressable>
+  </View>
+</Modal>    
+
+    {/* Share modal (eski) */}
+    {sharePost && (
+      <Modal visible={shareVisible} transparent animationType="slide" onRequestClose={closeShareModal}>
+        <TouchableWithoutFeedback onPress={closeShareModal}>
+          <View style={styles.modalBackdrop} />
+        </TouchableWithoutFeedback>
+
+        <View style={styles.shareSheet}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.shareSheetTitle}>{t('feed.share.choose', 'Paylaşım seç')}</Text>
+
+          {(sharePost as any).shareTargets && (sharePost as any).shareTargets.length > 0 && (
+            <View style={styles.sharePlatformRow}>
+              {(sharePost as any).shareTargets.map((label: string) => {
+                const isSelected = label === selectedSharePlatform;
+                return (
+                  <Pressable
+                    key={label}
+                    style={({ pressed }) => [
+                      styles.sharePlatformChip,
+                      isSelected && styles.sharePlatformChipSelected,
+                      pressed && styles.sharePlatformChipPressed,
+                    ]}
+                    onPress={() => setSelectedSharePlatform(label)}
+                  >
+                    <Text
+                      style={[
+                        styles.sharePlatformChipText,
+                        isSelected && styles.sharePlatformChipTextSelected,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+
+          {selectedSharePlatform && (
+            <View style={{ marginTop: 12 }}>
+              <View style={styles.sharePreviewBox}>
+                <Text style={styles.sharePreviewTitle}>
+                  {t('feed.share.previewTitle', 'Paylaşım önizlemesi')}
+                </Text>
+                <Text style={styles.sharePreviewBody}>
+                  {(sharePost as any).note ||
+                    (sharePost as any).body ||
+                    (sharePost as any).title ||
+                    t('feed.share.previewFallback', 'Paylaşım metni')}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.shareSheetFooter}>
+            <Pressable
+              style={({ pressed }) => [styles.modalCloseBtn, pressed && { backgroundColor: '#e0e0e0' }]}
+              onPress={closeShareModal}
+            >
+              <Text style={styles.modalCloseText}>{t('common.cancel', 'Vazgeç')}</Text>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.shareConfirmBtn,
+                pressed && styles.shareConfirmBtnPressed,
+                !selectedSharePlatform && { opacity: 0.4 },
+              ]}
+              onPress={handleConfirmShare}
+              disabled={!selectedSharePlatform}
+            >
+              <Text style={styles.shareConfirmText}>
+                {t('feed.share.simulateButton', 'Paylaş (simülasyon)')}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    )}
+
+    {/* Video sheet (eski) */}
+    {false && videoPost && (videoPost as any).videoUri && (
+      <Modal
+        visible={videoVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setVideoVisible(false);
+          setVideoPost(null);
+        }}
+      >
+        <TouchableWithoutFeedback
+          onPress={() => {
             setVideoVisible(false);
             setVideoPost(null);
           }}
         >
-          <TouchableWithoutFeedback
+          <View style={styles.modalBackdrop} />
+        </TouchableWithoutFeedback>
+
+        <View style={styles.videoSheet}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.videoSheetTitle} numberOfLines={2}>
+            {t('feed.video.sheetTitlePrefix', 'Videolu kart:')}{' '}
+            {(videoPost as any).title ||
+              (videoPost as any).note ||
+              t('feed.post.genericTitle', 'Gönderi')}
+          </Text>
+
+          <View style={styles.videoPlayerWrapper}>
+            <Video
+              source={{ uri: (videoPost as any).videoUri }}
+              style={styles.videoPlayer}
+              controls
+              resizeMode="contain"
+            />
+            <View style={styles.videoWatermark}>
+              <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
+            </View>
+          </View>
+
+          <Pressable
+            style={styles.modalCloseBtn}
             onPress={() => {
               setVideoVisible(false);
               setVideoPost(null);
             }}
           >
-            <View style={styles.modalBackdrop} />
-          </TouchableWithoutFeedback>
-
-          <View style={styles.videoSheet}>
-            <View style={styles.modalHandle} />
-            <Text style={styles.videoSheetTitle} numberOfLines={2}>
-              {t('feed.video.sheetTitlePrefix', 'Videolu kart:')}{' '}
-              {(videoPost as any).title ||
-                (videoPost as any).note ||
-                t('feed.post.genericTitle', 'Gönderi')}
-            </Text>
-
-            <View style={styles.videoPlayerWrapper}>
-              <Video
-                source={{ uri: (videoPost as any).videoUri }}
-                style={styles.videoPlayer}
-                controls
-                resizeMode="contain"
-              />
-              <View style={styles.videoWatermark}>
-                <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
-              </View>
-            </View>
-
-            <Pressable
-              style={styles.modalCloseBtn}
-              onPress={() => {
-                setVideoVisible(false);
-                setVideoPost(null);
-              }}
-            >
-              <Text style={styles.modalCloseText}>{t('common.close', 'Kapat')}</Text>
-            </Pressable>
-          </View>
-        </Modal>
-      )}
+            <Text style={styles.modalCloseText}>{t('common.close', 'Kapat')}</Text>
+          </Pressable>
+        </View>
+      </Modal>
+    )}
 
       {/* 💬 Yorum ekranı */}
       {commentsPost && (
@@ -3502,13 +3617,24 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   postImageThumb: {
-    width: 148,
-    height: 148,
+    width: 240,
+    height: 240,
     borderRadius: 12,
     backgroundColor: '#202433',
     marginRight: 8,
   },
-
+  postSingleImageWrap: {
+  marginTop: 2,
+  marginBottom: 8,
+  borderRadius: 12,
+  overflow: 'hidden',
+},
+postSingleImage: {
+  width: '100%',
+  height: 220,
+  borderRadius: 12,
+  backgroundColor: '#202433',
+},
   videoWatermark: {
     position: 'absolute',
     right: 8,
@@ -3824,26 +3950,62 @@ const styles = StyleSheet.create({
 
   // ✅ NEW: detay modal foto galeri
   modalImagesWrap: {
-    marginTop: 4,
-    marginBottom: 8,
-  },
-  modalImagesRow: {
-    paddingVertical: 2,
-    gap: 8,
-  },
-  modalImageThumb: {
-    width: 180,
-    height: 180,
-    borderRadius: 12,
-    backgroundColor: '#202433',
-    marginRight: 8,
-  },
+  marginTop: 4,
+  marginBottom: 8,
+},
+modalImagesRow: {
+  paddingVertical: 2,
+  gap: 8,
+},
+modalImageThumb: {
+  width: 180,
+  height: 180,
+  borderRadius: 12,
+  backgroundColor: '#202433',
+},
 
-  modalShare: {
-    fontSize: 12,
-    color: '#A5ACC8',
-    marginBottom: 6,
-  },
+// ✅ NEW: tam ekran foto viewer
+imageViewerContainer: {
+  flex: 1,
+  backgroundColor: '#000000',
+},
+
+imageViewerPage: {
+  width: Dimensions.get('window').width,
+  height: Dimensions.get('window').height,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: '#000000',
+},
+
+imageViewerImage: {
+  width: '100%',
+  height: '100%',
+},
+
+imageViewerClose: {
+  position: 'absolute',
+  top: 50,
+  right: 20,
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: 'rgba(0,0,0,0.45)',
+},
+
+imageViewerCloseText: {
+  color: '#FFFFFF',
+  fontSize: 22,
+  fontWeight: '700',
+},
+
+modalShare: {
+  fontSize: 12,
+  color: '#A5ACC8',
+  marginBottom: 6,
+},
   modalVideo: {
     fontSize: 12,
     color: '#D7DBF0',
