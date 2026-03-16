@@ -1123,14 +1123,13 @@ app.post('/auth/forgot-password', async (req, res) => {
     });
 
     if (channel === 'email' && user.email) {
-  await sendResetPasswordEmail(user.email, code);
+      await sendResetPasswordEmail(user.email, code);
 
-  console.log('[RESET PASSWORD][EMAIL CODE]', {
-    to: user.email,
-    code,
-    expiresAt: expiresAt.toISOString(),
-  });
-}
+      console.log('[RESET PASSWORD][EMAIL CODE]', {
+        to: user.email,
+        code,
+        expiresAt: expiresAt.toISOString(),
+      });
     } else if (channel === 'phone') {
       console.log('[RESET PASSWORD][PHONE CODE]', {
         to: user.phone,
