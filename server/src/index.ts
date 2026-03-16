@@ -300,8 +300,14 @@ function getPublicBaseUrl(req: express.Request): string {
   return `${proto}://${host}`;
 }
 
+const UPLOADS_ROOT =
+  (process.env.UPLOADS_ROOT && process.env.UPLOADS_ROOT.trim()) ||
+  path.join(process.cwd(), 'uploads');
+
+console.log('[UPLOAD ROOT]', UPLOADS_ROOT);
+
 function ensureUploadsDirs() {
-  const root = path.join(process.cwd(), 'uploads');
+  const root = UPLOADS_ROOT;
   const videos = path.join(root, 'videos');
   const avatars = path.join(root, 'avatars');
   const images = path.join(root, 'images');
@@ -310,14 +316,21 @@ function ensureUploadsDirs() {
     fs.mkdirSync(videos, { recursive: true });
     fs.mkdirSync(avatars, { recursive: true });
     fs.mkdirSync(images, { recursive: true });
+
+    console.log('[UPLOADS] ensured:', {
+      root,
+      videos,
+      avatars,
+      images,
+    });
   } catch (e) {
     console.error('[UPLOADS] mkdir failed:', e);
   }
 }
-ensureUploadsDirs(); 
+ensureUploadsDirs();
 
 // ✅ Static yayın: /uploads/... artık tüm cihazlardan erişilebilir
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use('/uploads', express.static(UPLOADS_ROOT));
 
 function isLocalOnlyUri(uri: string): boolean {
   const u = String(uri || '').trim().toLowerCase();
@@ -344,7 +357,7 @@ function toAbsoluteIfPath(req: express.Request, maybePathOrUrl: any): string | n
 
 // ✅ Multer storage'lar
 const videoStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, path.join(process.cwd(), 'uploads/videos')),
+  destination: (_req, _file, cb) => cb(null, path.join(UPLOADS_ROOT, 'videos')),
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname || '.mp4') || '.mp4';
     const name = crypto.randomBytes(16).toString('hex') + ext;
@@ -353,7 +366,7 @@ const videoStorage = multer.diskStorage({
 });
 
 const avatarStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, path.join(process.cwd(), 'uploads/avatars')),
+  destination: (_req, _file, cb) => cb(null, path.join(UPLOADS_ROOT, 'avatars')),
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname || '.jpg') || '.jpg';
     const name = crypto.randomBytes(16).toString('hex') + ext;
@@ -362,7 +375,7 @@ const avatarStorage = multer.diskStorage({
 });
 
 const imageStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, path.join(process.cwd(), 'uploads/images')),
+  destination: (_req, _file, cb) => cb(null, path.join(UPLOADS_ROOT, 'images')),
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname || '.jpg') || '.jpg';
     const name = crypto.randomBytes(16).toString('hex') + ext;
