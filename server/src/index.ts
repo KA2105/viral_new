@@ -5,7 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken'
 
 // ✅ EK: uploads + dosya upload için
 import path from 'path';
@@ -674,7 +674,7 @@ const mailer =
     ? nodemailer.createTransport({
         host: smtpHost,
         port: smtpPort,
-        secure: false,
+        secure: smtpPort === 465,
         auth: {
           user: smtpUser,
           pass: smtpPass,
@@ -682,35 +682,63 @@ const mailer =
       })
     : null;
 
-async function sendResetPasswordEmail(to: string, resetUrl: string) {
+if (!mailer) {
+  console.log('[MAILER] disabled - missing SMTP env', {
+    hasHost: !!smtpHost,
+    hasUser: !!smtpUser,
+    hasPass: !!smtpPass,
+    port: smtpPort,
+    from: smtpFrom || null,
+  });
+} else {
+  console.log('[MAILER] configured', {
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpPort === 465,
+    user: smtpUser,
+    from: smtpFrom,
+  });
+}
+
+async function sendResetPasswordEmail(to: string, code: string) {
   if (!mailer) {
-    console.log('[RESET PASSWORD][DEV LINK]', { to, resetUrl });
+    console.log('[RESET PASSWORD][DEV CODE]', { to, code });
     return;
   }
 
-  await mailer.sendMail({
-    from: smtpFrom,
-    to,
-    subject: 'Viral şifre sıfırlama',
-    text:
-      `Şifreni sıfırlamak için aşağıdaki bağlantıyı kullan:\n\n` +
-      `${resetUrl}\n\n` +
-      `Bu bağlantı 15 dakika geçerlidir.`,
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2>Viral şifre sıfırlama</h2>
-        <p>Şifreni sıfırlamak için aşağıdaki bağlantıyı kullan:</p>
-        <p>
-          <a href="${resetUrl}" style="display:inline-block;padding:10px 16px;background:#E50914;color:#fff;text-decoration:none;border-radius:8px;">
-            Şifreyi sıfırla
-          </a>
-        </p>
-        <p>Bağlantı çalışmazsa bunu kopyala:</p>
-        <p>${resetUrl}</p>
-        <p>Bu bağlantı 15 dakika geçerlidir.</p>
-      </div>
-    `,
-  });
+  try {
+    const info = await mailer.sendMail({
+      from: smtpFrom,
+      to,
+      subject: 'Viral doğrulama kodu',
+      text:
+        `Doğrulama kodun: ${code}\n\n` +
+        `Bu kod 15 dakika geçerlidir.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+          <h2 style="margin-bottom: 8px;">Viral doğrulama kodu</h2>
+          <p>Şifreni sıfırlamak için aşağıdaki kodu kullan:</p>
+
+          <div style="font-size: 32px; font-weight: 700; letter-spacing: 6px; padding: 14px 18px; background: #f5f5f5; border-radius: 10px; display: inline-block; margin: 12px 0;">
+            ${code}
+          </div>
+
+          <p style="margin-top: 16px;">Bu kod 15 dakika geçerlidir.</p>
+        </div>
+      `,
+    });
+
+    console.log('[RESET PASSWORD][MAIL SENT]', {
+      to,
+      messageId: info.messageId,
+      accepted: info.accepted,
+      rejected: info.rejected,
+      response: info.response,
+    });
+  } catch (err) {
+    console.error('[RESET PASSWORD][MAIL ERROR]', err);
+    throw err;
+  }
 }
 
 // -------------------- Routes --------------------
@@ -1095,19 +1123,14 @@ app.post('/auth/forgot-password', async (req, res) => {
     });
 
     if (channel === 'email' && user.email) {
-      // Şimdilik mevcut mail fonksiyonunu kullanıyoruz.
-      // İçerikte 6 haneli kodu göndermek için subject/body yapın varsa onu kullan.
-      // Yoksa dev log yine düşer.
-      await sendResetPasswordEmail(
-        user.email,
-        `Doğrulama kodun: ${code}\n\nBu kod 15 dakika geçerlidir.`
-      );
+  await sendResetPasswordEmail(user.email, code);
 
-      console.log('[RESET PASSWORD][EMAIL CODE]', {
-        to: user.email,
-        code,
-        expiresAt: expiresAt.toISOString(),
-      });
+  console.log('[RESET PASSWORD][EMAIL CODE]', {
+    to: user.email,
+    code,
+    expiresAt: expiresAt.toISOString(),
+  });
+}
     } else if (channel === 'phone') {
       console.log('[RESET PASSWORD][PHONE CODE]', {
         to: user.phone,
