@@ -752,6 +752,25 @@ app.get('/health', (_req, res) => {
   });
 });
 
+// 🔄 App version check
+app.get('/app/version', (_req, res) => {
+  return res.json({
+    ok: true,
+    latestVersion: (process.env.APP_LATEST_VERSION ?? '0.0.1').toString(),
+    minimumSupportedVersion: (process.env.APP_MINIMUM_SUPPORTED_VERSION ?? '0.0.1').toString(),
+    forceUpdate:
+      String(process.env.APP_FORCE_UPDATE ?? 'false').toLowerCase() === 'true' ||
+      String(process.env.APP_FORCE_UPDATE ?? '0') === '1',
+    message:
+      (process.env.APP_UPDATE_MESSAGE ?? 'Yeni bir sürüm mevcut. Devam etmek için uygulamayı güncelle.').toString(),
+    androidStoreUrl:
+      (process.env.APP_ANDROID_STORE_URL ?? 'https://play.google.com/store/apps/details?id=com.viral_new').toString(),
+    iosStoreUrl:
+      (process.env.APP_IOS_STORE_URL ?? 'https://apps.apple.com/').toString(),
+    time: new Date().toISOString(),
+  });
+});
+
 // 🟢 Anonim login / kayıt
 app.post('/auth/anonymous', async (req, res) => {
   try {
@@ -826,14 +845,6 @@ app.post('/auth/register', async (req, res) => {
       });
     }
 
-    if (!phoneNorm) {
-      return res.status(400).json({
-        ok: false,
-        error: 'invalid-phone',
-        message: 'phone is invalid',
-      });
-    }
-
     if (!password || password.length < 8) {
       return res.status(400).json({
         ok: false,
@@ -856,18 +867,20 @@ app.post('/auth/register', async (req, res) => {
       });
     }
 
-    const phoneOther = await prisma.user.findFirst({
-      where: { phone: phoneNorm },
-      select: { id: true },
-    });
-
-    if (phoneOther) {
-      return res.status(409).json({
-        ok: false,
-        error: 'phone-taken',
-        field: 'phone',
-        message: 'Bu telefon numarası başka bir hesapta kayıtlı.',
+    if (phoneNorm) {
+      const phoneOther = await prisma.user.findFirst({
+        where: { phone: phoneNorm },
+        select: { id: true },
       });
+
+      if (phoneOther) {
+        return res.status(409).json({
+          ok: false,
+          error: 'phone-taken',
+          field: 'phone',
+          message: 'Bu telefon numarası başka bir hesapta kayıtlı.',
+        });
+      }
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -884,7 +897,7 @@ app.post('/auth/register', async (req, res) => {
             data: {
               fullName,
               email: emailNorm,
-              phone: phoneNorm,
+              phone: phoneNorm ?? null,
               passwordHash,
               isPhoneVerified: false,
             } as any,
@@ -909,7 +922,7 @@ app.post('/auth/register', async (req, res) => {
         website: null,
         avatarUri: null,
         email: emailNorm,
-        phone: phoneNorm,
+        phone: phoneNorm ?? null,
         isPhoneVerified: false,
         passwordHash,
       } as any,
@@ -1481,7 +1494,7 @@ app.put('/me', async (req, res) => {
         website,
         avatarUri,
         email: emailNorm,
-        phone: phoneNorm,
+        phone: phoneNorm ?? null,
         isPhoneVerified,
       },
     });
@@ -1527,6 +1540,114 @@ app.put('/me', async (req, res) => {
     });
   }
 });
+
+// 🟢 ME: Hesap sil
+app.delete('/me', async (req, res) => {
+  try {
+    const userId = parseUserIdFromReq(req);
+
+    if (!userId) {
+      return res.status(400).json({
+        ok: false,
+        error: 'userId-required',
+        message: 'userId is required (token or query ?userId= or header x-user-id)',
+      });
+    }
+
+    const existing = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        ok: false,
+        error: 'not-found',
+        message: 'User not found',
+      });
+    }
+
+    await prisma.$transaction(async tx => {
+      const anyTx = tx as any;
+
+      if (anyTx.passwordResetToken) {
+        await anyTx.passwordResetToken.deleteMany({
+          where: { userId },
+        });
+      }
+
+      if (anyTx.friendRequest) {
+        await anyTx.friendRequest.deleteMany({
+          where: {
+            OR: [{ fromUserId: userId }, { toUserId: userId }],
+          },
+        });
+      }
+
+      if (anyTx.friendship) {
+        await anyTx.friendship.deleteMany({
+          where: {
+            OR: [{ user1Id: userId }, { user2Id: userId }],
+          },
+        });
+      }
+
+      if (anyTx.comment) {
+        await anyTx.comment.deleteMany({
+          where: { userId },
+        });
+      }
+
+      if (anyTx.postLike) {
+        await anyTx.postLike.deleteMany({
+          where: { userId },
+        });
+      }
+
+      if (anyTx.post) {
+        const myPosts = await anyTx.post.findMany({
+          where: { userId },
+          select: { id: true },
+        });
+
+        const myPostIds = Array.isArray(myPosts) ? myPosts.map((p: any) => p.id) : [];
+
+        if (myPostIds.length && anyTx.comment) {
+          await anyTx.comment.deleteMany({
+            where: { postId: { in: myPostIds } },
+          });
+        }
+
+        if (myPostIds.length && anyTx.postLike) {
+          await anyTx.postLike.deleteMany({
+            where: { postId: { in: myPostIds } },
+          });
+        }
+
+        await anyTx.post.deleteMany({
+          where: { userId },
+        });
+      }
+
+      await anyTx.user.delete({
+        where: { id: userId },
+      });
+    });
+
+    return res.json({
+      ok: true,
+      deleted: true,
+    });
+  } catch (err) {
+    console.error('[DELETE /me] error:', err);
+    return res.status(500).json({
+      ok: false,
+      error: 'server-error',
+      message: 'Account could not be deleted.',
+    });
+  }
+});
+
 
 // -------------------- Focus Ağı (Friend) API --------------------
 // (BURASI DEĞİŞMEDİ - aynen bıraktım)

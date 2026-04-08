@@ -227,6 +227,8 @@ const FOCUS_INCOMING_SEEN_KEY = '@focus_network_incoming_seen_v1';
 const PENDING_SHARE_KEY = 'viral.pendingShareToFeed';
 const EXTERNAL_POSTS_KEY = '@feed_external_posts_v1';
 const LOCAL_REPOSTS_KEY = '@feed_local_reposts_v1';
+const BLOCKED_USERS_KEY = '@feed_blocked_users_v1';
+const REPORTED_POSTS_KEY = '@feed_reported_posts_v1';
 
 // ✅ useAuth içinden userId’yi sağlam çöz
 function resolveUserId(auth: any): number | null {
@@ -1025,8 +1027,73 @@ export default function FeedScreen({ go }: Props) {
   const listRef = useRef<any>(null);
   const pendingScrollPostIdRef = useRef<string | null>(null);
   const [highlightedPostId, setHighlightedPostId] = useState<string | null>(null);
+  const [blockedUserKeys, setBlockedUserKeys] = useState<string[]>([]);
+  const [blockedUsersHydrated, setBlockedUsersHydrated] = useState(false);
 
-  const visiblePosts = (Array.isArray(allPosts) ? allPosts : []).filter(p => !(p as any).archived);
+  const getPostOwnerBlockKey = (post: Post): string => {
+    const anyP: any = post as any;
+
+    const rawCandidates = [
+      anyP?.ownerId,
+      anyP?.userId,
+      anyP?.authorId,
+      anyP?.owner?.id,
+      anyP?.user?.id,
+      anyP?.author?.id,
+      anyP?.handle,
+      anyP?.authorHandle,
+      anyP?.author?.handle,
+      anyP?.author,
+    ];
+
+    for (const candidate of rawCandidates) {
+      if (candidate == null) continue;
+      const v = String(candidate).trim();
+      if (v) return v.toLowerCase();
+    }
+
+    return '';
+  };
+
+  useEffect(() => {
+    const loadBlockedUsers = async () => {
+      try {
+        const raw = await AsyncStorage.getItem(BLOCKED_USERS_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            setBlockedUserKeys(parsed.map(x => String(x || '').trim().toLowerCase()).filter(Boolean));
+          }
+        }
+      } catch (e) {
+        console.warn('[Feed] blocked users yüklenemedi:', e);
+      } finally {
+        setBlockedUsersHydrated(true);
+      }
+    };
+
+    loadBlockedUsers();
+  }, []);
+
+  useEffect(() => {
+    if (!blockedUsersHydrated) return;
+    const saveBlockedUsers = async () => {
+      try {
+        await AsyncStorage.setItem(BLOCKED_USERS_KEY, JSON.stringify(Array.isArray(blockedUserKeys) ? blockedUserKeys : []));
+      } catch (e) {
+        console.warn('[Feed] blocked users kaydedilemedi:', e);
+      }
+    };
+
+    saveBlockedUsers();
+  }, [blockedUserKeys, blockedUsersHydrated]);
+
+  const visiblePosts = (Array.isArray(allPosts) ? allPosts : []).filter(p => {
+    if ((p as any).archived) return false;
+    const blockKey = getPostOwnerBlockKey(p);
+    if (blockKey && blockedUserKeys.includes(blockKey)) return false;
+    return true;
+  });
 
   const dedupedVisiblePosts = useMemo(() => {
     const seen = new Set<string>();
@@ -1574,6 +1641,149 @@ export default function FeedScreen({ go }: Props) {
 
   const closeShareModal = () => setShareVisible(false);
 
+  const handleReportPost = async (post: Post) => {
+    try {
+      const postId = String((post as any)?.id ?? '').trim();
+      const titleForNotification =
+        (post as any).title || (post as any).note || t('feed.post.genericTitle', 'Gönderi');
+
+      try {
+        const authState = useAuth.getState() as any;
+        const token =
+          authState?.token ??
+          authState?.accessToken ??
+          authState?.authToken ??
+          null;
+
+        await fetch(`${API_BASE_URL}/reports`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            postId: postId || null,
+            reason: 'objectionable_content',
+          }),
+        }).catch(() => null);
+      } catch (e) {
+        console.warn('[Feed] report request hata:', e);
+      }
+
+      try {
+        const raw = await AsyncStorage.getItem(REPORTED_POSTS_KEY);
+        const prev = raw ? JSON.parse(raw) : [];
+        const next = Array.isArray(prev) ? prev : [];
+        if (postId && !next.includes(postId)) next.unshift(postId);
+        await AsyncStorage.setItem(REPORTED_POSTS_KEY, JSON.stringify(next.slice(0, 200)));
+      } catch (e) {
+        console.warn('[Feed] report local save hata:', e);
+      }
+
+      addNotification(
+        t('feed.notifications.reported', {
+          defaultValue: '“{{title}}” gönderisini şikayet ettin.',
+          title: titleForNotification,
+        }),
+        postId || null,
+      );
+
+      Alert.alert(
+        t('feed.report.successTitle', 'Şikayet alındı'),
+        t('feed.report.successMessage', 'Bu gönderi incelenmek üzere şikayet edildi.'),
+      );
+    } catch (e) {
+      console.warn('[Feed] handleReportPost hata:', e);
+      Alert.alert(
+        t('common.error', 'Hata'),
+        t('feed.report.errorMessage', 'Şikayet gönderilemedi. Lütfen tekrar dene.'),
+      );
+    }
+  };
+
+  const handleBlockUser = (post: Post) => {
+    const blockKey = getPostOwnerBlockKey(post);
+    if (!blockKey) {
+      Alert.alert(
+        t('common.error', 'Hata'),
+        t('feed.block.errorMessage', 'Kullanıcı engellenemedi. Lütfen tekrar dene.'),
+      );
+      return;
+    }
+
+    const authorLabel =
+      String((post as any)?.author ?? '').trim() ||
+      String((post as any)?.authorHandle ?? '').trim() ||
+      t('feed.block.userFallback', 'bu kullanıcı');
+
+    Alert.alert(
+      t('feed.block.confirmTitle', 'Kullanıcıyı engelle'),
+      t('feed.block.confirmMessage', '{{author}} artık akışında görünmeyecek.').replace('{{author}}', authorLabel),
+      [
+        { text: t('common.cancel', 'İptal'), style: 'cancel' },
+        {
+          text: t('feed.block.confirmButton', 'Engelle'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const authState = useAuth.getState() as any;
+              const token =
+                authState?.token ??
+                authState?.accessToken ??
+                authState?.authToken ??
+                null;
+
+              try {
+                await fetch(`${API_BASE_URL}/blocks`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                  },
+                  body: JSON.stringify({
+                    blockedUserId:
+                      (post as any)?.ownerId ??
+                      (post as any)?.userId ??
+                      (post as any)?.authorId ??
+                      null,
+                    blockKey,
+                  }),
+                }).catch(() => null);
+              } catch (e) {
+                console.warn('[Feed] block request hata:', e);
+              }
+
+              setBlockedUserKeys(prev => {
+                const normalized = Array.isArray(prev) ? prev : [];
+                if (normalized.includes(blockKey)) return normalized;
+                return [blockKey, ...normalized];
+              });
+
+              addNotification(
+                t('feed.notifications.blocked', {
+                  defaultValue: '{{author}} kullanıcısını engelledin.',
+                  author: authorLabel,
+                }),
+                null,
+              );
+
+              Alert.alert(
+                t('feed.block.successTitle', 'Kullanıcı engellendi'),
+                t('feed.block.successMessage', 'Bu kullanıcıya ait gönderiler artık akışında görünmeyecek.'),
+              );
+            } catch (e) {
+              console.warn('[Feed] handleBlockUser hata:', e);
+              Alert.alert(
+                t('common.error', 'Hata'),
+                t('feed.block.errorMessage', 'Kullanıcı engellenemedi. Lütfen tekrar dene.'),
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const handleConfirmShare = async () => {
     if (!sharePost || !selectedSharePlatform) return;
 
@@ -1645,6 +1855,11 @@ export default function FeedScreen({ go }: Props) {
         onPress: () => toggleCommentsDisabledForPost(post.id),
       },
     ];
+
+    if (!isMinePost) {
+      actions.push({ text: t('feed.postActions.report', 'Şikayet Et'), onPress: () => handleReportPost(post) });
+      actions.push({ text: t('feed.postActions.blockUser', 'Kullanıcıyı Engelle'), style: 'destructive', onPress: () => handleBlockUser(post) });
+    }
 
     if (isMinePost) {
       actions.push({ text: t('feed.postActions.delete', 'Kartı sil'), style: 'destructive', onPress: () => safeRemove(post) });

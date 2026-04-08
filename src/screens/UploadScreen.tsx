@@ -920,6 +920,7 @@ const UploadScreen: React.FC = () => {
         <TextInput
           style={styles.input}
           placeholder={t('upload.fields.cardTitlePlaceholder')}
+          placeholderTextColor="#8a8a8a"
           value={cardTitle}
           onChangeText={setCardTitle}
         />
@@ -932,6 +933,7 @@ const UploadScreen: React.FC = () => {
         <TextInput
           style={[styles.input, styles.multilineInput]}
           placeholder={t('upload.fields.cardDescriptionPlaceholder')}
+          placeholderTextColor="#8a8a8a"
           value={cardDescription}
           onChangeText={setCardDescription}
           multiline
@@ -1322,6 +1324,7 @@ const styles = StyleSheet.create({
   screenTitle: {
     fontSize: 24,
     fontWeight: '700',
+    color: '#111',
     marginTop: 16,
     marginBottom: 12,
   },
@@ -1329,6 +1332,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#111',
     marginBottom: 6,
   },
   sectionSubLabel: {
@@ -1418,6 +1422,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
+    color: '#111',
     backgroundColor: '#fff',
   },
   multilineInput: {
@@ -1546,6 +1551,7 @@ const styles = StyleSheet.create({
   },
   platformChipLabel: {
     fontSize: 12,
+    color: '#111',
   },
   platformChipLabelSelected: {
     fontWeight: '600',
@@ -1581,6 +1587,7 @@ const styles = StyleSheet.create({
   accountName: {
     fontSize: 13,
     fontWeight: '500',
+    color: '#111',
   },
   accountNameConnected: {
     color: '#2e7d32',
@@ -1624,6 +1631,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '600',
+    color: '#111',
     marginRight: 8,
     flexWrap: 'wrap',
   },
@@ -1643,6 +1651,7 @@ const styles = StyleSheet.create({
   cardSectionLabel: {
     fontSize: 13,
     fontWeight: '600',
+    color: '#111',
     marginBottom: 2,
   },
   cardDescription: {
@@ -1671,6 +1680,7 @@ const styles = StyleSheet.create({
   },
   cardPlatformText: {
     fontSize: 11,
+    color: '#111',
   },
   cardVideoText: {
     marginTop: 8,

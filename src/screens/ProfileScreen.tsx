@@ -619,6 +619,63 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
     );
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('profile.delete.title', 'Hesabı Sil'),
+      t('profile.delete.confirmBody', 'Bu işlem geri alınamaz. Devam etmek istiyor musun?'),
+      [
+        { text: t('common.cancel', 'İptal'), style: 'cancel' },
+        {
+          text: t('common.continue', 'Devam'),
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              t('profile.delete.finalTitle', 'Son Onay'),
+              t('profile.delete.finalBody', 'Hesabın kalıcı olarak silinecek.'),
+              [
+                { text: t('common.cancel', 'Vazgeç'), style: 'cancel' },
+                {
+                  text: t('profile.delete.action', 'Hesabı Sil'),
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      const authState = useAuth.getState() as any;
+                      const token =
+                        authState?.token ??
+                        authState?.accessToken ??
+                        authState?.authToken ??
+                        null;
+
+                      const res = await fetch(`${API_BASE_URL}/me`, {
+                        method: 'DELETE',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                        },
+                      });
+
+                      if (!res.ok) {
+                        Alert.alert(t('profile.alert.error', 'Hata'), t('profile.delete.failed', 'Hesap silinemedi.'));
+                        return;
+                      }
+
+                      Alert.alert(t('profile.alert.success', 'Başarılı'), t('profile.delete.success', 'Hesabın silindi.'));
+                      signOut();
+                    } catch (e) {
+                      console.warn('[Profile] delete account error:', e);
+                      Alert.alert(t('profile.alert.error', 'Hata'), t('profile.delete.unexpected', 'Bir sorun oluştu.'));
+                    }
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  };
+
+
   const totalPosts = posts.length;
   const visiblePosts = posts.filter(p => !p.archived);
   const totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);
@@ -1465,16 +1522,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
           )}
         </View>
 
-        {/* Onboarding reset + Çıkış */}
-        <View style={styles.bottomActionsRow}>
-          <TouchableOpacity style={styles.onboardingResetBtn} onPress={handleRestartOnboarding}>
-            <Text style={styles.onboardingResetText}>
-              {t('profile.onboarding.restartButton', 'Onboarding’i tekrar başlat')}
-            </Text>
+        {/* Çıkış + Hesap sil */}
+        <View style={styles.bottomActionsColumn}>
+          <TouchableOpacity style={styles.logoutBtnFull} onPress={signOut}>
+            <Text style={styles.logoutText}>{t('profile.logout', 'Çıkış yap')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.logoutBtn} onPress={signOut}>
-            <Text style={styles.logoutText}>{t('profile.logout', 'Çıkış yap')}</Text>
+          <TouchableOpacity style={styles.deleteAccountBtn} onPress={handleDeleteAccount}>
+            <Text style={styles.deleteAccountText}>
+              {t('profile.delete.button', 'Hesabımı Sil')}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -1761,12 +1818,29 @@ const styles = StyleSheet.create({
   },
   logoutText: { fontSize: 13, fontWeight: '600', color: '#c62828' },
 
-  bottomActionsRow: {
+  bottomActionsColumn: {
     marginTop: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 10,
+  },
+  logoutBtnFull: {
+    borderRadius: 999,
+    paddingVertical: 12,
     alignItems: 'center',
-    gap: 8,
+    borderWidth: 1,
+    borderColor: '#e53935',
+    backgroundColor: '#ffebee',
+  },
+  deleteAccountBtn: {
+    borderRadius: 999,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#b00020',
+    backgroundColor: '#fff',
+  },
+  deleteAccountText: {
+    color: '#b00020',
+    fontWeight: '900',
   },
 
   flashBanner: {

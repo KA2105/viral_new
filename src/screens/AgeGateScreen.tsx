@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,6 @@ type Props = {
 };
 
 function isValidISODate(iso: string) {
-  // YYYY-MM-DD (çok basit doğrulama)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
   const [y, m, d] = iso.split('-').map(n => parseInt(n, 10));
   if (!y || !m || !d) return false;
@@ -27,11 +26,19 @@ function isValidISODate(iso: string) {
   const dt = new Date(`${iso}T00:00:00.000Z`);
   if (Number.isNaN(dt.getTime())) return false;
 
-  // Ay/dönüşüm kontrolü
   const uy = dt.getUTCFullYear();
   const um = dt.getUTCMonth() + 1;
   const ud = dt.getUTCDate();
   return uy === y && um === m && ud === d;
+}
+
+function formatBirthInput(raw: string) {
+  const digits = String(raw || '').replace(/\D/g, '').slice(0, 8);
+
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
 }
 
 function calcAgeFromISO(iso: string) {
@@ -50,16 +57,20 @@ const AgeGateScreen: React.FC<Props> = ({
   onRejected,
 }) => {
   const [birth, setBirth] = useState('');
-  const hint = useMemo(() => `Doğum tarihin (YYYY-AA-GG)`, []);
+
+  // ✅ CRASH FIX
+  const hint = useMemo(() => 'Doğum tarihin (YYYY-AA-GG)', []);
 
   const handleContinue = () => {
     const iso = birth.trim();
+
     if (!isValidISODate(iso)) {
       Alert.alert('Uyarı', 'Lütfen doğum tarihini YYYY-AA-GG formatında gir.');
       return;
     }
 
     const age = calcAgeFromISO(iso);
+
     if (age < minAge) {
       onRejected();
       return;
@@ -81,13 +92,14 @@ const AgeGateScreen: React.FC<Props> = ({
 
         <TextInput
           value={birth}
-          onChangeText={setBirth}
+          onChangeText={(text) => setBirth(formatBirthInput(text))}
           placeholder={hint}
           placeholderTextColor="#999"
           style={styles.input}
           keyboardType="number-pad"
           autoCapitalize="none"
           autoCorrect={false}
+          maxLength={10}
         />
 
         <TouchableOpacity style={styles.primaryBtn} onPress={handleContinue}>

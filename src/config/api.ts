@@ -329,7 +329,7 @@ export type BackendUser = {
 export type AuthRegisterPayload = {
   fullName: string;
   email: string;
-  phone: string;
+  phone?: string | null;
   password: string;
   deviceId?: string | null; // (server destekli; istersen yollayabilirsin)
 };
@@ -620,4 +620,42 @@ export async function postRepost(postId: string | number): Promise<{ ok: boolean
     });
     return { ok: !!json2?.ok, post: json2?.post ?? json2?.item ?? null };
   }
+}
+
+
+export type AppVersionInfo = {
+  latestVersion: string;
+  minimumSupportedVersion?: string | null;
+  forceUpdate: boolean;
+  message?: string | null;
+  androidStoreUrl?: string | null;
+  iosStoreUrl?: string | null;
+};
+
+export async function getAppVersion(): Promise<AppVersionInfo> {
+  const json = await apiFetch<any>('/app/version', {
+    method: 'GET',
+    timeoutMs: 10000,
+  });
+
+  return {
+    latestVersion: String(json?.latestVersion ?? '0.0.0'),
+    minimumSupportedVersion:
+      json?.minimumSupportedVersion != null
+        ? String(json.minimumSupportedVersion)
+        : null,
+    forceUpdate: !!json?.forceUpdate,
+    message:
+      json?.message != null && String(json.message).trim().length
+        ? String(json.message)
+        : null,
+    androidStoreUrl:
+      json?.androidStoreUrl != null && String(json.androidStoreUrl).trim().length
+        ? String(json.androidStoreUrl)
+        : null,
+    iosStoreUrl:
+      json?.iosStoreUrl != null && String(json.iosStoreUrl).trim().length
+        ? String(json.iosStoreUrl)
+        : null,
+  };
 }

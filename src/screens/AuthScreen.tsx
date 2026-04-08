@@ -51,8 +51,8 @@ export default function AuthScreen() {
   const onRegister = async () => {
     clearError();
 
-    if (!fullName.trim() || !email.trim() || !phone.trim()) {
-      Alert.alert('Uyarı', 'Ad Soyad, e-posta ve telefon zorunludur.');
+    if (!fullName.trim() || !email.trim()) {
+      Alert.alert('Uyarı', 'Ad Soyad ve e-posta zorunludur.');
       return;
     }
     if (!regPassword || regPassword.length < 8) {
@@ -64,7 +64,12 @@ export default function AuthScreen() {
       return;
     }
 
-    const res = await register({ fullName, email, phone, password: regPassword });
+    const res = await register({
+      fullName,
+      email,
+      phone: phone.trim(),
+      password: regPassword,
+    });
     if (!res.ok) {
       Alert.alert('Hata', res.error);
       return;
@@ -149,7 +154,7 @@ export default function AuthScreen() {
 
           <TextInput
             style={s.input}
-            placeholder="Telefon (10 hane)"
+            placeholder="Telefon (opsiyonel)"
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"

@@ -10,6 +10,9 @@ import {
   Alert,
   ActivityIndicator,
   DeviceEventEmitter,
+  ScrollView,
+  Linking,
+  Platform,
 } from 'react-native';
 import './src/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -32,6 +35,7 @@ import AgeGateScreen from './src/screens/AgeGateScreen';
 // ✅ EK: API health-check + forgot/reset password için
 import {
   API_BASE_URL,
+  getAppVersion,
   getUserMessage,
   postForgotPassword,
   postResetPassword,
@@ -177,10 +181,10 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
   const handleRegister = async () => {
     if (registerPending || isSyncing) return;
 
-    if (!regFullName.trim() || !regEmail.trim() || !regPhone.trim()) {
+    if (!regFullName.trim() || !regEmail.trim()) {
       Alert.alert(
         t('common.warning', 'Uyarı'),
-        t('auth.register.requiredFields', 'Ad, e-posta ve telefon zorunludur.'),
+        t('auth.register.requiredFields', 'Ad ve e-posta zorunludur.'),
       );
       return;
     }
@@ -443,6 +447,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         <Text style={styles.authLabel}>{t('auth.register.fullNameLabel', 'Ad Soyad')}</Text>
         <TextInput
           placeholder={t('auth.register.fullNamePlaceholder', 'Ad Soyad')}
+          placeholderTextColor="#999"
           value={regFullName}
           onChangeText={setRegFullName}
           style={[styles.authInput, { borderColor: '#ddd' }]}
@@ -451,6 +456,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         <Text style={styles.authLabel}>{t('auth.register.emailLabel', 'E-posta')}</Text>
         <TextInput
           placeholder={t('auth.register.emailPlaceholder', 'ornek@mail.com')}
+          placeholderTextColor="#999"
           value={regEmail}
           onChangeText={setRegEmail}
           style={[styles.authInput, { borderColor: borderFor('email') }]}
@@ -458,13 +464,14 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
           autoCapitalize="none"
         />
 
-        <Text style={styles.authLabel}>{t('auth.register.phoneLabel', 'Telefon')}</Text>
+        <Text style={styles.authLabel}>{t('auth.register.phoneLabel', 'Telefon (opsiyonel)')}</Text>
         <View style={styles.authPhoneRow}>
           <View style={styles.authCountryBox}>
             <Text style={styles.authCountryCodeText}>+90</Text>
           </View>
           <TextInput
             placeholder={t('auth.register.phonePlaceholder', '5xx xxx xx xx')}
+            placeholderTextColor="#999"
             value={regPhone}
             onChangeText={setRegPhone}
             style={[
@@ -480,6 +487,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         <View style={styles.authPasswordRow}>
           <TextInput
             placeholder={t('auth.register.passwordPlaceholder', 'Şifren')}
+            placeholderTextColor="#999"
             value={regPassword}
             onChangeText={setRegPassword}
             style={[
@@ -505,6 +513,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         <View style={styles.authPasswordRow}>
           <TextInput
             placeholder={t('auth.register.passwordConfirmPlaceholder', 'Şifre tekrar')}
+            placeholderTextColor="#999"
             value={regPasswordConfirm}
             onChangeText={setRegPasswordConfirm}
             style={[styles.authInput, styles.authPasswordInput]}
@@ -623,6 +632,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
               ? t('auth.forgot.emailPlaceholder', 'Kayıtlı e-posta adresin')
               : t('auth.forgot.phonePlaceholder', 'Kayıtlı telefon numaran')
           }
+          placeholderTextColor="#999"
           value={resetValue}
           onChangeText={setResetValue}
           style={styles.authInput}
@@ -677,6 +687,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
 
         <TextInput
           placeholder={t('auth.forgot.codePlaceholder', 'Doğrulama kodu')}
+          placeholderTextColor="#999"
           value={resetCodeInput}
           onChangeText={(v) => setResetCodeInput(v.replace(/\D+/g, '').slice(0, 6))}
           style={styles.authInput}
@@ -687,6 +698,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         <View style={styles.authPasswordRow}>
           <TextInput
             placeholder={t('auth.forgot.newPasswordPlaceholder', 'Yeni şifre')}
+            placeholderTextColor="#999"
             value={resetNewPassword}
             onChangeText={setResetNewPassword}
             style={[styles.authInput, styles.authPasswordInput]}
@@ -705,6 +717,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         <View style={styles.authPasswordRow}>
           <TextInput
             placeholder={t('auth.forgot.newPasswordConfirmPlaceholder', 'Yeni şifre (tekrar)')}
+            placeholderTextColor="#999"
             value={resetNewPasswordConfirm}
             onChangeText={setResetNewPasswordConfirm}
             style={[styles.authInput, styles.authPasswordInput]}
@@ -766,6 +779,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
 
       <TextInput
         placeholder={t('auth.login.identifierPlaceholder', 'E-posta veya Telefon')}
+        placeholderTextColor="#999"
         value={loginIdentifier}
         onChangeText={setLoginIdentifier}
         style={[styles.authInput, { borderColor: borderFor('identifier') }]}
@@ -775,6 +789,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
       <View style={styles.authPasswordRow}>
         <TextInput
           placeholder={t('auth.login.passwordPlaceholder', 'Şifren')}
+          placeholderTextColor="#999"
           value={loginPassword}
           onChangeText={setLoginPassword}
           style={[
@@ -827,6 +842,60 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         <Text style={styles.authLinkText}>
           {t('auth.login.switchUser', 'Kullanıcı Değiştir')}
         </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+
+function TermsScreen({ onAccept }: { onAccept: () => void }) {
+  return (
+    <View style={styles.termsRoot}>
+      <ScrollView contentContainerStyle={styles.termsScrollContent} showsVerticalScrollIndicator={false}>
+        <Text style={styles.termsTitle}>Terms of Use & Community Guidelines</Text>
+        <Text style={styles.termsSubtitle}>
+          You must accept the following rules before continuing.
+        </Text>
+
+        <View style={styles.termsCard}>
+          <Text style={styles.termsCardTitle}>Community Rules</Text>
+          <Text style={styles.termsBody}>
+            Viral has zero tolerance for harassment, hate speech, nudity or exploitation,
+            threats, glorification of violence, illegal activity, spam, fraud, or abusive behavior.
+          </Text>
+        </View>
+
+        <View style={styles.termsCard}>
+          <Text style={styles.termsCardTitle}>Reporting & Blocking</Text>
+          <Text style={styles.termsBody}>
+            You can report content and block users inside the app. Content from blocked users
+            will be hidden from your feed.
+          </Text>
+        </View>
+
+        <View style={styles.termsCard}>
+          <Text style={styles.termsCardTitle}>Moderation</Text>
+          <Text style={styles.termsBody}>
+            Reported content and accounts are reviewed. Objectionable content may be removed,
+            and abusive accounts may be suspended or terminated.
+          </Text>
+        </View>
+
+        <View style={styles.termsCard}>
+          <Text style={styles.termsCardTitle}>Account & Responsibility</Text>
+          <Text style={styles.termsBody}>
+            You are responsible for the content you share. Do not post harmful, misleading,
+            illegal, or rights-violating content. Accounts that violate these rules may be restricted or deleted.
+          </Text>
+        </View>
+
+        <Text style={styles.termsFootnote}>
+          By tapping "Accept & Continue", you agree to the Terms of Use and Community Guidelines.
+        </Text>
+      </ScrollView>
+
+      <TouchableOpacity style={styles.termsAcceptButton} onPress={onAccept}>
+        <Text style={styles.termsAcceptButtonText}>Accept & Continue</Text>
       </TouchableOpacity>
     </View>
   );
@@ -890,9 +959,39 @@ function TopBar({ current, username, onNavigate, onLogout }: TopBarProps) {
 const AGE_GATE_PASSED_KEY = 'viral.ageGate.passed'; // "1" | ""
 const AGE_GATE_BIRTH_KEY = 'viral.ageGate.birthISO'; // "YYYY-MM-DD"
 const FORCE_AUTH_KEY = 'viral.forceAuthAfterLogout'; // "1" | ""
+const TERMS_ACCEPTED_KEY = 'viral.termsAccepted.v1'; // "1" | ""
 
 // ✅ EK: Akış’a düşecek “paylaşımdan gelen içerik” kuyruğu
 const PENDING_SHARE_TO_FEED_KEY = 'viral.pendingShareToFeed';
+
+
+const CURRENT_APP_VERSION = '0.0.1';
+const DEFAULT_ANDROID_STORE_URL = 'https://play.google.com/store/apps/details?id=com.viral_new';
+const DEFAULT_IOS_STORE_URL = 'https://apps.apple.com/';
+
+function normalizeVersionParts(version: string): number[] {
+  return String(version || '')
+    .split('.')
+    .map(part => {
+      const n = Number(String(part).replace(/[^\d]/g, ''));
+      return Number.isFinite(n) ? n : 0;
+    });
+}
+
+function compareVersions(a: string, b: string): number {
+  const aa = normalizeVersionParts(a);
+  const bb = normalizeVersionParts(b);
+  const len = Math.max(aa.length, bb.length);
+
+  for (let i = 0; i < len; i += 1) {
+    const av = aa[i] ?? 0;
+    const bv = bb[i] ?? 0;
+    if (av > bv) return 1;
+    if (av < bv) return -1;
+  }
+
+  return 0;
+}
 
 // ✅ EK: küçük timeout’lu fetch (release’te “bekliyor” gibi kalmasın)
 async function fetchWithTimeout(url: string, opts: any = {}, timeoutMs = 3500) {
@@ -915,6 +1014,9 @@ const App: React.FC = () => {
 
   const [forceAuthHydrated, setForceAuthHydrated] = useState(false);
   const [forceAuth, setForceAuth] = useState<boolean>(false);
+  const [termsHydrated, setTermsHydrated] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
+  const [versionCheckDone, setVersionCheckDone] = useState(false);
 
   const sessionActive: boolean = auth?.sessionActive === true;
 
@@ -993,6 +1095,18 @@ const App: React.FC = () => {
         setForceAuthHydrated(true);
       }
     })();
+
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(TERMS_ACCEPTED_KEY);
+        setTermsAccepted(raw === '1');
+      } catch (e) {
+        console.warn('[App] TERMS_ACCEPTED_KEY hydrate error:', e);
+        setTermsAccepted(false);
+      } finally {
+        setTermsHydrated(true);
+      }
+    })();
   }, [hydrateOnboarding]);
 
   const handleLogout = async () => {
@@ -1015,6 +1129,82 @@ const App: React.FC = () => {
       setForceAuth(false);
     }
   };
+
+
+  const handleAcceptTerms = async () => {
+    try {
+      await AsyncStorage.setItem(TERMS_ACCEPTED_KEY, '1');
+      setTermsAccepted(true);
+    } catch (e) {
+      console.warn('[App] set TERMS_ACCEPTED_KEY error:', e);
+      Alert.alert('Hata', 'Kullanım şartları kaydedilemedi. Lütfen tekrar dene.');
+    }
+  };
+
+
+  const checkAppVersion = async () => {
+    try {
+      const info = await getAppVersion();
+      const latestVersion = String(info?.latestVersion || '').trim();
+      const minimumSupportedVersion = String(info?.minimumSupportedVersion || '').trim();
+      const mustUpdateByLatest = latestVersion
+        ? compareVersions(CURRENT_APP_VERSION, latestVersion) < 0
+        : false;
+      const mustUpdateByMinimum = minimumSupportedVersion
+        ? compareVersions(CURRENT_APP_VERSION, minimumSupportedVersion) < 0
+        : false;
+      const mustUpdate = mustUpdateByLatest || mustUpdateByMinimum;
+
+      if (!mustUpdate) return;
+
+      const storeUrl = Platform.OS === 'ios'
+        ? info?.iosStoreUrl || DEFAULT_IOS_STORE_URL
+        : info?.androidStoreUrl || DEFAULT_ANDROID_STORE_URL;
+
+      const openStore = async () => {
+        try {
+          await Linking.openURL(storeUrl);
+        } catch (e) {
+          console.warn('[App] store url open error:', e);
+          Alert.alert('Hata', 'Mağaza bağlantısı açılamadı.');
+        }
+      };
+
+      Alert.alert(
+        'Güncelleme Mevcut',
+        info?.message || 'Yeni bir sürüm mevcut. Devam etmek için uygulamayı güncelle.',
+        info?.forceUpdate || mustUpdateByMinimum
+          ? [
+              {
+                text: 'Güncelle',
+                onPress: () => {
+                  void openStore();
+                },
+              },
+            ]
+          : [
+              { text: 'Daha Sonra', style: 'cancel' },
+              {
+                text: 'Güncelle',
+                onPress: () => {
+                  void openStore();
+                },
+              },
+            ],
+        { cancelable: !(info?.forceUpdate || mustUpdateByMinimum) },
+      );
+    } catch (e) {
+      console.warn('[App] version check error:', e);
+    } finally {
+      setVersionCheckDone(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!authBooted || !onboardingHydrated || !ageHydrated || !forceAuthHydrated || !termsHydrated) return;
+    if (versionCheckDone) return;
+    void checkAppVersion();
+  }, [authBooted, onboardingHydrated, ageHydrated, forceAuthHydrated, termsHydrated, versionCheckDone]);
 
   useEffect(() => {
     if (!sessionActive) {
@@ -1099,7 +1289,7 @@ const App: React.FC = () => {
     })();
   }, [currentScreen, userId]);
 
-  if (!authBooted || !onboardingHydrated || !ageHydrated || !forceAuthHydrated) {
+  if (!authBooted || !onboardingHydrated || !ageHydrated || !forceAuthHydrated || !termsHydrated) {
     return (
       <View style={styles.loadingRoot}>
         <StatusBar barStyle="dark-content" />
@@ -1156,6 +1346,15 @@ const App: React.FC = () => {
       <View style={[styles.appRoot, styles.appRootDefault]}>
         <StatusBar barStyle="light-content" />
         <OnboardingScreen onFinish={markOnboardingSeen} />
+      </View>
+    );
+  }
+
+  if (!termsAccepted) {
+    return (
+      <View style={[styles.appRoot, styles.appRootDefault]}>
+        <StatusBar barStyle="dark-content" />
+        <TermsScreen onAccept={handleAcceptTerms} />
       </View>
     );
   }
@@ -1309,6 +1508,65 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#1565c0',
     fontWeight: '600',
+  },
+
+  termsRoot: {
+    flex: 1,
+    backgroundColor: '#f7f7f7',
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 20,
+  },
+  termsScrollContent: {
+    paddingBottom: 20,
+  },
+  termsTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#111',
+    marginBottom: 8,
+  },
+  termsSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 14,
+  },
+  termsCard: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#eee',
+    padding: 14,
+    marginBottom: 10,
+  },
+  termsCardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 6,
+  },
+  termsBody: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#444',
+  },
+  termsFootnote: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#666',
+    marginTop: 4,
+    marginBottom: 14,
+  },
+  termsAcceptButton: {
+    backgroundColor: '#E50914',
+    paddingVertical: 14,
+    borderRadius: 999,
+    alignItems: 'center',
+  },
+  termsAcceptButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
   },
 
   authPasswordRow: {
