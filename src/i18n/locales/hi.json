@@ -1,31 +1,31 @@
 {
   "common": {
-  "appName": "Viral",
-  "ok": "ठीक",
-  "cancel": "रद्द करें",
-  "close": "बंद करें",
-  "continue": "जारी रखें",
-  "hide": "छिपाएँ",
-  "show": "दिखाएँ",
-  "save": "सहेजें",
-  "saving": "सहेजा जा रहा है...",
-  "loading": "लोड हो रहा है...",
-  "warning": "चेतावनी",
-  "error": "त्रुटि",
-  "success": "सफल"
-},
-"onboarding": {
-  "language": {
-    "title": "भाषा चुनें",
-    "subtitle": "आगे बढ़ने के लिए अपनी भाषा चुनें",
-    "hint": "आप बाद में प्रोफ़ाइल स्क्रीन से भाषा बदल सकते हैं।"
+    "appName": "Viral",
+    "ok": "ठीक",
+    "cancel": "रद्द करें",
+    "close": "बंद करें",
+    "continue": "जारी रखें",
+    "hide": "छिपाएँ",
+    "show": "दिखाएँ",
+    "save": "सहेजें",
+    "saving": "सहेजा जा रहा है...",
+    "loading": "लोड हो रहा है...",
+    "warning": "चेतावनी",
+    "error": "त्रुटि",
+    "success": "सफल"
   },
-  "buttons": {
-    "skip": "छोड़ें",
-    "next": "अगला",
-    "start": "शुरू करें"
-  }
-},
+  "onboarding": {
+    "language": {
+      "title": "भाषा चुनें",
+      "subtitle": "आगे बढ़ने के लिए अपनी भाषा चुनें",
+      "hint": "आप बाद में प्रोफ़ाइल स्क्रीन से भाषा बदल सकते हैं।"
+    },
+    "buttons": {
+      "skip": "छोड़ें",
+      "next": "अगला",
+      "start": "शुरू करें"
+    }
+  },
   "profile": {
     "title": "प्रोफ़ाइल",
     "languageButton": "भाषा",
@@ -58,7 +58,8 @@
       "passwordRequired": "पासवर्ड और पुष्टि दोनों आवश्यक हैं।",
       "passwordMismatch": "पासवर्ड और पुष्टि एक जैसे होने चाहिए।",
       "saveFailed": "प्रोफ़ाइल अपडेट नहीं हो सकी।",
-      "saveSuccess": "आपकी प्रोफ़ाइल जानकारी अपडेट हो गई है।"      
+      "saveSuccess": "आपकी प्रोफ़ाइल जानकारी अपडेट हो गई है।",
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
     },
     "verify": {
       "sectionTitle": "फोन सत्यापन",
@@ -122,7 +123,8 @@
       "hintConnected": "आप इस अकाउंट को Viral से हटा सकते हैं या कनेक्शन अपडेट कर सकते हैं।",
       "hintDisconnected": "इस अकाउंट को Viral से जोड़ने के लिए प्रोफ़ाइल या पेज URL दर्ज करें।",
       "linkPlaceholder": "https://...",
-      "removeButton": "अकाउंट हटाएँ"
+      "removeButton": "अकाउंट हटाएँ",
+      "enterLink": "First enter the link of the account you want to connect."
     },
     "feedStats": {
       "sectionTitle": "फ़ीड आँकड़े",
@@ -150,7 +152,18 @@
     "section": {
       "hide": "छिपाएँ",
       "show": "दिखाएँ"
-    }
+    },
+    "delete": {
+      "title": "Delete Account",
+      "confirmBody": "This action cannot be undone. Do you want to continue?",
+      "finalTitle": "Final Confirmation",
+      "finalBody": "Your account will be permanently deleted.",
+      "action": "Delete Account",
+      "failed": "Account could not be deleted.",
+      "success": "Your account has been deleted.",
+      "unexpected": "Something went wrong."
+    },
+    "notLoggedIn": "No active session found."
   },
   "upload": {
     "screenTitleTask": "टास्क कार्ड बनाएँ",
@@ -468,28 +481,22 @@
     }
   },
   "sharePanel": {
-  "title": "शेयर",
-  "shareTitle": "शेयर",
-
-  "infoText": "आप जुड़े खातों का उपयोग करके शेयर कर सकते हैं।",
-  "shareBody": "आप जुड़े खातों का उपयोग करके शेयर कर सकते हैं।",
-
-  "noAccounts": "कोई खाता जुड़ा नहीं है।",
-  "connectButton": "खाते जोड़ें",
-  "cancel": "रद्द करें",
-
-  "shareAll": "सभी खातों पर शेयर करें",
-  "shareAllButton": "सभी खातों पर शेयर करें",
-
-  "connectFallbackTitle": "खाते जोड़ें",
-  "connectFallbackBody": "प्रोफ़ाइल से खाते जोड़ें।",
-
-  "infoTitle": "शेयर के बारे में",
-  "infoBody": "शेयर सिमुलेटेड है।",
-
-  "shareAllTitle": "सभी पर शेयर",
-  "shareAllBody": "सिमुलेटेड शेयर।"
-},
+    "title": "शेयर",
+    "shareTitle": "शेयर",
+    "infoText": "आप जुड़े खातों का उपयोग करके शेयर कर सकते हैं।",
+    "shareBody": "आप जुड़े खातों का उपयोग करके शेयर कर सकते हैं।",
+    "noAccounts": "कोई खाता जुड़ा नहीं है।",
+    "connectButton": "खाते जोड़ें",
+    "cancel": "रद्द करें",
+    "shareAll": "सभी खातों पर शेयर करें",
+    "shareAllButton": "सभी खातों पर शेयर करें",
+    "connectFallbackTitle": "खाते जोड़ें",
+    "connectFallbackBody": "प्रोफ़ाइल से खाते जोड़ें।",
+    "infoTitle": "शेयर के बारे में",
+    "infoBody": "शेयर सिमुलेटेड है।",
+    "shareAllTitle": "सभी पर शेयर",
+    "shareAllBody": "सिमुलेटेड शेयर।"
+  },
   "share": {
     "requireAccounts": {
       "title": "अपने अकाउंट्स जोड़ें",
@@ -536,7 +543,7 @@
       "taskCard": "टास्क कार्ड"
     },
     "external": {
-    "badge": "बाहरी शेयर"
+      "badge": "बाहरी शेयर"
     },
     "labels": {
       "descriptionPrefix": "विवरण:"
@@ -594,7 +601,9 @@
       "stateClosed": "बंद कीं",
       "stateOpened": "चालू कीं",
       "close": "बंद करें",
-      "addedComment": "आपने “{{title}}” शीर्षक वाली पोस्ट पर एक टिप्पणी जोड़ी है।"
+      "addedComment": "आपने “{{title}}” शीर्षक वाली पोस्ट पर एक टिप्पणी जोड़ी है।",
+      "reported": "You reported the post “{{title}}”.",
+      "blocked": "You blocked {{author}}."
     },
     "freeVideo": {
       "title": "वीडियो",
@@ -603,20 +612,37 @@
       "noPermission": "यह कार्ड आपका नहीं है। आप इसे 삭제 नहीं कर सकते।"
     },
     "postActions": {
-  "title": "पोस्ट विकल्प",
-  "message": "आप इस पोस्ट के साथ क्या करना चाहते हैं?",
-  "archive": "कार्ड आर्काइव करें",
-  "delete": "कार्ड हटाएँ"
-   },
+      "title": "पोस्ट विकल्प",
+      "message": "आप इस पोस्ट के साथ क्या करना चाहते हैं?",
+      "archive": "कार्ड आर्काइव करें",
+      "delete": "कार्ड हटाएँ",
+      "noPermission": "This card isn't yours. You can't delete it.",
+      "report": "Report",
+      "blockUser": "Block User"
+    },
     "time": {
       "justNow": "अभी",
       "minutesAgo": "{{count}} मिनट पहले",
       "hoursAgo": "{{count}} घंटे पहले",
       "yesterday": "कल",
       "daysAgo": "{{count}} दिन पहले"
+    },
+    "report": {
+      "successTitle": "Report received",
+      "successMessage": "This post has been reported for review.",
+      "errorMessage": "Report could not be sent. Please try again."
+    },
+    "block": {
+      "userFallback": "this user",
+      "confirmTitle": "Block user",
+      "confirmMessage": "{{author}} will no longer appear in your feed.",
+      "confirmButton": "Block",
+      "successTitle": "User blocked",
+      "successMessage": "Posts from this user will no longer appear in your feed.",
+      "errorMessage": "User could not be blocked. Please try again."
     }
   },
-     "common__dup": {
+  "common__dup": {
     "warning": "चेतावनी",
     "error": "त्रुटि",
     "success": "सफल",
@@ -628,138 +654,137 @@
     "loading": "लोड हो रहा है..."
   },
   "auth": {
-  "switch": {
-    "title": "उपयोगकर्ता बदलें",
-    "body": "फ़ील्ड साफ़ हो जाएँगे। लॉगिन के लिए ईमेल/फ़ोन + पासवर्ड आवश्यक है।"
-  },
-  "welcome": {
-    "title": "स्वागत है 👋",
-    "subtitle": "वास्तविक उपयोगकर्ताओं के लिए पंजीकरण फ़ॉर्म।"
-  },
+    "switch": {
+      "title": "उपयोगकर्ता बदलें",
+      "body": "फ़ील्ड साफ़ हो जाएँगे। लॉगिन के लिए ईमेल/फ़ोन + पासवर्ड आवश्यक है।"
+    },
+    "welcome": {
+      "title": "स्वागत है 👋",
+      "subtitle": "वास्तविक उपयोगकर्ताओं के लिए पंजीकरण फ़ॉर्म।"
+    },
     "login": {
-    "title": "लॉगिन करें",
-    "subtitle": "ईमेल/फ़ोन और पासवर्ड से लॉगिन करें।",
-    "identifierPlaceholder": "ईमेल या फ़ोन",
-    "passwordPlaceholder": "आपका पासवर्ड",
-    "loginButton": "लॉगिन करें",
-    "loading": "लॉगिन हो रहा है...",
-    "forgotPassword": "पासवर्ड भूल गए?",
-    "newHere": "नए हैं? खाता बनाएँ",
-    "haveAccount": "पहले से खाता है? लॉगिन करें",
-    "switchUser": "उपयोगकर्ता बदलें",
-    "backToLogin": "← लॉगिन स्क्रीन पर वापस जाएं"
+      "title": "लॉगिन करें",
+      "subtitle": "ईमेल/फ़ोन और पासवर्ड से लॉगिन करें।",
+      "identifierPlaceholder": "ईमेल या फ़ोन",
+      "passwordPlaceholder": "आपका पासवर्ड",
+      "loginButton": "लॉगिन करें",
+      "loading": "लॉगिन हो रहा है...",
+      "forgotPassword": "पासवर्ड भूल गए?",
+      "newHere": "नए हैं? खाता बनाएँ",
+      "haveAccount": "पहले से खाता है? लॉगिन करें",
+      "switchUser": "उपयोगकर्ता बदलें",
+      "backToLogin": "← लॉगिन स्क्रीन पर वापस जाएं"
+    },
+    "register": {
+      "subtitle": "वास्तविक उपयोगकर्ताओं के लिए पंजीकरण फ़ॉर्म।",
+      "fullNameLabel": "पूरा नाम",
+      "fullNamePlaceholder": "पूरा नाम",
+      "emailLabel": "ईमेल",
+      "emailPlaceholder": "example@mail.com",
+      "phoneLabel": "फ़ोन",
+      "phonePlaceholder": "5xx xxx xx xx",
+      "passwordLabel": "पासवर्ड",
+      "passwordPlaceholder": "आपका पासवर्ड",
+      "passwordConfirmLabel": "पासवर्ड (पुष्टि)",
+      "passwordConfirmPlaceholder": "पासवर्ड फिर से",
+      "passwordHint": "पासवर्ड कम से कम 8 अक्षरों का हो और बड़े/छोटे अक्षर, एक संख्या और एक प्रतीक शामिल करे।",
+      "submit": "खाता बनाएँ",
+      "haveAccount": "पहले से खाता है? लॉगिन करें",
+      "cta": "पहले से खाता है? लॉगिन करें"
+    },
+    "forgot": {
+      "title": "पासवर्ड भूल गए",
+      "subtitle": "आप अपने पंजीकृत ईमेल या फ़ोन नंबर से सत्यापन कोड प्राप्त कर सकते हैं।",
+      "email": "ईमेल",
+      "phone": "फ़ोन",
+      "channelEmail": "ईमेल",
+      "channelPhone": "फ़ोन",
+      "emailPlaceholder": "आपका पंजीकृत ईमेल",
+      "sendCode": "सत्यापन कोड भेजें",
+      "verifyTitle": "कोड सत्यापित करें",
+      "verifySubtitle": "सत्यापन कोड और नया पासवर्ड दर्ज करें।",
+      "codePlaceholder": "सत्यापन कोड",
+      "newPasswordPlaceholder": "नया पासवर्ड",
+      "newPasswordConfirmPlaceholder": "नया पासवर्ड (पुष्टि)",
+      "updateButton": "पासवर्ड अपडेट करें",
+      "backToLogin": "← लॉगिन पर वापस जाएँ"
+    }
   },
-  "register": {
-    "subtitle": "वास्तविक उपयोगकर्ताओं के लिए पंजीकरण फ़ॉर्म।",
-    "fullNameLabel": "पूरा नाम",
-    "fullNamePlaceholder": "पूरा नाम",
-    "emailLabel": "ईमेल",
-    "emailPlaceholder": "example@mail.com",
-    "phoneLabel": "फ़ोन",
-    "phonePlaceholder": "5xx xxx xx xx",
-    "passwordLabel": "पासवर्ड",
-    "passwordPlaceholder": "आपका पासवर्ड",
-    "passwordConfirmLabel": "पासवर्ड (पुष्टि)",
-    "passwordConfirmPlaceholder": "पासवर्ड फिर से",
-    "passwordHint": "पासवर्ड कम से कम 8 अक्षरों का हो और बड़े/छोटे अक्षर, एक संख्या और एक प्रतीक शामिल करे।",
-    "submit": "खाता बनाएँ",
-    "haveAccount": "पहले से खाता है? लॉगिन करें",
-    "cta": "पहले से खाता है? लॉगिन करें"
-  },
-  "forgot": {
-    "title": "पासवर्ड भूल गए",
-    "subtitle": "आप अपने पंजीकृत ईमेल या फ़ोन नंबर से सत्यापन कोड प्राप्त कर सकते हैं।",
-    "email": "ईमेल",
-    "phone": "फ़ोन",
-    "channelEmail": "ईमेल",
-    "channelPhone": "फ़ोन",
-    "emailPlaceholder": "आपका पंजीकृत ईमेल",
-    "sendCode": "सत्यापन कोड भेजें",
-    "verifyTitle": "कोड सत्यापित करें",
-    "verifySubtitle": "सत्यापन कोड और नया पासवर्ड दर्ज करें।",
-    "codePlaceholder": "सत्यापन कोड",
-    "newPasswordPlaceholder": "नया पासवर्ड",
-    "newPasswordConfirmPlaceholder": "नया पासवर्ड (पुष्टि)",
-    "updateButton": "पासवर्ड अपडेट करें",
-    "backToLogin": "← लॉगिन पर वापस जाएँ"
+  "focusNetwork": {
+    "title": "फोकस नेटवर्क",
+    "subtitle": "यहाँ तुम केवल उन्हीं लोगों की पोस्ट देखोगे जिन्हें तुमने चुना है।",
+    "tabs": {
+      "network": "मेरा नेटवर्क",
+      "discover": "खोजें",
+      "requests": "अनुरोध"
+    },
+    "search": {
+      "networkPlaceholder": "अपने नेटवर्क में खोजें (@उपयोगकर्ता, नाम)...",
+      "discoverPlaceholder": "खोजें: @handle / नाम / ईमेल / फोन...",
+      "requestsPlaceholder": "अनुरोधों में खोजें..."
+    },
+    "sections": {
+      "network": "मेरा नेटवर्क",
+      "discover": "खोजें",
+      "incomingRequests": "आने वाले अनुरोध"
+    },
+    "count": {
+      "people": "{{count}} लोग",
+      "requests": "{{count}} अनुरोध"
+    },
+    "summary": {
+      "inNetwork": "फोकस नेटवर्क में।",
+      "alreadyInNetwork": "पहले से ही तुम्हारे नेटवर्क में।",
+      "incomingRequest": "तुम्हें अनुरोध भेजा है।",
+      "outgoingPending": "अनुरोध भेजा गया (लंबित)।",
+      "discoverFallback": "खोज सूची से जोड़ें।",
+      "requestPending": "फ्रेंड रिक्वेस्ट लंबित है।"
+    },
+    "actions": {
+      "detail": "विवरण",
+      "accept": "स्वीकार करें",
+      "decline": "अस्वीकार करें",
+      "sendRequest": "अनुरोध भेजें",
+      "addPerson": "व्यक्ति जोड़ें",
+      "removeFromNetwork": "नेटवर्क से हटाएँ",
+      "inMyNetwork": "मेरे नेटवर्क में",
+      "pending": "लंबित",
+      "requestExists": "अनुरोध मौजूद है"
+    },
+    "banner": {
+      "newRequestTitle": "नया कनेक्शन अनुरोध",
+      "newRequestBody": "{{count}} नए अनुरोध हैं। देखने के लिए टैप करें।"
+    },
+    "empty": {
+      "noSearchMatch": "कोई मेल खाने वाला व्यक्ति नहीं मिला।",
+      "noResults": "अभी कोई परिणाम नहीं है।",
+      "noPendingRequests": "कोई लंबित अनुरोध नहीं है।"
+    },
+    "note": {
+      "backendDiscover": "नोट: खोज सूची बैकएंड से आती है। कनेक्शन न होने पर परिणाम अपडेट नहीं हो सकते।"
+    },
+    "detail": {
+      "rule1": "• मित्रता प्रणाली: अनुरोध भेजें → सामने वाला स्वीकार करे।",
+      "rule2": "• कोई ज़बरदस्ती कनेक्शन नहीं। सब कुछ स्वीकृति के साथ आगे बढ़ता है।",
+      "rule3": "• कनेक्शन न होने पर क्रियाएँ विफल हो सकती हैं।"
+    },
+    "alerts": {
+      "loginRequiredTitle": "लॉगिन आवश्यक है",
+      "loginRequiredBody": "इस क्रिया के लिए उपयोगकर्ता सत्र आवश्यक है।",
+      "alreadyInNetworkTitle": "पहले से ही तुम्हारे नेटवर्क में",
+      "alreadyInNetworkBody": "यह व्यक्ति पहले से ही तुम्हारे फोकस नेटवर्क में है।",
+      "pendingTitle": "लंबित",
+      "pendingBody": "तुम इस व्यक्ति को पहले ही अनुरोध भेज चुके हो। उसके स्वीकार करने का इंतज़ार करो।",
+      "requestExistsTitle": "अनुरोध मौजूद है",
+      "requestExistsBody": "इस व्यक्ति ने तुम्हें पहले ही अनुरोध भेज दिया है। तुम इसे “अनुरोध” टैब से स्वीकार कर सकते हो।",
+      "actionFailedWithConnection": "क्रिया विफल हुई। (कनेक्शन?)",
+      "declineFailed": "अस्वीकार करना विफल हुआ।",
+      "requestSendFailed": "अनुरोध भेजा नहीं जा सका। (कनेक्शन?)",
+      "acceptFailed": "स्वीकार नहीं किया जा सका। (कनेक्शन?)"
+    },
+    "net": {
+      "invalidBaseUrl": "API_BASE_URL अमान्य लगता है।",
+      "onlineFetchError": "फोकस नेटवर्क ऑनलाइन फ़ेच त्रुटि"
+    }
   }
- },
-"focusNetwork": {
-  "title": "फोकस नेटवर्क",
-  "subtitle": "यहाँ तुम केवल उन्हीं लोगों की पोस्ट देखोगे जिन्हें तुमने चुना है।",
-  "tabs": {
-    "network": "मेरा नेटवर्क",
-    "discover": "खोजें",
-    "requests": "अनुरोध"
-  },
-  "search": {
-    "networkPlaceholder": "अपने नेटवर्क में खोजें (@उपयोगकर्ता, नाम)...",
-    "discoverPlaceholder": "खोजें: @handle / नाम / ईमेल / फोन...",
-    "requestsPlaceholder": "अनुरोधों में खोजें..."
-  },
-  "sections": {
-    "network": "मेरा नेटवर्क",
-    "discover": "खोजें",
-    "incomingRequests": "आने वाले अनुरोध"
-  },
-  "count": {
-    "people": "{{count}} लोग",
-    "requests": "{{count}} अनुरोध"
-  },
-  "summary": {
-    "inNetwork": "फोकस नेटवर्क में।",
-    "alreadyInNetwork": "पहले से ही तुम्हारे नेटवर्क में।",
-    "incomingRequest": "तुम्हें अनुरोध भेजा है।",
-    "outgoingPending": "अनुरोध भेजा गया (लंबित)।",
-    "discoverFallback": "खोज सूची से जोड़ें।",
-    "requestPending": "फ्रेंड रिक्वेस्ट लंबित है।"
-  },
-  "actions": {
-    "detail": "विवरण",
-    "accept": "स्वीकार करें",
-    "decline": "अस्वीकार करें",
-    "sendRequest": "अनुरोध भेजें",
-    "addPerson": "व्यक्ति जोड़ें",
-    "removeFromNetwork": "नेटवर्क से हटाएँ",
-    "inMyNetwork": "मेरे नेटवर्क में",
-    "pending": "लंबित",
-    "requestExists": "अनुरोध मौजूद है"
-  },
-  "banner": {
-    "newRequestTitle": "नया कनेक्शन अनुरोध",
-    "newRequestBody": "{{count}} नए अनुरोध हैं। देखने के लिए टैप करें।"
-  },
-  "empty": {
-    "noSearchMatch": "कोई मेल खाने वाला व्यक्ति नहीं मिला।",
-    "noResults": "अभी कोई परिणाम नहीं है।",
-    "noPendingRequests": "कोई लंबित अनुरोध नहीं है।"
-  },
-  "note": {
-    "backendDiscover": "नोट: खोज सूची बैकएंड से आती है। कनेक्शन न होने पर परिणाम अपडेट नहीं हो सकते।"
-  },
-  "detail": {
-    "rule1": "• मित्रता प्रणाली: अनुरोध भेजें → सामने वाला स्वीकार करे।",
-    "rule2": "• कोई ज़बरदस्ती कनेक्शन नहीं। सब कुछ स्वीकृति के साथ आगे बढ़ता है।",
-    "rule3": "• कनेक्शन न होने पर क्रियाएँ विफल हो सकती हैं।"
-  },
-  "alerts": {
-    "loginRequiredTitle": "लॉगिन आवश्यक है",
-    "loginRequiredBody": "इस क्रिया के लिए उपयोगकर्ता सत्र आवश्यक है।",
-    "alreadyInNetworkTitle": "पहले से ही तुम्हारे नेटवर्क में",
-    "alreadyInNetworkBody": "यह व्यक्ति पहले से ही तुम्हारे फोकस नेटवर्क में है।",
-    "pendingTitle": "लंबित",
-    "pendingBody": "तुम इस व्यक्ति को पहले ही अनुरोध भेज चुके हो। उसके स्वीकार करने का इंतज़ार करो।",
-    "requestExistsTitle": "अनुरोध मौजूद है",
-    "requestExistsBody": "इस व्यक्ति ने तुम्हें पहले ही अनुरोध भेज दिया है। तुम इसे “अनुरोध” टैब से स्वीकार कर सकते हो।",
-    "actionFailedWithConnection": "क्रिया विफल हुई। (कनेक्शन?)",
-    "declineFailed": "अस्वीकार करना विफल हुआ।",
-    "requestSendFailed": "अनुरोध भेजा नहीं जा सका। (कनेक्शन?)",
-    "acceptFailed": "स्वीकार नहीं किया जा सका। (कनेक्शन?)"
-  },
-  "net": {
-    "invalidBaseUrl": "API_BASE_URL अमान्य लगता है।",
-    "onlineFetchError": "फोकस नेटवर्क ऑनलाइन फ़ेच त्रुटि"
-  }
- }
 }
-

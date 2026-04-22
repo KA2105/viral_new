@@ -1,31 +1,31 @@
 {
- "common": {
-  "appName": "Viral",
-  "ok": "OK",
-  "cancel": "Abbrechen",
-  "close": "Schließen",
-  "continue": "Weiter",
-  "hide": "Ausblenden",
-  "show": "Anzeigen",
-  "save": "Speichern",
-  "saving": "Wird gespeichert...",
-  "loading": "Wird geladen...",
-  "warning": "Warnung",
-  "error": "Fehler",
-  "success": "Erfolg"
-},
-"onboarding": {
-  "language": {
-    "title": "Sprache auswählen",
-    "subtitle": "Wähle deine Sprache, um fortzufahren",
-    "hint": "Du kannst die Sprache später im Profil ändern."
+  "common": {
+    "appName": "Viral",
+    "ok": "OK",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "continue": "Weiter",
+    "hide": "Ausblenden",
+    "show": "Anzeigen",
+    "save": "Speichern",
+    "saving": "Wird gespeichert...",
+    "loading": "Wird geladen...",
+    "warning": "Warnung",
+    "error": "Fehler",
+    "success": "Erfolg"
   },
-  "buttons": {
-    "skip": "Überspringen",
-    "next": "Weiter",
-    "start": "Start"
-  }
-},
+  "onboarding": {
+    "language": {
+      "title": "Sprache auswählen",
+      "subtitle": "Wähle deine Sprache, um fortzufahren",
+      "hint": "Du kannst die Sprache später im Profil ändern."
+    },
+    "buttons": {
+      "skip": "Überspringen",
+      "next": "Weiter",
+      "start": "Start"
+    }
+  },
   "profile": {
     "title": "Profil",
     "languageButton": "Sprache",
@@ -58,7 +58,8 @@
       "passwordRequired": "Passwort und Bestätigung sind erforderlich.",
       "passwordMismatch": "Passwort und Bestätigung müssen übereinstimmen.",
       "saveFailed": "Profil konnte nicht aktualisiert werden.",
-      "saveSuccess": "Deine Profilinformationen wurden aktualisiert."
+      "saveSuccess": "Deine Profilinformationen wurden aktualisiert.",
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
     },
     "verify": {
       "sectionTitle": "Telefonverifizierung",
@@ -122,7 +123,8 @@
       "hintConnected": "Du kannst dieses Konto entfernen oder seine Verbindung aktualisieren.",
       "hintDisconnected": "Um dieses Konto mit Viral zu verbinden, gib bitte die Profil- oder Seiten-URL ein.",
       "linkPlaceholder": "https://...",
-      "removeButton": "Konto entfernen"
+      "removeButton": "Konto entfernen",
+      "enterLink": "First enter the link of the account you want to connect."
     },
     "feedStats": {
       "sectionTitle": "Feed-Statistik",
@@ -150,7 +152,18 @@
     "section": {
       "hide": "Ausblenden",
       "show": "Anzeigen"
-    }
+    },
+    "delete": {
+      "title": "Delete Account",
+      "confirmBody": "This action cannot be undone. Do you want to continue?",
+      "finalTitle": "Final Confirmation",
+      "finalBody": "Your account will be permanently deleted.",
+      "action": "Delete Account",
+      "failed": "Account could not be deleted.",
+      "success": "Your account has been deleted.",
+      "unexpected": "Something went wrong."
+    },
+    "notLoggedIn": "No active session found."
   },
   "upload": {
     "screenTitleTask": "Aufgabenkarte erstellen",
@@ -468,28 +481,22 @@
     }
   },
   "sharePanel": {
-  "title": "Teilen",
-  "shareTitle": "Teilen",
-
-  "infoText": "Du kannst mit deinen verbundenen Konten auf externen Plattformen teilen.",
-  "shareBody": "Du kannst mit deinen verbundenen Konten auf externen Plattformen teilen.",
-
-  "noAccounts": "Du hast noch keine Konten verbunden.",
-  "connectButton": "Konten verbinden",
-  "cancel": "Abbrechen",
-
-  "shareAll": "Auf allen Konten teilen",
-  "shareAllButton": "Auf allen Konten teilen",
-
-  "connectFallbackTitle": "Konten verbinden",
-  "connectFallbackBody": "Du kannst externe Konten im Profilbereich verbinden.",
-
-  "infoTitle": "Über externes Teilen",
-  "infoBody": "In dieser Version ist das Teilen simuliert.",
-
-  "shareAllTitle": "Auf allen Konten teilen",
-  "shareAllBody": "Das Teilen wird in dieser Version simuliert."
-},
+    "title": "Teilen",
+    "shareTitle": "Teilen",
+    "infoText": "Du kannst mit deinen verbundenen Konten auf externen Plattformen teilen.",
+    "shareBody": "Du kannst mit deinen verbundenen Konten auf externen Plattformen teilen.",
+    "noAccounts": "Du hast noch keine Konten verbunden.",
+    "connectButton": "Konten verbinden",
+    "cancel": "Abbrechen",
+    "shareAll": "Auf allen Konten teilen",
+    "shareAllButton": "Auf allen Konten teilen",
+    "connectFallbackTitle": "Konten verbinden",
+    "connectFallbackBody": "Du kannst externe Konten im Profilbereich verbinden.",
+    "infoTitle": "Über externes Teilen",
+    "infoBody": "In dieser Version ist das Teilen simuliert.",
+    "shareAllTitle": "Auf allen Konten teilen",
+    "shareAllBody": "Das Teilen wird in dieser Version simuliert."
+  },
   "share": {
     "requireAccounts": {
       "title": "Konten verbinden",
@@ -536,7 +543,7 @@
       "taskCard": "Aufgabenkarte"
     },
     "external": {
-    "badge": "Externer Beitrag"
+      "badge": "Externer Beitrag"
     },
     "labels": {
       "descriptionPrefix": "Beschreibung:"
@@ -594,29 +601,47 @@
       "stateClosed": "deaktiviert",
       "stateOpened": "aktiviert",
       "close": "Schließen",
-      "addedComment": "Du hast einen Kommentar zu „{{title}}“ hinzugefügt."
+      "addedComment": "Du hast einen Kommentar zu „{{title}}“ hinzugefügt.",
+      "reported": "You reported the post “{{title}}”.",
+      "blocked": "You blocked {{author}}."
     },
     "freeVideo": {
       "title": "Video",
       "message": "Was möchtest du mit diesem Video machen?",
       "delete": "Video löschen"
     },
-   "postActions": {
-  "title": "Beitragsaktionen",
-  "message": "Was möchtest du mit diesem Beitrag machen?",
-  "archive": "Karte archivieren",
-  "delete": "Karte löschen",
-   "noPermission": "Diese Karte gehört dir nicht. Du kannst sie nicht löschen."
-   },  
+    "postActions": {
+      "title": "Beitragsaktionen",
+      "message": "Was möchtest du mit diesem Beitrag machen?",
+      "archive": "Karte archivieren",
+      "delete": "Karte löschen",
+      "noPermission": "Diese Karte gehört dir nicht. Du kannst sie nicht löschen.",
+      "report": "Report",
+      "blockUser": "Block User"
+    },
     "time": {
       "justNow": "gerade eben",
       "minutesAgo": "vor {{count}} Min.",
       "hoursAgo": "vor {{count}} Std.",
       "yesterday": "gestern",
       "daysAgo": "vor {{count}} Tagen"
+    },
+    "report": {
+      "successTitle": "Report received",
+      "successMessage": "This post has been reported for review.",
+      "errorMessage": "Report could not be sent. Please try again."
+    },
+    "block": {
+      "userFallback": "this user",
+      "confirmTitle": "Block user",
+      "confirmMessage": "{{author}} will no longer appear in your feed.",
+      "confirmButton": "Block",
+      "successTitle": "User blocked",
+      "successMessage": "Posts from this user will no longer appear in your feed.",
+      "errorMessage": "User could not be blocked. Please try again."
     }
   },
-      "common__dup": {
+  "common__dup": {
     "warning": "Warnung",
     "error": "Fehler",
     "success": "Erfolg",
@@ -628,138 +653,137 @@
     "loading": "Lädt..."
   },
   "auth": {
-  "switch": {
-    "title": "Benutzer wechseln",
-    "body": "Felder werden geleert. Für die Anmeldung sind E-Mail/Telefon + Passwort erforderlich."
-  },
-  "welcome": {
-    "title": "Willkommen 👋",
-    "subtitle": "Registrierungsformular für echte Nutzer."
-  },
+    "switch": {
+      "title": "Benutzer wechseln",
+      "body": "Felder werden geleert. Für die Anmeldung sind E-Mail/Telefon + Passwort erforderlich."
+    },
+    "welcome": {
+      "title": "Willkommen 👋",
+      "subtitle": "Registrierungsformular für echte Nutzer."
+    },
     "login": {
-    "title": "Anmelden",
-    "subtitle": "Melde dich mit E-Mail/Telefon und Passwort an.",
-    "identifierPlaceholder": "E-Mail oder Telefon",
-    "passwordPlaceholder": "Dein Passwort",
-    "loginButton": "Anmelden",
-    "loading": "Anmeldung...",
-    "forgotPassword": "Passwort vergessen?",
-    "newHere": "Neu hier? Konto erstellen",
-    "haveAccount": "Du hast bereits ein Konto? Anmelden",
-    "switchUser": "Benutzer wechseln",
-    "backToLogin": "← Zur Anmeldung zurück"
+      "title": "Anmelden",
+      "subtitle": "Melde dich mit E-Mail/Telefon und Passwort an.",
+      "identifierPlaceholder": "E-Mail oder Telefon",
+      "passwordPlaceholder": "Dein Passwort",
+      "loginButton": "Anmelden",
+      "loading": "Anmeldung...",
+      "forgotPassword": "Passwort vergessen?",
+      "newHere": "Neu hier? Konto erstellen",
+      "haveAccount": "Du hast bereits ein Konto? Anmelden",
+      "switchUser": "Benutzer wechseln",
+      "backToLogin": "← Zur Anmeldung zurück"
+    },
+    "register": {
+      "subtitle": "Registrierungsformular für echte Nutzer.",
+      "fullNameLabel": "Vollständiger Name",
+      "fullNamePlaceholder": "Vollständiger Name",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "beispiel@mail.com",
+      "phoneLabel": "Telefon",
+      "phonePlaceholder": "5xx xxx xx xx",
+      "passwordLabel": "Passwort",
+      "passwordPlaceholder": "Dein Passwort",
+      "passwordConfirmLabel": "Passwort (Bestätigung)",
+      "passwordConfirmPlaceholder": "Passwort wiederholen",
+      "passwordHint": "Das Passwort muss mindestens 8 Zeichen lang sein und Groß-/Kleinbuchstaben, eine Zahl und ein Symbol enthalten.",
+      "submit": "Konto erstellen",
+      "haveAccount": "Du hast bereits ein Konto? Anmelden",
+      "cta": "Du hast bereits ein Konto? Anmelden"
+    },
+    "forgot": {
+      "title": "Passwort vergessen",
+      "subtitle": "Du kannst einen Code über deine registrierte E-Mail-Adresse oder Telefonnummer erhalten.",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "channelEmail": "E-Mail",
+      "channelPhone": "Telefon",
+      "emailPlaceholder": "Deine registrierte E-Mail-Adresse",
+      "sendCode": "Bestätigungscode senden",
+      "verifyTitle": "Code bestätigen",
+      "verifySubtitle": "Gib den Bestätigungscode und dein neues Passwort ein.",
+      "codePlaceholder": "Bestätigungscode",
+      "newPasswordPlaceholder": "Neues Passwort",
+      "newPasswordConfirmPlaceholder": "Neues Passwort (Bestätigung)",
+      "updateButton": "Passwort aktualisieren",
+      "backToLogin": "← Zurück zum Login"
+    }
   },
-  "register": {
-    "subtitle": "Registrierungsformular für echte Nutzer.",
-    "fullNameLabel": "Vollständiger Name",
-    "fullNamePlaceholder": "Vollständiger Name",
-    "emailLabel": "E-Mail",
-    "emailPlaceholder": "beispiel@mail.com",
-    "phoneLabel": "Telefon",
-    "phonePlaceholder": "5xx xxx xx xx",
-    "passwordLabel": "Passwort",
-    "passwordPlaceholder": "Dein Passwort",
-    "passwordConfirmLabel": "Passwort (Bestätigung)",
-    "passwordConfirmPlaceholder": "Passwort wiederholen",
-    "passwordHint": "Das Passwort muss mindestens 8 Zeichen lang sein und Groß-/Kleinbuchstaben, eine Zahl und ein Symbol enthalten.",
-    "submit": "Konto erstellen",
-    "haveAccount": "Du hast bereits ein Konto? Anmelden",
-    "cta": "Du hast bereits ein Konto? Anmelden"
-  },
-  "forgot": {
-    "title": "Passwort vergessen",
-    "subtitle": "Du kannst einen Code über deine registrierte E-Mail-Adresse oder Telefonnummer erhalten.",
-    "email": "E-Mail",
-    "phone": "Telefon",
-    "channelEmail": "E-Mail",
-    "channelPhone": "Telefon",
-    "emailPlaceholder": "Deine registrierte E-Mail-Adresse",
-    "sendCode": "Bestätigungscode senden",
-    "verifyTitle": "Code bestätigen",
-    "verifySubtitle": "Gib den Bestätigungscode und dein neues Passwort ein.",
-    "codePlaceholder": "Bestätigungscode",
-    "newPasswordPlaceholder": "Neues Passwort",
-    "newPasswordConfirmPlaceholder": "Neues Passwort (Bestätigung)",
-    "updateButton": "Passwort aktualisieren",
-    "backToLogin": "← Zurück zum Login"
+  "focusNetwork": {
+    "title": "Focus-Netzwerk",
+    "subtitle": "Hier siehst du nur Beiträge von Personen, die du ausgewählt hast.",
+    "tabs": {
+      "network": "Mein Netzwerk",
+      "discover": "Entdecken",
+      "requests": "Anfragen"
+    },
+    "search": {
+      "networkPlaceholder": "In deinem Netzwerk suchen (@nutzer, name)...",
+      "discoverPlaceholder": "Entdecken: @handle / name / e-mail / telefon...",
+      "requestsPlaceholder": "In Anfragen suchen..."
+    },
+    "sections": {
+      "network": "Mein Netzwerk",
+      "discover": "Entdecken",
+      "incomingRequests": "Eingehende Anfragen"
+    },
+    "count": {
+      "people": "{{count}} Personen",
+      "requests": "{{count}} Anfragen"
+    },
+    "summary": {
+      "inNetwork": "Im Focus-Netzwerk.",
+      "alreadyInNetwork": "Bereits in deinem Netzwerk.",
+      "incomingRequest": "Hat dir eine Anfrage gesendet.",
+      "outgoingPending": "Anfrage gesendet (ausstehend).",
+      "discoverFallback": "Aus der Entdecken-Liste hinzufügen.",
+      "requestPending": "Freundschaftsanfrage wartet."
+    },
+    "actions": {
+      "detail": "Details",
+      "accept": "Akzeptieren",
+      "decline": "Ablehnen",
+      "sendRequest": "Anfrage senden",
+      "addPerson": "Person hinzufügen",
+      "removeFromNetwork": "Aus Netzwerk entfernen",
+      "inMyNetwork": "In meinem Netzwerk",
+      "pending": "Ausstehend",
+      "requestExists": "Anfrage vorhanden"
+    },
+    "banner": {
+      "newRequestTitle": "Neue Verbindungsanfrage",
+      "newRequestBody": "{{count}} neue Anfragen. Tippe, um sie zu sehen."
+    },
+    "empty": {
+      "noSearchMatch": "Keine passende Person gefunden.",
+      "noResults": "Derzeit keine Ergebnisse.",
+      "noPendingRequests": "Keine ausstehenden Anfragen."
+    },
+    "note": {
+      "backendDiscover": "Hinweis: Die Entdecken-Liste kommt vom Backend. Ohne Verbindung werden Ergebnisse möglicherweise nicht aktualisiert."
+    },
+    "detail": {
+      "rule1": "• Freundschaftssystem: Anfrage senden → die andere Person akzeptiert.",
+      "rule2": "• Keine erzwungene Verbindung. Alles läuft mit Zustimmung.",
+      "rule3": "• Ohne Verbindung können Aktionen fehlschlagen."
+    },
+    "alerts": {
+      "loginRequiredTitle": "Anmeldung erforderlich",
+      "loginRequiredBody": "Für diese Aktion ist eine Benutzersitzung erforderlich.",
+      "alreadyInNetworkTitle": "Bereits in deinem Netzwerk",
+      "alreadyInNetworkBody": "Diese Person ist bereits in deinem Focus-Netzwerk.",
+      "pendingTitle": "Ausstehend",
+      "pendingBody": "Du hast dieser Person bereits eine Anfrage gesendet. Warte auf die Annahme.",
+      "requestExistsTitle": "Anfrage vorhanden",
+      "requestExistsBody": "Diese Person hat dir bereits eine Anfrage gesendet. Du kannst sie im Tab „Anfragen“ annehmen.",
+      "actionFailedWithConnection": "Aktion fehlgeschlagen. (Verbindung?)",
+      "declineFailed": "Ablehnen fehlgeschlagen.",
+      "requestSendFailed": "Anfrage konnte nicht gesendet werden. (Verbindung?)",
+      "acceptFailed": "Konnte nicht angenommen werden. (Verbindung?)"
+    },
+    "net": {
+      "invalidBaseUrl": "API_BASE_URL scheint ungültig zu sein.",
+      "onlineFetchError": "Focus-Netzwerk Online-Abruffehler"
+    }
   }
- },
-"focusNetwork": {
-  "title": "Focus-Netzwerk",
-  "subtitle": "Hier siehst du nur Beiträge von Personen, die du ausgewählt hast.",
-  "tabs": {
-    "network": "Mein Netzwerk",
-    "discover": "Entdecken",
-    "requests": "Anfragen"
-  },
-  "search": {
-    "networkPlaceholder": "In deinem Netzwerk suchen (@nutzer, name)...",
-    "discoverPlaceholder": "Entdecken: @handle / name / e-mail / telefon...",
-    "requestsPlaceholder": "In Anfragen suchen..."
-  },
-  "sections": {
-    "network": "Mein Netzwerk",
-    "discover": "Entdecken",
-    "incomingRequests": "Eingehende Anfragen"
-  },
-  "count": {
-    "people": "{{count}} Personen",
-    "requests": "{{count}} Anfragen"
-  },
-  "summary": {
-    "inNetwork": "Im Focus-Netzwerk.",
-    "alreadyInNetwork": "Bereits in deinem Netzwerk.",
-    "incomingRequest": "Hat dir eine Anfrage gesendet.",
-    "outgoingPending": "Anfrage gesendet (ausstehend).",
-    "discoverFallback": "Aus der Entdecken-Liste hinzufügen.",
-    "requestPending": "Freundschaftsanfrage wartet."
-  },
-  "actions": {
-    "detail": "Details",
-    "accept": "Akzeptieren",
-    "decline": "Ablehnen",
-    "sendRequest": "Anfrage senden",
-    "addPerson": "Person hinzufügen",
-    "removeFromNetwork": "Aus Netzwerk entfernen",
-    "inMyNetwork": "In meinem Netzwerk",
-    "pending": "Ausstehend",
-    "requestExists": "Anfrage vorhanden"
-  },
-  "banner": {
-    "newRequestTitle": "Neue Verbindungsanfrage",
-    "newRequestBody": "{{count}} neue Anfragen. Tippe, um sie zu sehen."
-  },
-  "empty": {
-    "noSearchMatch": "Keine passende Person gefunden.",
-    "noResults": "Derzeit keine Ergebnisse.",
-    "noPendingRequests": "Keine ausstehenden Anfragen."
-  },
-  "note": {
-    "backendDiscover": "Hinweis: Die Entdecken-Liste kommt vom Backend. Ohne Verbindung werden Ergebnisse möglicherweise nicht aktualisiert."
-  },
-  "detail": {
-    "rule1": "• Freundschaftssystem: Anfrage senden → die andere Person akzeptiert.",
-    "rule2": "• Keine erzwungene Verbindung. Alles läuft mit Zustimmung.",
-    "rule3": "• Ohne Verbindung können Aktionen fehlschlagen."
-  },
-  "alerts": {
-    "loginRequiredTitle": "Anmeldung erforderlich",
-    "loginRequiredBody": "Für diese Aktion ist eine Benutzersitzung erforderlich.",
-    "alreadyInNetworkTitle": "Bereits in deinem Netzwerk",
-    "alreadyInNetworkBody": "Diese Person ist bereits in deinem Focus-Netzwerk.",
-    "pendingTitle": "Ausstehend",
-    "pendingBody": "Du hast dieser Person bereits eine Anfrage gesendet. Warte auf die Annahme.",
-    "requestExistsTitle": "Anfrage vorhanden",
-    "requestExistsBody": "Diese Person hat dir bereits eine Anfrage gesendet. Du kannst sie im Tab „Anfragen“ annehmen.",
-    "actionFailedWithConnection": "Aktion fehlgeschlagen. (Verbindung?)",
-    "declineFailed": "Ablehnen fehlgeschlagen.",
-    "requestSendFailed": "Anfrage konnte nicht gesendet werden. (Verbindung?)",
-    "acceptFailed": "Konnte nicht angenommen werden. (Verbindung?)"
-  },
-  "net": {
-    "invalidBaseUrl": "API_BASE_URL scheint ungültig zu sein.",
-    "onlineFetchError": "Focus-Netzwerk Online-Abruffehler"
-  }
- }
 }
-

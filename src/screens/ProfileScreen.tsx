@@ -24,7 +24,6 @@ import {
   ImageLibraryOptions,
   ImagePickerResponse,
 } from 'react-native-image-picker';
-import { useOnboarding } from '../store/useOnboarding';
 
 // 🌍 i18n eklemeleri
 import { useTranslation } from 'react-i18next';
@@ -156,7 +155,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
   const posts = useFeed(s => s.posts);
   const tasks = useTasks(s => s.tasks);
   const socialStore: any = useSocialAccounts();
-  const { reset: resetOnboarding } = useOnboarding();
 
   // ✅ Ekranı güvenli şekilde "bekleme" moduna alma koşulları
   const shouldBlockUI = !hydrated || !userId || !profile || isSyncing;
@@ -587,37 +585,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
     }
   };
 
-  // Onboarding’i yeniden başlat
-  const handleRestartOnboarding = () => {
-    Alert.alert(
-      t('profile.onboarding.restartTitle', 'Onboarding’i tekrar başlat'),
-      t(
-        'profile.onboarding.restartMessage',
-        'Kısa başlangıç turunu yeniden görmek üzeresin. Devam edilsin mi?',
-      ),
-      [
-        { text: t('common.cancel', 'Vazgeç'), style: 'cancel' },
-        {
-          text: t('profile.onboarding.restartConfirm', 'Evet, başlat'),
-          style: 'default',
-          onPress: () => {
-            try {
-              resetOnboarding();
-              Alert.alert(
-                t('profile.onboarding.readyTitle', 'Hazır 🎉'),
-                t(
-                  'profile.onboarding.readyMessage',
-                  'Onboarding birazdan yeniden açılacak. Tur bittiğinde uygulamaya geri döneceksin.',
-                ),
-              );
-            } catch (e) {
-              console.warn('[Profile] restart onboarding error:', e);
-            }
-          },
-        },
-      ],
-    );
-  };
+
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -655,15 +623,34 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
                       });
 
                       if (!res.ok) {
-                        Alert.alert(t('profile.alert.error', 'Hata'), t('profile.delete.failed', 'Hesap silinemedi.'));
+                        Alert.alert(
+                          t('profile.alert.error', 'Hata'),
+                          t('profile.delete.failed', 'Hesap silinemedi.'),
+                        );
                         return;
                       }
 
-                      Alert.alert(t('profile.alert.success', 'Başarılı'), t('profile.delete.success', 'Hesabın silindi.'));
+                      Alert.alert(
+                        t('profile.alert.success', 'Başarılı'),
+                        t('profile.delete.success', 'Hesabın silindi.'),
+                      );
+
                       signOut();
+
+                      setTimeout(() => {
+                        try {
+                          const { DeviceEventEmitter } = require('react-native');
+                          DeviceEventEmitter.emit('forceLogout');
+                        } catch (emitErr) {
+                          console.warn('[Profile] forceLogout emit failed:', emitErr);
+                        }
+                      }, 100);
                     } catch (e) {
                       console.warn('[Profile] delete account error:', e);
-                      Alert.alert(t('profile.alert.error', 'Hata'), t('profile.delete.unexpected', 'Bir sorun oluştu.'));
+                      Alert.alert(
+                        t('profile.alert.error', 'Hata'),
+                        t('profile.delete.unexpected', 'Bir sorun oluştu.'),
+                      );
                     }
                   },
                 },
@@ -1522,15 +1509,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
           )}
         </View>
 
-        {/* Çıkış + Hesap sil */}
-        <View style={styles.bottomActionsColumn}>
-          <TouchableOpacity style={styles.logoutBtnFull} onPress={signOut}>
+        {/* Çıkış + hesap sil */}
+        <View style={styles.bottomActionsRow}>
+          <TouchableOpacity style={styles.logoutBtn} onPress={signOut}>
             <Text style={styles.logoutText}>{t('profile.logout', 'Çıkış yap')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.deleteAccountBtn} onPress={handleDeleteAccount}>
-            <Text style={styles.deleteAccountText}>
-              {t('profile.delete.button', 'Hesabımı Sil')}
+          <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
+            <Text style={styles.deleteBtnText} numberOfLines={1}>
+              {t('profile.delete.action', 'Hesabımı Sil')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1809,38 +1796,34 @@ const styles = StyleSheet.create({
   logsText: { fontSize: 13, fontWeight: '600', color: '#00695c' },
 
   logoutBtn: {
+    width: '100%',
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
+    paddingVertical: 12,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e53935',
     backgroundColor: '#ffebee',
+    alignItems: 'center',
   },
   logoutText: { fontSize: 13, fontWeight: '600', color: '#c62828' },
 
-  bottomActionsColumn: {
-    marginTop: 12,
-    gap: 10,
-  },
-  logoutBtnFull: {
-    borderRadius: 999,
+  deleteBtn: {
+    width: '100%',
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e53935',
-    backgroundColor: '#ffebee',
-  },
-  deleteAccountBtn: {
-    borderRadius: 999,
-    paddingVertical: 12,
-    alignItems: 'center',
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#b00020',
     backgroundColor: '#fff',
+    alignItems: 'center',
   },
-  deleteAccountText: {
-    color: '#b00020',
-    fontWeight: '900',
+  deleteBtnText: { fontSize: 13, fontWeight: '700', color: '#b00020' },
+
+  bottomActionsRow: {
+    marginTop: 12,
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 10,
   },
 
   flashBanner: {

@@ -1,32 +1,32 @@
 {
- "common": {
-  "appName": "Viral",
-  "ok": "OK",
-  "cancel": "Cancel",
-   "close": "Close",
-  "continue": "Continue",
-  "hide": "Hide",
-  "show": "Show",
-  "save": "Save",
-  "saving": "Saving...",
-  "loading": "Loading...",
-  "warning": "Warning",
-  "error": "Error",
-  "success": "Success"
-},
-"onboarding": {
-  "language": {
-    "title": "Select Language",
-    "subtitle": "Choose your language to continue",
-    "hint": "You can change language later from Profile screen."
+  "common": {
+    "appName": "Viral",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "continue": "Continue",
+    "hide": "Hide",
+    "show": "Show",
+    "save": "Save",
+    "saving": "Saving...",
+    "loading": "Loading...",
+    "warning": "Warning",
+    "error": "Error",
+    "success": "Success"
   },
-  "buttons": {
-    "skip": "Skip",
-    "next": "Next",
-    "start": "Start"
-  }
-},
-    "profile": {
+  "onboarding": {
+    "language": {
+      "title": "Select Language",
+      "subtitle": "Choose your language to continue",
+      "hint": "You can change language later from Profile screen."
+    },
+    "buttons": {
+      "skip": "Skip",
+      "next": "Next",
+      "start": "Start"
+    }
+  },
+  "profile": {
     "title": "Profile",
     "languageButton": "Language",
     "languageHint": "Choose app language",
@@ -58,7 +58,8 @@
       "passwordRequired": "Password and confirmation are required.",
       "passwordMismatch": "Password and confirmation must match.",
       "saveFailed": "Profile could not be updated.",
-      "saveSuccess": "Your profile information has been updated."
+      "saveSuccess": "Your profile information has been updated.",
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
     },
     "verify": {
       "sectionTitle": "Phone verification",
@@ -122,7 +123,8 @@
       "hintConnected": "You can remove this account from Viral or update its connection.",
       "hintDisconnected": "To connect this account to Viral, enter the profile or page URL.",
       "linkPlaceholder": "https://...",
-      "removeButton": "Remove account"
+      "removeButton": "Remove account",
+      "enterLink": "First enter the link of the account you want to connect."
     },
     "feedStats": {
       "sectionTitle": "Feed statistics",
@@ -150,7 +152,18 @@
     "section": {
       "hide": "Hide",
       "show": "Show"
-    }
+    },
+    "delete": {
+      "title": "Delete Account",
+      "confirmBody": "This action cannot be undone. Do you want to continue?",
+      "finalTitle": "Final Confirmation",
+      "finalBody": "Your account will be permanently deleted.",
+      "action": "Delete Account",
+      "failed": "Account could not be deleted.",
+      "success": "Your account has been deleted.",
+      "unexpected": "Something went wrong."
+    },
+    "notLoggedIn": "No active session found."
   },
   "upload": {
     "screenTitleTask": "Create task card",
@@ -468,28 +481,22 @@
     }
   },
   "sharePanel": {
-  "title": "Share",
-  "shareTitle": "Share",
-
-  "infoText": "You can share on external platforms using your connected accounts. Platforms may open their own share screens.",
-  "shareBody": "You can share on external platforms using your connected accounts.",
-
-  "noAccounts": "You haven't connected any accounts yet.\nPlease connect accounts before sharing.",
-  "connectButton": "Connect Accounts",
-  "cancel": "Cancel",
-
-  "shareAll": "Share on all accounts",
-  "shareAllButton": "Share on all accounts",
-
-  "connectFallbackTitle": "Connect your accounts",
-  "connectFallbackBody": "You can add external accounts from the \"Connect Accounts\" section in your profile.",
-
-  "infoTitle": "About external sharing",
-  "infoBody": "You see a summary below to share cards created on Viral to your connected accounts. In this version, sharing is informational; you must open the relevant app for actual sharing.",
-
-  "shareAllTitle": "Share on all accounts",
-  "shareAllBody": "We assume you shared on your connected accounts. Sharing is simulated in this version."
-},
+    "title": "Share",
+    "shareTitle": "Share",
+    "infoText": "You can share on external platforms using your connected accounts. Platforms may open their own share screens.",
+    "shareBody": "You can share on external platforms using your connected accounts.",
+    "noAccounts": "You haven't connected any accounts yet.\nPlease connect accounts before sharing.",
+    "connectButton": "Connect Accounts",
+    "cancel": "Cancel",
+    "shareAll": "Share on all accounts",
+    "shareAllButton": "Share on all accounts",
+    "connectFallbackTitle": "Connect your accounts",
+    "connectFallbackBody": "You can add external accounts from the \"Connect Accounts\" section in your profile.",
+    "infoTitle": "About external sharing",
+    "infoBody": "You see a summary below to share cards created on Viral to your connected accounts. In this version, sharing is informational; you must open the relevant app for actual sharing.",
+    "shareAllTitle": "Share on all accounts",
+    "shareAllBody": "We assume you shared on your connected accounts. Sharing is simulated in this version."
+  },
   "share": {
     "requireAccounts": {
       "title": "Connect your accounts",
@@ -534,10 +541,10 @@
     },
     "badges": {
       "taskCard": "Task card"
-     },
-     "external": {
-    "badge": "External share"
-     },
+    },
+    "external": {
+      "badge": "External share"
+    },
     "labels": {
       "descriptionPrefix": "Description:"
     },
@@ -594,7 +601,9 @@
       "stateClosed": "turned off",
       "stateOpened": "turned on",
       "close": "Close",
-      "addedComment": "You added a comment to the post titled “{{title}}”."
+      "addedComment": "You added a comment to the post titled “{{title}}”.",
+      "reported": "You reported the post “{{title}}”.",
+      "blocked": "You blocked {{author}}."
     },
     "freeVideo": {
       "title": "Video",
@@ -602,21 +611,37 @@
       "delete": "Delete video"
     },
     "postActions": {
-  "title": "Post actions",
-  "message": "What would you like to do with this post?",
-  "archive": "Archive card",
-  "delete": "Delete card",
-  "noPermission": "This card isn't yours. You can't delete it."
-  },
+      "title": "Post actions",
+      "message": "What would you like to do with this post?",
+      "archive": "Archive card",
+      "delete": "Delete card",
+      "noPermission": "This card isn't yours. You can't delete it.",
+      "report": "Report",
+      "blockUser": "Block User"
+    },
     "time": {
       "justNow": "just now",
       "minutesAgo": "{{count}} min ago",
       "hoursAgo": "{{count}} h ago",
       "yesterday": "yesterday",
       "daysAgo": "{{count}} day(s) ago"
+    },
+    "report": {
+      "successTitle": "Report received",
+      "successMessage": "This post has been reported for review.",
+      "errorMessage": "Report could not be sent. Please try again."
+    },
+    "block": {
+      "userFallback": "this user",
+      "confirmTitle": "Block user",
+      "confirmMessage": "{{author}} will no longer appear in your feed.",
+      "confirmButton": "Block",
+      "successTitle": "User blocked",
+      "successMessage": "Posts from this user will no longer appear in your feed.",
+      "errorMessage": "User could not be blocked. Please try again."
     }
   },
-      "common__dup": {
+  "common__dup": {
     "warning": "Warning",
     "error": "Error",
     "success": "Success",
@@ -628,138 +653,137 @@
     "loading": "Loading..."
   },
   "auth": {
-  "switch": {
-    "title": "Switch user",
-    "body": "Fields will be cleared. Email/phone + password are required to sign in."
+    "switch": {
+      "title": "Switch user",
+      "body": "Fields will be cleared. Email/phone + password are required to sign in."
+    },
+    "welcome": {
+      "title": "Welcome 👋",
+      "subtitle": "Registration form for real users."
+    },
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Sign in with your email/phone and password.",
+      "identifierPlaceholder": "Email or Phone",
+      "passwordPlaceholder": "Your password",
+      "loginButton": "Sign in",
+      "loading": "Signing in...",
+      "forgotPassword": "Forgot password?",
+      "newHere": "New here? Create an account",
+      "haveAccount": "Already have an account? Sign in",
+      "switchUser": "Switch user",
+      "backToLogin": "← Back to login"
+    },
+    "register": {
+      "subtitle": "Registration form for real users.",
+      "fullNameLabel": "Full name",
+      "fullNamePlaceholder": "Full name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "example@mail.com",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "5xx xxx xx xx",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Your password",
+      "passwordConfirmLabel": "Password (confirm)",
+      "passwordConfirmPlaceholder": "Confirm password",
+      "passwordHint": "Password must be at least 8 characters and include upper/lowercase letters, a number, and a symbol.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account? Sign in",
+      "cta": "Already have an account? Sign in"
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "subtitle": "You can receive a verification code using your registered email address or phone number.",
+      "email": "Email",
+      "phone": "Phone",
+      "channelEmail": "Email",
+      "channelPhone": "Phone",
+      "emailPlaceholder": "Your registered email address",
+      "sendCode": "Send verification code",
+      "verifyTitle": "Verify code",
+      "verifySubtitle": "Enter the verification code and your new password.",
+      "codePlaceholder": "Verification code",
+      "newPasswordPlaceholder": "New password",
+      "newPasswordConfirmPlaceholder": "New password (confirm)",
+      "updateButton": "Update password",
+      "backToLogin": "← Back to login"
+    }
   },
-  "welcome": {
-    "title": "Welcome 👋",
-    "subtitle": "Registration form for real users."
-  },
-  "login": {
-    "title": "Sign in",
-    "subtitle": "Sign in with your email/phone and password.",
-    "identifierPlaceholder": "Email or Phone",
-    "passwordPlaceholder": "Your password",
-    "loginButton": "Sign in",
-    "loading": "Signing in...",
-    "forgotPassword": "Forgot password?",
-    "newHere": "New here? Create an account",
-    "haveAccount": "Already have an account? Sign in",
-    "switchUser": "Switch user",
-    "backToLogin": "← Back to login"
-   },
-  "register": {
-    "subtitle": "Registration form for real users.",
-    "fullNameLabel": "Full name",
-    "fullNamePlaceholder": "Full name",
-    "emailLabel": "Email",
-    "emailPlaceholder": "example@mail.com",
-    "phoneLabel": "Phone",
-    "phonePlaceholder": "5xx xxx xx xx",
-    "passwordLabel": "Password",
-    "passwordPlaceholder": "Your password",
-    "passwordConfirmLabel": "Password (confirm)",
-    "passwordConfirmPlaceholder": "Confirm password",
-    "passwordHint": "Password must be at least 8 characters and include upper/lowercase letters, a number, and a symbol.",
-    "submit": "Create account",
-    "haveAccount": "Already have an account? Sign in",
-    "cta": "Already have an account? Sign in"
-  },
-  "forgot": {
-    "title": "Forgot password",
-    "subtitle": "You can receive a verification code using your registered email address or phone number.",
-    "email": "Email",
-    "phone": "Phone",
-    "channelEmail": "Email",
-    "channelPhone": "Phone",
-    "emailPlaceholder": "Your registered email address",
-    "sendCode": "Send verification code",
-    "verifyTitle": "Verify code",
-    "verifySubtitle": "Enter the verification code and your new password.",
-    "codePlaceholder": "Verification code",
-    "newPasswordPlaceholder": "New password",
-    "newPasswordConfirmPlaceholder": "New password (confirm)",
-    "updateButton": "Update password",
-    "backToLogin": "← Back to login"
+  "focusNetwork": {
+    "title": "Focus Network",
+    "subtitle": "Here you only see posts from people you selected.",
+    "tabs": {
+      "network": "My Network",
+      "discover": "Discover",
+      "requests": "Requests"
+    },
+    "search": {
+      "networkPlaceholder": "Search your network (@user, name)...",
+      "discoverPlaceholder": "Discover: @handle / name / email / phone...",
+      "requestsPlaceholder": "Search requests..."
+    },
+    "sections": {
+      "network": "My Network",
+      "discover": "Discover",
+      "incomingRequests": "Incoming requests"
+    },
+    "count": {
+      "people": "{{count}} people",
+      "requests": "{{count}} requests"
+    },
+    "summary": {
+      "inNetwork": "In focus network.",
+      "alreadyInNetwork": "Already in your network.",
+      "incomingRequest": "Sent you a request.",
+      "outgoingPending": "Request sent (pending).",
+      "discoverFallback": "Add from the discover list.",
+      "requestPending": "Friend request is pending."
+    },
+    "actions": {
+      "detail": "Details",
+      "accept": "Accept",
+      "decline": "Decline",
+      "sendRequest": "Send request",
+      "addPerson": "Add person",
+      "removeFromNetwork": "Remove from network",
+      "inMyNetwork": "In my network",
+      "pending": "Pending",
+      "requestExists": "Request exists"
+    },
+    "banner": {
+      "newRequestTitle": "New connection request",
+      "newRequestBody": "{{count}} new requests. Tap to view."
+    },
+    "empty": {
+      "noSearchMatch": "No matching person found.",
+      "noResults": "No results right now.",
+      "noPendingRequests": "No pending requests."
+    },
+    "note": {
+      "backendDiscover": "Note: The discover list comes from the backend. If there is no connection, results may not update."
+    },
+    "detail": {
+      "rule1": "• Friendship system: send request → other side accepts.",
+      "rule2": "• No forced connection. Everything proceeds with approval.",
+      "rule3": "• If there is no connection, actions may fail."
+    },
+    "alerts": {
+      "loginRequiredTitle": "Login required",
+      "loginRequiredBody": "A user session is required for this action.",
+      "alreadyInNetworkTitle": "Already in your network",
+      "alreadyInNetworkBody": "This person is already in your Focus Network.",
+      "pendingTitle": "Pending",
+      "pendingBody": "You already sent a request to this person. Wait for them to accept it.",
+      "requestExistsTitle": "Request exists",
+      "requestExistsBody": "This person has already sent you a request. You can accept it from the “Requests” tab.",
+      "actionFailedWithConnection": "Action failed. (Connection?)",
+      "declineFailed": "Decline action failed.",
+      "requestSendFailed": "Request could not be sent. (Connection?)",
+      "acceptFailed": "Could not accept. (Connection?)"
+    },
+    "net": {
+      "invalidBaseUrl": "API_BASE_URL seems invalid.",
+      "onlineFetchError": "Focus Network online fetch error"
+    }
   }
- },
- "focusNetwork": {
-  "title": "Focus Network",
-  "subtitle": "Here you only see posts from people you selected.",
-  "tabs": {
-    "network": "My Network",
-    "discover": "Discover",
-    "requests": "Requests"
-  },
-  "search": {
-    "networkPlaceholder": "Search your network (@user, name)...",
-    "discoverPlaceholder": "Discover: @handle / name / email / phone...",
-    "requestsPlaceholder": "Search requests..."
-  },
-  "sections": {
-    "network": "My Network",
-    "discover": "Discover",
-    "incomingRequests": "Incoming requests"
-  },
-  "count": {
-    "people": "{{count}} people",
-    "requests": "{{count}} requests"
-  },
-  "summary": {
-    "inNetwork": "In focus network.",
-    "alreadyInNetwork": "Already in your network.",
-    "incomingRequest": "Sent you a request.",
-    "outgoingPending": "Request sent (pending).",
-    "discoverFallback": "Add from the discover list.",
-    "requestPending": "Friend request is pending."
-  },
-  "actions": {
-    "detail": "Details",
-    "accept": "Accept",
-    "decline": "Decline",
-    "sendRequest": "Send request",
-    "addPerson": "Add person",
-    "removeFromNetwork": "Remove from network",
-    "inMyNetwork": "In my network",
-    "pending": "Pending",
-    "requestExists": "Request exists"
-  },
-  "banner": {
-    "newRequestTitle": "New connection request",
-    "newRequestBody": "{{count}} new requests. Tap to view."
-  },
-  "empty": {
-    "noSearchMatch": "No matching person found.",
-    "noResults": "No results right now.",
-    "noPendingRequests": "No pending requests."
-  },
-  "note": {
-    "backendDiscover": "Note: The discover list comes from the backend. If there is no connection, results may not update."
-  },
-  "detail": {
-    "rule1": "• Friendship system: send request → other side accepts.",
-    "rule2": "• No forced connection. Everything proceeds with approval.",
-    "rule3": "• If there is no connection, actions may fail."
-  },
-  "alerts": {
-    "loginRequiredTitle": "Login required",
-    "loginRequiredBody": "A user session is required for this action.",
-    "alreadyInNetworkTitle": "Already in your network",
-    "alreadyInNetworkBody": "This person is already in your Focus Network.",
-    "pendingTitle": "Pending",
-    "pendingBody": "You already sent a request to this person. Wait for them to accept it.",
-    "requestExistsTitle": "Request exists",
-    "requestExistsBody": "This person has already sent you a request. You can accept it from the “Requests” tab.",
-    "actionFailedWithConnection": "Action failed. (Connection?)",
-    "declineFailed": "Decline action failed.",
-    "requestSendFailed": "Request could not be sent. (Connection?)",
-    "acceptFailed": "Could not accept. (Connection?)"
-  },
-  "net": {
-    "invalidBaseUrl": "API_BASE_URL seems invalid.",
-    "onlineFetchError": "Focus Network online fetch error"
-  }
- }
 }
-

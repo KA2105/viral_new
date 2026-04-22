@@ -1876,27 +1876,7 @@ export default function FeedScreen({ go }: Props) {
   };
 
   const handleFreeVideoActions = (post: Post) => {
-    const anyP: any = post as any;
-
-    const isMinePost =
-      anyP.ownerId === userId ||
-      anyP.userId === userId ||
-      anyP.authorId === userId ||
-      (anyP.author && (anyP.author === displayName || (fullNameStr && anyP.author === fullNameStr)));
-
-    if (!isExternalLocal(post) && !isMinePost) {
-      Alert.alert(
-        t('feed.freeVideo.title', 'Video'),
-        t('feed.postActions.noPermission', 'Bu kart sana ait değil. Silemezsin.'),
-        [{ text: t('common.cancel', 'İptal'), style: 'cancel' }],
-      );
-      return;
-    }
-
-    Alert.alert(t('feed.freeVideo.title', 'Video'), t('feed.freeVideo.message', 'Bu videoyla ne yapmak istersin?'), [
-      { text: t('feed.freeVideo.delete', 'Videoyu sil'), style: 'destructive', onPress: () => safeRemove(post) },
-      { text: t('common.cancel', 'İptal'), style: 'cancel' },
-    ]);
+    handlePostLongPress(post);
   };
 
   const handleOpenDetail = (post: Post) => {
@@ -2263,7 +2243,10 @@ const renderFullPostCard = (
 
           <Pressable
             style={({ pressed }) => [styles.freeVideoMenuBtn, pressed && styles.freeVideoMenuBtnPressed]}
-            onPress={() => handleFreeVideoActions(base)}
+            onPress={(e: any) => {
+              e?.stopPropagation?.();
+              handleFreeVideoActions(base);
+            }}
           >
             <Text style={styles.freeVideoMenuIcon}>⋯</Text>
           </Pressable>
@@ -2458,9 +2441,22 @@ const renderFullPostCard = (
             </Text>
           )}
         </View>
-        <Text style={styles.time} numberOfLines={1}>
-          {getTimeLabel(base)}
-        </Text>
+
+        <View style={styles.cardHeaderRight}>
+          <Text style={styles.time} numberOfLines={1}>
+            {getTimeLabel(base)}
+          </Text>
+
+          <Pressable
+            style={({ pressed }) => [styles.freeVideoMenuBtn, pressed && styles.freeVideoMenuBtnPressed]}
+            onPress={(e: any) => {
+              e?.stopPropagation?.();
+              handlePostLongPress(base);
+            }}
+          >
+            <Text style={styles.freeVideoMenuIcon}>⋯</Text>
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.cardAuthorRow}>
@@ -2709,6 +2705,16 @@ const renderItem = ({ item }: ListRenderItemInfo<Post>) => {
               </Text>
               <Text style={styles.freeVideoTimeText}>{getTimeLabel(item)}</Text>
             </View>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.freeVideoMenuBtn, pressed && styles.freeVideoMenuBtnPressed]}
+            onPress={(e: any) => {
+              e?.stopPropagation?.();
+              handlePostLongPress(item);
+            }}
+          >
+            <Text style={styles.freeVideoMenuIcon}>⋯</Text>
           </Pressable>
         </View>
 

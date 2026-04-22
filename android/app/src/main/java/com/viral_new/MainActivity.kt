@@ -1,9 +1,13 @@
 package com.viral_new
 
 import android.content.Intent
+import android.content.IntentSender.SendIntentException
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.ReactApplication
@@ -13,12 +17,26 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.google.android.play.core.appupdate.AppUpdateInfo
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.UpdateAvailability
 import java.util.ArrayList
 
 class MainActivity : ReactActivity() {
 
   // ✅ RN hazır değilken kaçırmamak için
   private var pendingSharePayload: WritableMap? = null
+
+  // ✅ Google Play In-App Update
+  private lateinit var appUpdateManager: AppUpdateManager
+
+  private val updateLauncher =
+    registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {
+      Log.d("InAppUpdate", "Update flow resultCode=${it.resultCode}")
+    }
 
   override fun getMainComponentName(): String = "viral_new"
 
@@ -27,6 +45,10 @@ class MainActivity : ReactActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+    appUpdateManager = AppUpdateManagerFactory.create(this)
+    checkForAppUpdate()
+
     handleIncomingShareIntent(intent)
   }
 
@@ -38,6 +60,19 @@ class MainActivity : ReactActivity() {
 
   override fun onResume() {
     super.onResume()
+
+    appUpdateManager.appUpdateInfo
+      .addOnSuccessListener { appUpdateInfo ->
+        if (appUpdateInfo.updateAvailability() ==
+          UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS
+        ) {
+          startImmediateUpdate(appUpdateInfo)
+        }
+      }
+      .addOnFailureListener {
+        Log.w("InAppUpdate", "Resume check failed", it)
+      }
+
     val p = pendingSharePayload
     if (p != null) {
       if (emitToReactNative(p)) {
@@ -45,6 +80,36 @@ class MainActivity : ReactActivity() {
         // ✅ aynı intent tekrar tekrar işlenmesin
         try { intent?.replaceExtras(Bundle()) } catch (_: Exception) {}
       }
+    }
+  }
+
+  private fun checkForAppUpdate() {
+    appUpdateManager.appUpdateInfo
+      .addOnSuccessListener { appUpdateInfo ->
+        val isUpdateAvailable =
+          appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+
+        val isImmediateAllowed =
+          appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+
+        if (isUpdateAvailable && isImmediateAllowed) {
+          startImmediateUpdate(appUpdateInfo)
+        }
+      }
+      .addOnFailureListener {
+        Log.w("InAppUpdate", "Update check failed", it)
+      }
+  }
+
+  private fun startImmediateUpdate(appUpdateInfo: AppUpdateInfo) {
+    try {
+      appUpdateManager.startUpdateFlowForResult(
+        appUpdateInfo,
+        updateLauncher,
+        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+      )
+    } catch (e: SendIntentException) {
+      Log.e("InAppUpdate", "Cannot start update flow", e)
     }
   }
 

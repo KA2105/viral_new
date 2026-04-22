@@ -446,6 +446,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
 
         <Text style={styles.authLabel}>{t('auth.register.fullNameLabel', 'Ad Soyad')}</Text>
         <TextInput
+          cursorColor="#111"
           placeholder={t('auth.register.fullNamePlaceholder', 'Ad Soyad')}
           placeholderTextColor="#999"
           value={regFullName}
@@ -455,6 +456,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
 
         <Text style={styles.authLabel}>{t('auth.register.emailLabel', 'E-posta')}</Text>
         <TextInput
+          cursorColor="#111"
           placeholder={t('auth.register.emailPlaceholder', 'ornek@mail.com')}
           placeholderTextColor="#999"
           value={regEmail}
@@ -470,6 +472,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
             <Text style={styles.authCountryCodeText}>+90</Text>
           </View>
           <TextInput
+          cursorColor="#111"
             placeholder={t('auth.register.phonePlaceholder', '5xx xxx xx xx')}
             placeholderTextColor="#999"
             value={regPhone}
@@ -486,6 +489,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         <Text style={styles.authLabel}>{t('auth.register.passwordLabel', 'Şifre')}</Text>
         <View style={styles.authPasswordRow}>
           <TextInput
+          cursorColor="#111"
             placeholder={t('auth.register.passwordPlaceholder', 'Şifren')}
             placeholderTextColor="#999"
             value={regPassword}
@@ -512,6 +516,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         </Text>
         <View style={styles.authPasswordRow}>
           <TextInput
+          cursorColor="#111"
             placeholder={t('auth.register.passwordConfirmPlaceholder', 'Şifre tekrar')}
             placeholderTextColor="#999"
             value={regPasswordConfirm}
@@ -627,6 +632,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         </View>
 
         <TextInput
+          cursorColor="#111"
           placeholder={
             resetChannel === 'email'
               ? t('auth.forgot.emailPlaceholder', 'Kayıtlı e-posta adresin')
@@ -686,6 +692,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
         </Text>
 
         <TextInput
+          cursorColor="#111"
           placeholder={t('auth.forgot.codePlaceholder', 'Doğrulama kodu')}
           placeholderTextColor="#999"
           value={resetCodeInput}
@@ -697,6 +704,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
 
         <View style={styles.authPasswordRow}>
           <TextInput
+          cursorColor="#111"
             placeholder={t('auth.forgot.newPasswordPlaceholder', 'Yeni şifre')}
             placeholderTextColor="#999"
             value={resetNewPassword}
@@ -716,6 +724,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
 
         <View style={styles.authPasswordRow}>
           <TextInput
+          cursorColor="#111"
             placeholder={t('auth.forgot.newPasswordConfirmPlaceholder', 'Yeni şifre (tekrar)')}
             placeholderTextColor="#999"
             value={resetNewPasswordConfirm}
@@ -778,6 +787,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
       </Text>
 
       <TextInput
+          cursorColor="#111"
         placeholder={t('auth.login.identifierPlaceholder', 'E-posta veya Telefon')}
         placeholderTextColor="#999"
         value={loginIdentifier}
@@ -788,6 +798,7 @@ function AuthScreen({ onAuthed }: AuthScreenProps) {
 
       <View style={styles.authPasswordRow}>
         <TextInput
+          cursorColor="#111"
           placeholder={t('auth.login.passwordPlaceholder', 'Şifren')}
           placeholderTextColor="#999"
           value={loginPassword}
@@ -965,7 +976,7 @@ const TERMS_ACCEPTED_KEY = 'viral.termsAccepted.v1'; // "1" | ""
 const PENDING_SHARE_TO_FEED_KEY = 'viral.pendingShareToFeed';
 
 
-const CURRENT_APP_VERSION = '0.0.1';
+const CURRENT_APP_VERSION = '1.0.17';
 const DEFAULT_ANDROID_STORE_URL = 'https://play.google.com/store/apps/details?id=com.viral_new';
 const DEFAULT_IOS_STORE_URL = 'https://apps.apple.com/';
 
@@ -1254,6 +1265,23 @@ const App: React.FC = () => {
         console.warn('[App] viral_force_auth set FORCE_AUTH_KEY failed:', e);
       } finally {
         setForceAuth(true);
+        setCurrentScreen('Feed');
+      }
+    });
+
+    return () => sub.remove();
+  }, []);
+
+  // ✅ EK: Hesap silme / hard logout sonrası direkt auth ekranına dön
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('forceLogout', async (_payload: any) => {
+      try {
+        await AsyncStorage.setItem(FORCE_AUTH_KEY, '1');
+      } catch (e) {
+        console.warn('[App] forceLogout set FORCE_AUTH_KEY failed:', e);
+      } finally {
+        setForceAuth(true);
+        setCurrentScreen('Feed');
       }
     });
 
@@ -1458,6 +1486,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
     backgroundColor: '#fff',
+    color: '#111',
     marginBottom: 8,
   },
   authButton: {

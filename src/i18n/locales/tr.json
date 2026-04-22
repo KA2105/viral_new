@@ -1,32 +1,32 @@
 {
   "common": {
-  "appName": "Viral",
-  "ok": "Tamam",
-  "cancel": "Vazgeç",
-  "close": "Kapat",
-  "continue": "Devam",
-  "hide": "Gizle",
-  "show": "Göster",
-  "save": "Kaydet",
-  "saving": "Kaydediliyor...",
-  "loading": "Yükleniyor...",
-  "warning": "Uyarı",
-  "error": "Hata",
-  "success": "Başarılı"
-},
-"onboarding": {
-  "language": {
-    "title": "Dil Seç",
-    "subtitle": "Devam etmek için dilini seç",
-    "hint": "Dili daha sonra Profil ekranından değiştirebilirsin."
+    "appName": "Viral",
+    "ok": "Tamam",
+    "cancel": "Vazgeç",
+    "close": "Kapat",
+    "continue": "Devam",
+    "hide": "Gizle",
+    "show": "Göster",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
+    "loading": "Yükleniyor...",
+    "warning": "Uyarı",
+    "error": "Hata",
+    "success": "Başarılı"
   },
-  "buttons": {
-    "skip": "Atla",
-    "next": "İleri",
-    "start": "Başla"
-  }
-},
-   "profile": {
+  "onboarding": {
+    "language": {
+      "title": "Dil Seç",
+      "subtitle": "Devam etmek için dilini seç",
+      "hint": "Dili daha sonra Profil ekranından değiştirebilirsin."
+    },
+    "buttons": {
+      "skip": "Atla",
+      "next": "İleri",
+      "start": "Başla"
+    }
+  },
+  "profile": {
     "title": "Profil",
     "languageButton": "Dil",
     "languageHint": "Uygulama dilini seç",
@@ -58,7 +58,8 @@
       "passwordRequired": "Şifre ve tekrarı zorunludur.",
       "passwordMismatch": "Şifre ve tekrarı aynı olmalıdır.",
       "saveFailed": "Profil güncellenemedi.",
-      "saveSuccess": "Profil bilgileriniz güncellendi."      
+      "saveSuccess": "Profil bilgileriniz güncellendi.",
+      "savedLocalButBackendFailed": "Profil kaydedildi fakat sunucuya yazılamadı."
     },
     "verify": {
       "sectionTitle": "Telefon doğrulama",
@@ -122,7 +123,8 @@
       "hintConnected": "Bu hesabı Viral'den kaldırabilir veya bağlantısını güncelleyebilirsin.",
       "hintDisconnected": "Bu hesabı Viral'e bağlamak için profil veya sayfa bağlantısını gir.",
       "linkPlaceholder": "https://...",
-      "removeButton": "Hesabı kaldır"
+      "removeButton": "Hesabı kaldır",
+      "enterLink": "Önce bağlamak istediğin hesabın linkini gir."
     },
     "feedStats": {
       "sectionTitle": "Akış istatistikleri",
@@ -150,7 +152,18 @@
     "section": {
       "hide": "Gizle",
       "show": "Göster"
-    }
+    },
+    "delete": {
+      "title": "Hesabı Sil",
+      "confirmBody": "Bu işlem geri alınamaz. Devam etmek istiyor musun?",
+      "finalTitle": "Son Onay",
+      "finalBody": "Hesabın kalıcı olarak silinecek.",
+      "action": "Hesabı Sil",
+      "failed": "Hesap silinemedi.",
+      "success": "Hesabın silindi.",
+      "unexpected": "Bir sorun oluştu."
+    },
+    "notLoggedIn": "Oturum bulunamadı."
   },
   "upload": {
     "screenTitleTask": "Görev kartı oluştur",
@@ -467,29 +480,23 @@
       "alertBody": "Pro özellikleri için planlama aşamasındasın. Uygulama yayına yaklaşınca detayları netleştirirsin. 🚀"
     }
   },
- "sharePanel": {
-  "title": "Paylaşım",
-  "shareTitle": "Paylaşım",
-
-  "infoText": "Bağlı hesaplarını kullanarak Viral dışındaki platformlarda paylaşım yapabilirsin. Platformlar kendi paylaşım ekranlarını açabilir.",
-  "shareBody": "Bağlı hesaplarını kullanarak Viral dışındaki platformlarda paylaşım yapabilirsin.",
-
-  "noAccounts": "Henüz hiçbir hesabın bağlı değil.\nPaylaşım için önce hesaplarını bağlamalısın.",
-  "connectButton": "Hesaplarımı Bağla",
-  "cancel": "Vazgeç",
-
-  "shareAll": "Tüm hesaplarda paylaş",
-  "shareAllButton": "Tüm hesaplarda paylaş",
-
-  "connectFallbackTitle": "Hesaplarını bağla",
-  "connectFallbackBody": "Profil ekranındaki \"Hesaplarımı Bağla\" bölümünden dış hesaplarını ekleyebilirsin.",
-
-  "infoTitle": "Dış hesaplarda paylaşım hakkında",
-  "infoBody": "Viral’de oluşturduğun kartları, bağladığın hesaplarda da paylaşabilmen için alt tarafta bir özet görüyorsun. Bu sürümde paylaşım adımı bilgi amaçlıdır; gerçek paylaşım için ilgili uygulamayı açman gerekir.",
-
-  "shareAllTitle": "Tüm hesaplarda paylaş",
-  "shareAllBody": "Bağlı hesapların üzerinde bir paylaşım yaptığını varsayıyoruz. Bu sürümde paylaşım simülasyon olarak işleniyor."
-},
+  "sharePanel": {
+    "title": "Paylaşım",
+    "shareTitle": "Paylaşım",
+    "infoText": "Bağlı hesaplarını kullanarak Viral dışındaki platformlarda paylaşım yapabilirsin. Platformlar kendi paylaşım ekranlarını açabilir.",
+    "shareBody": "Bağlı hesaplarını kullanarak Viral dışındaki platformlarda paylaşım yapabilirsin.",
+    "noAccounts": "Henüz hiçbir hesabın bağlı değil.\nPaylaşım için önce hesaplarını bağlamalısın.",
+    "connectButton": "Hesaplarımı Bağla",
+    "cancel": "Vazgeç",
+    "shareAll": "Tüm hesaplarda paylaş",
+    "shareAllButton": "Tüm hesaplarda paylaş",
+    "connectFallbackTitle": "Hesaplarını bağla",
+    "connectFallbackBody": "Profil ekranındaki \"Hesaplarımı Bağla\" bölümünden dış hesaplarını ekleyebilirsin.",
+    "infoTitle": "Dış hesaplarda paylaşım hakkında",
+    "infoBody": "Viral’de oluşturduğun kartları, bağladığın hesaplarda da paylaşabilmen için alt tarafta bir özet görüyorsun. Bu sürümde paylaşım adımı bilgi amaçlıdır; gerçek paylaşım için ilgili uygulamayı açman gerekir.",
+    "shareAllTitle": "Tüm hesaplarda paylaş",
+    "shareAllBody": "Bağlı hesapların üzerinde bir paylaşım yaptığını varsayıyoruz. Bu sürümde paylaşım simülasyon olarak işleniyor."
+  },
   "share": {
     "requireAccounts": {
       "title": "Hesaplarını bağla",
@@ -534,10 +541,10 @@
     },
     "badges": {
       "taskCard": "Görev kartı"
-     },
-     "external": {
-    "badge": "Dış paylaşım"
-     },     
+    },
+    "external": {
+      "badge": "Dış paylaşım"
+    },
     "labels": {
       "descriptionPrefix": "Açıklama:"
     },
@@ -594,29 +601,47 @@
       "stateClosed": "kapattın",
       "stateOpened": "açtın",
       "close": "Kapat",
-      "addedComment": "“{{title}}” adlı gönderiye bir yorum ekledin."
+      "addedComment": "“{{title}}” adlı gönderiye bir yorum ekledin.",
+      "reported": "“{{title}}” gönderisini şikayet ettin.",
+      "blocked": "{{author}} kullanıcısını engelledin."
     },
     "freeVideo": {
       "title": "Video",
       "message": "Bu video ile ne yapmak istiyorsun?",
       "delete": "Videoyu sil"
     },
-"postActions": {
-  "title": "Gönderi işlemleri",
-  "message": "Bu gönderi için ne yapmak istersin?",
-  "archive": "Kartı arşivle",
-  "delete": "Kartı sil",
-  "noPermission": "Bu kart sana ait değil. Silemezsin."
-   },
+    "postActions": {
+      "title": "Gönderi işlemleri",
+      "message": "Bu gönderi için ne yapmak istersin?",
+      "archive": "Kartı arşivle",
+      "delete": "Kartı sil",
+      "noPermission": "Bu kart sana ait değil. Silemezsin.",
+      "report": "Şikayet Et",
+      "blockUser": "Kullanıcıyı Engelle"
+    },
     "time": {
       "justNow": "az önce",
       "minutesAgo": "{{count}} dk önce",
       "hoursAgo": "{{count}} sa önce",
       "yesterday": "dün",
       "daysAgo": "{{count}} gün önce"
+    },
+    "report": {
+      "successTitle": "Şikayet alındı",
+      "successMessage": "Bu gönderi incelenmek üzere şikayet edildi.",
+      "errorMessage": "Şikayet gönderilemedi. Lütfen tekrar dene."
+    },
+    "block": {
+      "userFallback": "bu kullanıcı",
+      "confirmTitle": "Kullanıcıyı engelle",
+      "confirmMessage": "{{author}} artık akışında görünmeyecek.",
+      "confirmButton": "Engelle",
+      "successTitle": "Kullanıcı engellendi",
+      "successMessage": "Bu kullanıcıya ait gönderiler artık akışında görünmeyecek.",
+      "errorMessage": "Kullanıcı engellenemedi. Lütfen tekrar dene."
     }
   },
-     "common__dup": {
+  "common__dup": {
     "warning": "Uyarı",
     "error": "Hata",
     "success": "Başarılı",
@@ -628,138 +653,137 @@
     "loading": "Yükleniyor..."
   },
   "auth": {
-  "switch": {
-    "title": "Kullanıcı değiştir",
-    "body": "Alanlar temizlenecek. Giriş için e-posta/telefon + şifre gerekir."
-  }, 
-  "welcome": {
-    "title": "Hoş geldin 👋",
-    "subtitle": "Gerçek kullanıcılar için kayıt formu."
-  },  
-  "login": {
-    "title": "Giriş Yap",
-    "subtitle": "E-posta/telefon ve şifren ile giriş yap.",
-    "identifierPlaceholder": "E-posta veya Telefon",
-    "passwordPlaceholder": "Şifren",
-    "loginButton": "Giriş Yap",
-    "loading": "Giriş...",
-    "forgotPassword": "Şifremi Unuttum",
-    "newHere": "Yeni kullanıcı mısın? Kayıt Ol",
-    "haveAccount": "Zaten hesabın var mı? Giriş Yap",
-    "switchUser": "Kullanıcı değiştir",
-    "backToLogin": "← Giriş ekranına dön"
+    "switch": {
+      "title": "Kullanıcı değiştir",
+      "body": "Alanlar temizlenecek. Giriş için e-posta/telefon + şifre gerekir."
+    },
+    "welcome": {
+      "title": "Hoş geldin 👋",
+      "subtitle": "Gerçek kullanıcılar için kayıt formu."
+    },
+    "login": {
+      "title": "Giriş Yap",
+      "subtitle": "E-posta/telefon ve şifren ile giriş yap.",
+      "identifierPlaceholder": "E-posta veya Telefon",
+      "passwordPlaceholder": "Şifren",
+      "loginButton": "Giriş Yap",
+      "loading": "Giriş...",
+      "forgotPassword": "Şifremi Unuttum",
+      "newHere": "Yeni kullanıcı mısın? Kayıt Ol",
+      "haveAccount": "Zaten hesabın var mı? Giriş Yap",
+      "switchUser": "Kullanıcı değiştir",
+      "backToLogin": "← Giriş ekranına dön"
+    },
+    "register": {
+      "subtitle": "Gerçek kullanıcılar için kayıt formu.",
+      "fullNameLabel": "Ad Soyad",
+      "fullNamePlaceholder": "Ad Soyad",
+      "emailLabel": "E-posta",
+      "emailPlaceholder": "ornek@mail.com",
+      "phoneLabel": "Telefon",
+      "phonePlaceholder": "5xx xxx xx xx",
+      "passwordLabel": "Şifre",
+      "passwordPlaceholder": "Şifren",
+      "passwordConfirmLabel": "Şifre (tekrar)",
+      "passwordConfirmPlaceholder": "Şifre tekrar",
+      "passwordHint": "Şifre en az 8 karakter olmalı; büyük/küçük harf, rakam ve işaret içermeli.",
+      "submit": "Kayıt Ol",
+      "haveAccount": "Zaten hesabın var mı? Giriş Yap",
+      "cta": "Zaten hesabın var mı? Giriş Yap"
+    },
+    "forgot": {
+      "title": "Şifremi Unuttum",
+      "subtitle": "Kayıtlı e-posta adresin veya telefon numaran ile doğrulama kodu alabilirsin.",
+      "email": "E-posta",
+      "phone": "Telefon",
+      "channelEmail": "E-posta",
+      "channelPhone": "Telefon",
+      "emailPlaceholder": "Kayıtlı e-posta adresin",
+      "sendCode": "Doğrulama Kodu Gönder",
+      "verifyTitle": "Kodu Doğrula",
+      "verifySubtitle": "Gelen doğrulama kodunu ve yeni şifreni gir.",
+      "codePlaceholder": "Doğrulama kodu",
+      "newPasswordPlaceholder": "Yeni şifre",
+      "newPasswordConfirmPlaceholder": "Yeni şifre (tekrar)",
+      "updateButton": "Şifreyi Güncelle",
+      "backToLogin": "← Giriş ekranına dön"
+    }
   },
-  "register": {
-    "subtitle": "Gerçek kullanıcılar için kayıt formu.",
-    "fullNameLabel": "Ad Soyad",
-    "fullNamePlaceholder": "Ad Soyad",
-    "emailLabel": "E-posta",
-    "emailPlaceholder": "ornek@mail.com",
-    "phoneLabel": "Telefon",
-    "phonePlaceholder": "5xx xxx xx xx",
-    "passwordLabel": "Şifre",
-    "passwordPlaceholder": "Şifren",
-    "passwordConfirmLabel": "Şifre (tekrar)",
-    "passwordConfirmPlaceholder": "Şifre tekrar",
-    "passwordHint": "Şifre en az 8 karakter olmalı; büyük/küçük harf, rakam ve işaret içermeli.",
-    "submit": "Kayıt Ol",
-    "haveAccount": "Zaten hesabın var mı? Giriş Yap",
-    "cta": "Zaten hesabın var mı? Giriş Yap"
-  },
-  "forgot": {
-    "title": "Şifremi Unuttum",
-    "subtitle": "Kayıtlı e-posta adresin veya telefon numaran ile doğrulama kodu alabilirsin.",
-    "email": "E-posta",
-    "phone": "Telefon",
-    "channelEmail": "E-posta",
-    "channelPhone": "Telefon",
-    "emailPlaceholder": "Kayıtlı e-posta adresin",
-    "sendCode": "Doğrulama Kodu Gönder",
-    "verifyTitle": "Kodu Doğrula",
-    "verifySubtitle": "Gelen doğrulama kodunu ve yeni şifreni gir.",
-    "codePlaceholder": "Doğrulama kodu",
-    "newPasswordPlaceholder": "Yeni şifre",
-    "newPasswordConfirmPlaceholder": "Yeni şifre (tekrar)",
-    "updateButton": "Şifreyi Güncelle",
-    "backToLogin": "← Giriş ekranına dön"
+  "focusNetwork": {
+    "title": "Focus Ağı",
+    "subtitle": "Burada sadece seçtiğin kişilerin gönderilerini görürsün.",
+    "tabs": {
+      "network": "Ağım",
+      "discover": "Keşfet",
+      "requests": "İstekler"
+    },
+    "search": {
+      "networkPlaceholder": "Ağında ara (@kullanıcı, ad)...",
+      "discoverPlaceholder": "Keşfet: @handle / ad / email / telefon...",
+      "requestsPlaceholder": "İsteklerde ara..."
+    },
+    "sections": {
+      "network": "Ağım",
+      "discover": "Keşfet",
+      "incomingRequests": "Gelen istekler"
+    },
+    "count": {
+      "people": "{{count}} kişi",
+      "requests": "{{count}} istek"
+    },
+    "summary": {
+      "inNetwork": "Focus ağında.",
+      "alreadyInNetwork": "Zaten ağında.",
+      "incomingRequest": "Sana istek göndermiş.",
+      "outgoingPending": "İstek gönderildi (beklemede).",
+      "discoverFallback": "Keşfet listesinden ekle.",
+      "requestPending": "Arkadaşlık isteği bekliyor."
+    },
+    "actions": {
+      "detail": "Detay",
+      "accept": "Kabul et",
+      "decline": "Reddet",
+      "sendRequest": "İstek gönder",
+      "addPerson": "Kişi ekle",
+      "removeFromNetwork": "Ağımdan çıkar",
+      "inMyNetwork": "Ağımda",
+      "pending": "Beklemede",
+      "requestExists": "İstek var"
+    },
+    "banner": {
+      "newRequestTitle": "Yeni bağlantı isteği",
+      "newRequestBody": "{{count}} yeni istek var. Görmek için dokun."
+    },
+    "empty": {
+      "noSearchMatch": "Aramana uygun kişi bulunamadı.",
+      "noResults": "Şu anda sonuç yok.",
+      "noPendingRequests": "Bekleyen istek yok."
+    },
+    "note": {
+      "backendDiscover": "Not: Keşfet listesi backend’den gelir. Bağlantı yoksa sonuçlar güncellenmeyebilir."
+    },
+    "detail": {
+      "rule1": "• Arkadaşlık sistemi: istek gönder → karşı taraf kabul eder.",
+      "rule2": "• Zorla bağlama yok. Her şey onaylı ilerler.",
+      "rule3": "• Bağlantı yoksa işlemler başarısız olabilir."
+    },
+    "alerts": {
+      "loginRequiredTitle": "Giriş gerekli",
+      "loginRequiredBody": "Bu işlem için kullanıcı oturumu gerekli.",
+      "alreadyInNetworkTitle": "Zaten ağında",
+      "alreadyInNetworkBody": "Bu kişi zaten Focus ağında.",
+      "pendingTitle": "Beklemede",
+      "pendingBody": "Bu kişiye zaten istek gönderdin. Kabul etmesini bekle.",
+      "requestExistsTitle": "İstek var",
+      "requestExistsBody": "Bu kişi sana istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.",
+      "actionFailedWithConnection": "İşlem başarısız oldu. (Bağlantı?)",
+      "declineFailed": "Reddetme işlemi başarısız oldu.",
+      "requestSendFailed": "İstek gönderilemedi. (Bağlantı?)",
+      "acceptFailed": "Kabul edilemedi. (Bağlantı?)"
+    },
+    "net": {
+      "invalidBaseUrl": "API_BASE_URL geçersiz görünüyor.",
+      "onlineFetchError": "Focus Ağı online fetch hata"
+    }
   }
- },
- "focusNetwork": {
-  "title": "Focus Ağı",
-  "subtitle": "Burada sadece seçtiğin kişilerin gönderilerini görürsün.",
-  "tabs": {
-    "network": "Ağım",
-    "discover": "Keşfet",
-    "requests": "İstekler"
-  },
-  "search": {
-    "networkPlaceholder": "Ağında ara (@kullanıcı, ad)...",
-    "discoverPlaceholder": "Keşfet: @handle / ad / email / telefon...",
-    "requestsPlaceholder": "İsteklerde ara..."
-  },
-  "sections": {
-    "network": "Ağım",
-    "discover": "Keşfet",
-    "incomingRequests": "Gelen istekler"
-  },
-  "count": {
-    "people": "{{count}} kişi",
-    "requests": "{{count}} istek"
-  },
-  "summary": {
-    "inNetwork": "Focus ağında.",
-    "alreadyInNetwork": "Zaten ağında.",
-    "incomingRequest": "Sana istek göndermiş.",
-    "outgoingPending": "İstek gönderildi (beklemede).",
-    "discoverFallback": "Keşfet listesinden ekle.",
-    "requestPending": "Arkadaşlık isteği bekliyor."
-  },
-  "actions": {
-    "detail": "Detay",
-    "accept": "Kabul et",
-    "decline": "Reddet",
-    "sendRequest": "İstek gönder",
-    "addPerson": "Kişi ekle",
-    "removeFromNetwork": "Ağımdan çıkar",
-    "inMyNetwork": "Ağımda",
-    "pending": "Beklemede",
-    "requestExists": "İstek var"
-  },
-  "banner": {
-    "newRequestTitle": "Yeni bağlantı isteği",
-    "newRequestBody": "{{count}} yeni istek var. Görmek için dokun."
-  },
-  "empty": {
-    "noSearchMatch": "Aramana uygun kişi bulunamadı.",
-    "noResults": "Şu anda sonuç yok.",
-    "noPendingRequests": "Bekleyen istek yok."
-  },
-  "note": {
-    "backendDiscover": "Not: Keşfet listesi backend’den gelir. Bağlantı yoksa sonuçlar güncellenmeyebilir."
-  },
-  "detail": {
-    "rule1": "• Arkadaşlık sistemi: istek gönder → karşı taraf kabul eder.",
-    "rule2": "• Zorla bağlama yok. Her şey onaylı ilerler.",
-    "rule3": "• Bağlantı yoksa işlemler başarısız olabilir."
-  },
-  "alerts": {
-    "loginRequiredTitle": "Giriş gerekli",
-    "loginRequiredBody": "Bu işlem için kullanıcı oturumu gerekli.",
-    "alreadyInNetworkTitle": "Zaten ağında",
-    "alreadyInNetworkBody": "Bu kişi zaten Focus ağında.",
-    "pendingTitle": "Beklemede",
-    "pendingBody": "Bu kişiye zaten istek gönderdin. Kabul etmesini bekle.",
-    "requestExistsTitle": "İstek var",
-    "requestExistsBody": "Bu kişi sana istek göndermiş. “İstekler” sekmesinden kabul edebilirsin.",
-    "actionFailedWithConnection": "İşlem başarısız oldu. (Bağlantı?)",
-    "declineFailed": "Reddetme işlemi başarısız oldu.",
-    "requestSendFailed": "İstek gönderilemedi. (Bağlantı?)",
-    "acceptFailed": "Kabul edilemedi. (Bağlantı?)"
-  },
-  "net": {
-    "invalidBaseUrl": "API_BASE_URL geçersiz görünüyor.",
-    "onlineFetchError": "Focus Ağı online fetch hata"
-  }
- }
 }
-

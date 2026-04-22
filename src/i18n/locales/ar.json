@@ -1,31 +1,31 @@
 {
- "common": {
-  "appName": "Viral",
-  "ok": "حسنًا",
-  "cancel": "إلغاء",
-  "close": "إغلاق",
-  "continue": "متابعة",
-  "hide": "إخفاء",
-  "show": "إظهار",
-  "save": "حفظ",
-  "saving": "جارٍ الحفظ...",
-  "loading": "جارٍ التحميل...",
-  "warning": "تحذير",
-  "error": "خطأ",
-  "success": "تمّ"
-},
-"onboarding": {
-  "language": {
-    "title": "اختر اللغة",
-    "subtitle": "اختر لغتك للمتابعة",
-    "hint": "يمكنك تغيير اللغة لاحقًا من شاشة الملف الشخصي."
+  "common": {
+    "appName": "Viral",
+    "ok": "حسنًا",
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "continue": "متابعة",
+    "hide": "إخفاء",
+    "show": "إظهار",
+    "save": "حفظ",
+    "saving": "جارٍ الحفظ...",
+    "loading": "جارٍ التحميل...",
+    "warning": "تحذير",
+    "error": "خطأ",
+    "success": "تمّ"
   },
-  "buttons": {
-    "skip": "تخطي",
-    "next": "التالي",
-    "start": "ابدأ"
-  }
-}, 
+  "onboarding": {
+    "language": {
+      "title": "اختر اللغة",
+      "subtitle": "اختر لغتك للمتابعة",
+      "hint": "يمكنك تغيير اللغة لاحقًا من شاشة الملف الشخصي."
+    },
+    "buttons": {
+      "skip": "تخطي",
+      "next": "التالي",
+      "start": "ابدأ"
+    }
+  },
   "profile": {
     "title": "الملف الشخصي",
     "languageButton": "اللغة",
@@ -50,7 +50,7 @@
     "passwordConfirmPlaceholder": "أعد كتابة كلمة المرور",
     "passwordHint": "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل مع أحرف كبيرة وصغيرة وأرقام ورموز.",
     "logout": "تسجيل الخروج",
-  "loadingProfile": "جارٍ تحميل الملف الشخصي...",
+    "loadingProfile": "جارٍ تحميل الملف الشخصي...",
     "alert": {
       "warning": "تحذير",
       "error": "خطأ",
@@ -58,7 +58,8 @@
       "passwordRequired": "كلمة المرور وتأكيدها مطلوبان.",
       "passwordMismatch": "يجب أن تتطابق كلمة المرور مع التأكيد.",
       "saveFailed": "تعذر تحديث الملف الشخصي.",
-      "saveSuccess": "تم تحديث معلومات ملفك الشخصي."   
+      "saveSuccess": "تم تحديث معلومات ملفك الشخصي.",
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
     },
     "verify": {
       "sectionTitle": "التحقق من الهاتف",
@@ -122,7 +123,8 @@
       "hintConnected": "يمكنك إزالة هذا الحساب من Viral أو تحديث الربط.",
       "hintDisconnected": "لربط هذا الحساب بـ Viral، أدخل رابط الملف الشخصي أو الصفحة.",
       "linkPlaceholder": "https://...",
-      "removeButton": "إزالة الحساب"
+      "removeButton": "إزالة الحساب",
+      "enterLink": "First enter the link of the account you want to connect."
     },
     "feedStats": {
       "sectionTitle": "إحصائيات الخلاصة",
@@ -150,7 +152,18 @@
     "section": {
       "hide": "إخفاء",
       "show": "إظهار"
-    }
+    },
+    "delete": {
+      "title": "Delete Account",
+      "confirmBody": "This action cannot be undone. Do you want to continue?",
+      "finalTitle": "Final Confirmation",
+      "finalBody": "Your account will be permanently deleted.",
+      "action": "Delete Account",
+      "failed": "Account could not be deleted.",
+      "success": "Your account has been deleted.",
+      "unexpected": "Something went wrong."
+    },
+    "notLoggedIn": "No active session found."
   },
   "upload": {
     "screenTitleTask": "إنشاء بطاقة مهمة",
@@ -468,28 +481,22 @@
     }
   },
   "sharePanel": {
-  "title": "مشاركة",
-  "shareTitle": "مشاركة",
-
-  "infoText": "يمكنك المشاركة باستخدام حساباتك المرتبطة.",
-  "shareBody": "يمكنك المشاركة باستخدام حساباتك المرتبطة.",
-
-  "noAccounts": "لا توجد حسابات مرتبطة.",
-  "connectButton": "ربط الحسابات",
-  "cancel": "إلغاء",
-
-  "shareAll": "مشاركة في جميع الحسابات",
-  "shareAllButton": "مشاركة في جميع الحسابات",
-
-  "connectFallbackTitle": "ربط الحسابات",
-  "connectFallbackBody": "اربط الحسابات من الملف الشخصي.",
-
-  "infoTitle": "حول المشاركة",
-  "infoBody": "المشاركة تجريبية.",
-
-  "shareAllTitle": "مشاركة الكل",
-  "shareAllBody": "مشاركة تجريبية."
-},
+    "title": "مشاركة",
+    "shareTitle": "مشاركة",
+    "infoText": "يمكنك المشاركة باستخدام حساباتك المرتبطة.",
+    "shareBody": "يمكنك المشاركة باستخدام حساباتك المرتبطة.",
+    "noAccounts": "لا توجد حسابات مرتبطة.",
+    "connectButton": "ربط الحسابات",
+    "cancel": "إلغاء",
+    "shareAll": "مشاركة في جميع الحسابات",
+    "shareAllButton": "مشاركة في جميع الحسابات",
+    "connectFallbackTitle": "ربط الحسابات",
+    "connectFallbackBody": "اربط الحسابات من الملف الشخصي.",
+    "infoTitle": "حول المشاركة",
+    "infoBody": "المشاركة تجريبية.",
+    "shareAllTitle": "مشاركة الكل",
+    "shareAllBody": "مشاركة تجريبية."
+  },
   "share": {
     "requireAccounts": {
       "title": "اربط حساباتك",
@@ -517,7 +524,7 @@
     },
     "filters": {
       "all": "الكل",
-     "mine": "خاصة بي",
+      "mine": "خاصة بي",
       "tasks": "بطاقات المهام",
       "video": "فيديو",
       "external": "نشاط خارجي"
@@ -535,8 +542,8 @@
     "badges": {
       "taskCard": "بطاقة مهمة"
     },
-   "external": {
-    "badge": "مشاركة خارجية"
+    "external": {
+      "badge": "مشاركة خارجية"
     },
     "labels": {
       "descriptionPrefix": "الوصف:"
@@ -594,30 +601,49 @@
       "stateClosed": "أوقفت",
       "stateOpened": "فعّلت",
       "close": "إغلاق",
-      "addedComment": "لقد أضفت تعليقاً إلى المنشور بعنوان “{{title}}”."
+      "addedComment": "لقد أضفت تعليقاً إلى المنشور بعنوان “{{title}}”.",
+      "reported": "You reported the post “{{title}}”.",
+      "blocked": "You blocked {{author}}."
     },
     "freeVideo": {
       "title": "فيديو",
       "message": "ماذا تريد أن تفعل بهذا الفيديو؟",
       "delete": "حذف الفيديو",
-  "noPermission": "هذه البطاقة ليست لك. لا يمكنك حذفها."
+      "noPermission": "هذه البطاقة ليست لك. لا يمكنك حذفها."
     },
-   "postActions": {
-  "title": "إجراءات المنشور",
-  "message": "ماذا تريد أن تفعل بهذا المنشور؟",
-  "archive": "أرشفة البطاقة",
-  "delete": "حذف البطاقة"
-  },
+    "postActions": {
+      "title": "إجراءات المنشور",
+      "message": "ماذا تريد أن تفعل بهذا المنشور؟",
+      "archive": "أرشفة البطاقة",
+      "delete": "حذف البطاقة",
+      "noPermission": "This card isn't yours. You can't delete it.",
+      "report": "Report",
+      "blockUser": "Block User"
+    },
     "time": {
       "justNow": "الآن",
       "minutesAgo": "منذ {{count}} دقيقة",
       "hoursAgo": "منذ {{count}} ساعة",
       "yesterday": "أمس",
       "daysAgo": "منذ {{count}} يوم"
+    },
+    "report": {
+      "successTitle": "Report received",
+      "successMessage": "This post has been reported for review.",
+      "errorMessage": "Report could not be sent. Please try again."
+    },
+    "block": {
+      "userFallback": "this user",
+      "confirmTitle": "Block user",
+      "confirmMessage": "{{author}} will no longer appear in your feed.",
+      "confirmButton": "Block",
+      "successTitle": "User blocked",
+      "successMessage": "Posts from this user will no longer appear in your feed.",
+      "errorMessage": "User could not be blocked. Please try again."
     }
   },
   "common__dup": {
-  "warning": "تنبيه",
+    "warning": "تنبيه",
     "error": "خطأ",
     "success": "تم بنجاح",
     "cancel": "إلغاء",
@@ -627,139 +653,138 @@
     "saving": "جارٍ الحفظ...",
     "loading": "جارٍ التحميل..."
   },
- "auth": {
-  "switch": {
-    "title": "تبديل المستخدم",
-    "body": "سيتم مسح الحقول. لتسجيل الدخول يلزم البريد/الهاتف + كلمة المرور."
+  "auth": {
+    "switch": {
+      "title": "تبديل المستخدم",
+      "body": "سيتم مسح الحقول. لتسجيل الدخول يلزم البريد/الهاتف + كلمة المرور."
+    },
+    "welcome": {
+      "title": "مرحبًا 👋",
+      "subtitle": "نموذج تسجيل للمستخدمين الحقيقيين."
+    },
+    "login": {
+      "title": "تسجيل الدخول",
+      "subtitle": "سجّل الدخول باستخدام البريد/الهاتف وكلمة المرور.",
+      "identifierPlaceholder": "البريد الإلكتروني أو الهاتف",
+      "passwordPlaceholder": "كلمة المرور",
+      "loginButton": "تسجيل الدخول",
+      "loading": "جارٍ تسجيل الدخول...",
+      "forgotPassword": "هل نسيت كلمة المرور؟",
+      "newHere": "مستخدم جديد؟ إنشاء حساب",
+      "haveAccount": "لديك حساب بالفعل؟ تسجيل الدخول",
+      "switchUser": "تبديل المستخدم",
+      "backToLogin": "← الرجوع إلى تسجيل الدخول"
+    },
+    "register": {
+      "subtitle": "نموذج تسجيل للمستخدمين الحقيقيين.",
+      "fullNameLabel": "الاسم الكامل",
+      "fullNamePlaceholder": "الاسم الكامل",
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "example@mail.com",
+      "phoneLabel": "الهاتف",
+      "phonePlaceholder": "5xx xxx xx xx",
+      "passwordLabel": "كلمة المرور",
+      "passwordPlaceholder": "كلمة المرور",
+      "passwordConfirmLabel": "كلمة المرور (تأكيد)",
+      "passwordConfirmPlaceholder": "تأكيد كلمة المرور",
+      "passwordHint": "يجب أن تكون كلمة المرور 8 أحرف على الأقل وتتضمن أحرفًا كبيرة/صغيرة ورقمًا ورمزًا.",
+      "submit": "إنشاء حساب",
+      "haveAccount": "لديك حساب بالفعل؟ تسجيل الدخول",
+      "cta": "لديك حساب بالفعل؟ تسجيل الدخول"
+    },
+    "forgot": {
+      "title": "نسيت كلمة المرور",
+      "subtitle": "يمكنك استلام رمز تحقق عبر بريدك المسجل أو رقم هاتفك.",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "channelEmail": "البريد الإلكتروني",
+      "channelPhone": "الهاتف",
+      "emailPlaceholder": "بريدك الإلكتروني المسجل",
+      "sendCode": "إرسال رمز التحقق",
+      "verifyTitle": "التحقق من الرمز",
+      "verifySubtitle": "أدخل رمز التحقق وكلمة المرور الجديدة.",
+      "codePlaceholder": "رمز التحقق",
+      "newPasswordPlaceholder": "كلمة مرور جديدة",
+      "newPasswordConfirmPlaceholder": "كلمة مرور جديدة (تأكيد)",
+      "updateButton": "تحديث كلمة المرور",
+      "backToLogin": "← العودة إلى تسجيل الدخول"
+    }
   },
-  "welcome": {
-    "title": "مرحبًا 👋",
-    "subtitle": "نموذج تسجيل للمستخدمين الحقيقيين."
-  }, 
-  "login": {
-    "title": "تسجيل الدخول",
-    "subtitle": "سجّل الدخول باستخدام البريد/الهاتف وكلمة المرور.",
-    "identifierPlaceholder": "البريد الإلكتروني أو الهاتف",
-    "passwordPlaceholder": "كلمة المرور",
-    "loginButton": "تسجيل الدخول",
-    "loading": "جارٍ تسجيل الدخول...",
-    "forgotPassword": "هل نسيت كلمة المرور؟",
-    "newHere": "مستخدم جديد؟ إنشاء حساب",
-    "haveAccount": "لديك حساب بالفعل؟ تسجيل الدخول",
-    "switchUser": "تبديل المستخدم",
-  "backToLogin": "← الرجوع إلى تسجيل الدخول"
-  },
-  "register": {
-    "subtitle": "نموذج تسجيل للمستخدمين الحقيقيين.",
-    "fullNameLabel": "الاسم الكامل",
-    "fullNamePlaceholder": "الاسم الكامل",
-    "emailLabel": "البريد الإلكتروني",
-    "emailPlaceholder": "example@mail.com",
-    "phoneLabel": "الهاتف",
-    "phonePlaceholder": "5xx xxx xx xx",
-    "passwordLabel": "كلمة المرور",
-    "passwordPlaceholder": "كلمة المرور",
-    "passwordConfirmLabel": "كلمة المرور (تأكيد)",
-    "passwordConfirmPlaceholder": "تأكيد كلمة المرور",
-    "passwordHint": "يجب أن تكون كلمة المرور 8 أحرف على الأقل وتتضمن أحرفًا كبيرة/صغيرة ورقمًا ورمزًا.",
-    "submit": "إنشاء حساب",
-    "haveAccount": "لديك حساب بالفعل؟ تسجيل الدخول",
-    "cta": "لديك حساب بالفعل؟ تسجيل الدخول"
-  },
-  "forgot": {
-    "title": "نسيت كلمة المرور",
-    "subtitle": "يمكنك استلام رمز تحقق عبر بريدك المسجل أو رقم هاتفك.",
-    "email": "البريد الإلكتروني",
-    "phone": "الهاتف",
-    "channelEmail": "البريد الإلكتروني",
-    "channelPhone": "الهاتف",
-    "emailPlaceholder": "بريدك الإلكتروني المسجل",
-    "sendCode": "إرسال رمز التحقق",
-    "verifyTitle": "التحقق من الرمز",
-    "verifySubtitle": "أدخل رمز التحقق وكلمة المرور الجديدة.",
-    "codePlaceholder": "رمز التحقق",
-    "newPasswordPlaceholder": "كلمة مرور جديدة",
-    "newPasswordConfirmPlaceholder": "كلمة مرور جديدة (تأكيد)",
-    "updateButton": "تحديث كلمة المرور",
-    "backToLogin": "← العودة إلى تسجيل الدخول"
-   }
- },
-"focusNetwork": {
-  "title": "شبكة التركيز",
-  "subtitle": "هنا ترى فقط منشورات الأشخاص الذين اخترتهم.",
-  "tabs": {
-    "network": "شبكتي",
-    "discover": "اكتشف",
-    "requests": "الطلبات"
-  },
-  "search": {
-    "networkPlaceholder": "ابحث في شبكتك (@المستخدم، الاسم)...",
-    "discoverPlaceholder": "اكتشف: @handle / الاسم / البريد الإلكتروني / الهاتف...",
-    "requestsPlaceholder": "ابحث في الطلبات..."
-  },
-  "sections": {
-    "network": "شبكتي",
-    "discover": "اكتشف",
-    "incomingRequests": "الطلبات الواردة"
-  },
-  "count": {
-    "people": "{{count}} أشخاص",
-    "requests": "{{count}} طلبات"
-  },
-  "summary": {
-    "inNetwork": "ضمن شبكة التركيز.",
-    "alreadyInNetwork": "موجود بالفعل في شبكتك.",
-    "incomingRequest": "أرسل لك طلبًا.",
-    "outgoingPending": "تم إرسال الطلب (قيد الانتظار).",
-    "discoverFallback": "أضف من قائمة الاكتشاف.",
-    "requestPending": "طلب الصداقة قيد الانتظار."
-  },
-  "actions": {
-    "detail": "تفاصيل",
-    "accept": "قبول",
-    "decline": "رفض",
-    "sendRequest": "إرسال طلب",
-    "addPerson": "إضافة شخص",
-    "removeFromNetwork": "إزالة من الشبكة",
-    "inMyNetwork": "في شبكتي",
-    "pending": "قيد الانتظار",
-    "requestExists": "يوجد طلب"
-  },
-  "banner": {
-    "newRequestTitle": "طلب اتصال جديد",
-    "newRequestBody": "لديك {{count}} طلبات جديدة. اضغط لعرضها."
-  },
-  "empty": {
-    "noSearchMatch": "لم يتم العثور على شخص مطابق.",
-    "noResults": "لا توجد نتائج الآن.",
-    "noPendingRequests": "لا توجد طلبات معلقة."
-  },
-  "note": {
-    "backendDiscover": "ملاحظة: قائمة الاكتشاف تأتي من الخادم. إذا لم يوجد اتصال فقد لا يتم تحديث النتائج."
-  },
-  "detail": {
-    "rule1": "• نظام الصداقة: أرسل طلبًا ← الطرف الآخر يقبله.",
-    "rule2": "• لا يوجد ربط إجباري. كل شيء يتم بالموافقة.",
-    "rule3": "• إذا لم يوجد اتصال فقد تفشل العمليات."
-  },
-  "alerts": {
-    "loginRequiredTitle": "تسجيل الدخول مطلوب",
-    "loginRequiredBody": "مطلوب جلسة مستخدم لهذا الإجراء.",
-    "alreadyInNetworkTitle": "موجود بالفعل في شبكتك",
-    "alreadyInNetworkBody": "هذا الشخص موجود بالفعل في شبكة التركيز الخاصة بك.",
-    "pendingTitle": "قيد الانتظار",
-    "pendingBody": "لقد أرسلت بالفعل طلبًا لهذا الشخص. انتظر حتى يقبله.",
-    "requestExistsTitle": "يوجد طلب",
-    "requestExistsBody": "هذا الشخص أرسل لك طلبًا بالفعل. يمكنك قبوله من تبويب «الطلبات».",
-    "actionFailedWithConnection": "فشلت العملية. (الاتصال؟)",
-    "declineFailed": "فشل الرفض.",
-    "requestSendFailed": "تعذر إرسال الطلب. (الاتصال؟)",
-    "acceptFailed": "تعذر القبول. (الاتصال؟)"
-  },
-  "net": {
-    "invalidBaseUrl": "يبدو أن API_BASE_URL غير صالح.",
-    "onlineFetchError": "خطأ في الجلب عبر الإنترنت لشبكة التركيز"
-   }
- }
+  "focusNetwork": {
+    "title": "شبكة التركيز",
+    "subtitle": "هنا ترى فقط منشورات الأشخاص الذين اخترتهم.",
+    "tabs": {
+      "network": "شبكتي",
+      "discover": "اكتشف",
+      "requests": "الطلبات"
+    },
+    "search": {
+      "networkPlaceholder": "ابحث في شبكتك (@المستخدم، الاسم)...",
+      "discoverPlaceholder": "اكتشف: @handle / الاسم / البريد الإلكتروني / الهاتف...",
+      "requestsPlaceholder": "ابحث في الطلبات..."
+    },
+    "sections": {
+      "network": "شبكتي",
+      "discover": "اكتشف",
+      "incomingRequests": "الطلبات الواردة"
+    },
+    "count": {
+      "people": "{{count}} أشخاص",
+      "requests": "{{count}} طلبات"
+    },
+    "summary": {
+      "inNetwork": "ضمن شبكة التركيز.",
+      "alreadyInNetwork": "موجود بالفعل في شبكتك.",
+      "incomingRequest": "أرسل لك طلبًا.",
+      "outgoingPending": "تم إرسال الطلب (قيد الانتظار).",
+      "discoverFallback": "أضف من قائمة الاكتشاف.",
+      "requestPending": "طلب الصداقة قيد الانتظار."
+    },
+    "actions": {
+      "detail": "تفاصيل",
+      "accept": "قبول",
+      "decline": "رفض",
+      "sendRequest": "إرسال طلب",
+      "addPerson": "إضافة شخص",
+      "removeFromNetwork": "إزالة من الشبكة",
+      "inMyNetwork": "في شبكتي",
+      "pending": "قيد الانتظار",
+      "requestExists": "يوجد طلب"
+    },
+    "banner": {
+      "newRequestTitle": "طلب اتصال جديد",
+      "newRequestBody": "لديك {{count}} طلبات جديدة. اضغط لعرضها."
+    },
+    "empty": {
+      "noSearchMatch": "لم يتم العثور على شخص مطابق.",
+      "noResults": "لا توجد نتائج الآن.",
+      "noPendingRequests": "لا توجد طلبات معلقة."
+    },
+    "note": {
+      "backendDiscover": "ملاحظة: قائمة الاكتشاف تأتي من الخادم. إذا لم يوجد اتصال فقد لا يتم تحديث النتائج."
+    },
+    "detail": {
+      "rule1": "• نظام الصداقة: أرسل طلبًا ← الطرف الآخر يقبله.",
+      "rule2": "• لا يوجد ربط إجباري. كل شيء يتم بالموافقة.",
+      "rule3": "• إذا لم يوجد اتصال فقد تفشل العمليات."
+    },
+    "alerts": {
+      "loginRequiredTitle": "تسجيل الدخول مطلوب",
+      "loginRequiredBody": "مطلوب جلسة مستخدم لهذا الإجراء.",
+      "alreadyInNetworkTitle": "موجود بالفعل في شبكتك",
+      "alreadyInNetworkBody": "هذا الشخص موجود بالفعل في شبكة التركيز الخاصة بك.",
+      "pendingTitle": "قيد الانتظار",
+      "pendingBody": "لقد أرسلت بالفعل طلبًا لهذا الشخص. انتظر حتى يقبله.",
+      "requestExistsTitle": "يوجد طلب",
+      "requestExistsBody": "هذا الشخص أرسل لك طلبًا بالفعل. يمكنك قبوله من تبويب «الطلبات».",
+      "actionFailedWithConnection": "فشلت العملية. (الاتصال؟)",
+      "declineFailed": "فشل الرفض.",
+      "requestSendFailed": "تعذر إرسال الطلب. (الاتصال؟)",
+      "acceptFailed": "تعذر القبول. (الاتصال؟)"
+    },
+    "net": {
+      "invalidBaseUrl": "يبدو أن API_BASE_URL غير صالح.",
+      "onlineFetchError": "خطأ في الجلب عبر الإنترنت لشبكة التركيز"
+    }
+  }
 }
-

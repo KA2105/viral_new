@@ -672,6 +672,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     const trimmedName = fullName.trim();
     const normalizedEmail = normalizeEmail(email);
     const cleanedPhone = cleanPhone(phone);
+    const normalizedPhone = cleanedPhone.length ? cleanedPhone : '';
     const cleanedHandle = normalizeHandle(handle);
     const trimmedBio = bio?.trim() ?? '';
     const trimmedWebsite = website?.trim() ?? '';
@@ -681,7 +682,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     if (!trimmedName) return { ok: false, error: 'Ad Soyad boş olamaz.', field: null };
     if (!validateEmail(normalizedEmail))
       return { ok: false, error: 'Geçerli bir e-posta adresi gir.', field: 'email' };
-    if (!cleanedPhone || cleanedPhone.length < 10)
+    if (cleanedPhone.length > 0 && cleanedPhone.length < 10)
       return { ok: false, error: 'Geçerli bir telefon numarası gir.', field: 'phone' };
     if (!isStrongPassword(password)) {
       return {
@@ -703,7 +704,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     const newProfile: UserProfile = {
       fullName: trimmedName,
       email: normalizedEmail,
-      phone: cleanedPhone,
+      phone: normalizedPhone,
       createdAt: now,
       isPhoneVerified: false,
       avatarUri: null,
@@ -739,7 +740,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       const resp = await postRegister({
         fullName: newProfile.fullName,
         email: newProfile.email,
-        phone: newProfile.phone,
+        phone: newProfile.phone || undefined,
         password,
         deviceId,
       });
@@ -1268,31 +1269,54 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
-  // ✅ Normal çıkış: token'ı da temizle
+  // ✅ Normal çıkış: token + local session + hesap önbelleği temizlenir
   signOut: () => {
-    setAuthToken(null);
+    try {
+      setAuthToken(null);
+    } catch {}
+
+    const currentDeviceId = get().deviceId;
+
+    try {
+      AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+    } catch {}
 
     set({
       userId: null,
       user: null,
-      sessionActive: false,
-      lastError: null,
-      uiError: null,
-      uiErrorField: null,
+      profile: null,
+      password: null,
+
+      accounts: [],
+      activeIdentifier: null,
+
       phoneVerificationCode: null,
       resetCode: null,
       resetChannel: null,
+
+      backendUserId: null,
+      deviceId: currentDeviceId,
+
+      hydrated: true,
+      sessionActive: false,
+
+      isSyncing: false,
+      lastError: null,
+
+      uiError: null,
+      uiErrorField: null,
+
       prefillRegister: true,
       token: null,
     });
 
     const nextStore: StoredAuthV2 = {
       version: 2,
-      accounts: get().accounts,
-      activeIdentifier: get().activeIdentifier,
-      deviceId: get().deviceId,
+      accounts: [],
+      activeIdentifier: null,
+      deviceId: currentDeviceId,
       sessionActive: false,
-      prefillRegister: get().prefillRegister,
+      prefillRegister: true,
     };
     storage.saveJson(STORAGE_KEY, nextStore);
   },

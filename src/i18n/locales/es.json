@@ -1,31 +1,31 @@
 {
- "common": {
-  "appName": "Viral",
-  "ok": "OK",
-  "cancel": "Cancelar",
-   "close": "Cerrar",
-  "continue": "Continuar",
-  "hide": "Ocultar",
-  "show": "Mostrar",
-  "save": "Guardar",
-  "saving": "Guardando...",
-  "loading": "Cargando...",
-  "warning": "Advertencia",
-  "error": "Error",
-  "success": "Éxito"
-},
-"onboarding": {
-  "language": {
-    "title": "Seleccionar idioma",
-    "subtitle": "Elige tu idioma para continuar",
-    "hint": "Puedes cambiar el idioma más tarde en la pantalla de Perfil."
+  "common": {
+    "appName": "Viral",
+    "ok": "OK",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "continue": "Continuar",
+    "hide": "Ocultar",
+    "show": "Mostrar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "loading": "Cargando...",
+    "warning": "Advertencia",
+    "error": "Error",
+    "success": "Éxito"
   },
-  "buttons": {
-    "skip": "Saltar",
-    "next": "Siguiente",
-    "start": "Empezar"
-  }
-},
+  "onboarding": {
+    "language": {
+      "title": "Seleccionar idioma",
+      "subtitle": "Elige tu idioma para continuar",
+      "hint": "Puedes cambiar el idioma más tarde en la pantalla de Perfil."
+    },
+    "buttons": {
+      "skip": "Saltar",
+      "next": "Siguiente",
+      "start": "Empezar"
+    }
+  },
   "profile": {
     "title": "Perfil",
     "languageButton": "Idioma",
@@ -58,7 +58,8 @@
       "passwordRequired": "La contraseña y su confirmación son obligatorias.",
       "passwordMismatch": "La contraseña y su confirmación deben coincidir.",
       "saveFailed": "No se pudo actualizar el perfil.",
-      "saveSuccess": "Tu información de perfil ha sido actualizada."      
+      "saveSuccess": "Tu información de perfil ha sido actualizada.",
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
     },
     "verify": {
       "sectionTitle": "Verificación telefónica",
@@ -122,7 +123,8 @@
       "hintConnected": "Puedes quitar esta cuenta de Viral o actualizar su vínculo.",
       "hintDisconnected": "Para vincular esta cuenta a Viral, escribe el enlace del perfil o la página.",
       "linkPlaceholder": "https://...",
-      "removeButton": "Quitar cuenta"
+      "removeButton": "Quitar cuenta",
+      "enterLink": "First enter the link of the account you want to connect."
     },
     "feedStats": {
       "sectionTitle": "Estadísticas del feed",
@@ -150,7 +152,18 @@
     "section": {
       "hide": "Ocultar",
       "show": "Mostrar"
-    }
+    },
+    "delete": {
+      "title": "Delete Account",
+      "confirmBody": "This action cannot be undone. Do you want to continue?",
+      "finalTitle": "Final Confirmation",
+      "finalBody": "Your account will be permanently deleted.",
+      "action": "Delete Account",
+      "failed": "Account could not be deleted.",
+      "success": "Your account has been deleted.",
+      "unexpected": "Something went wrong."
+    },
+    "notLoggedIn": "No active session found."
   },
   "upload": {
     "screenTitleTask": "Crear tarjeta de tarea",
@@ -468,28 +481,22 @@
     }
   },
   "sharePanel": {
-  "title": "Compartir",
-  "shareTitle": "Compartir",
-
-  "infoText": "Puedes compartir usando tus cuentas conectadas.",
-  "shareBody": "Puedes compartir usando tus cuentas conectadas.",
-
-  "noAccounts": "No hay cuentas conectadas.",
-  "connectButton": "Conectar cuentas",
-  "cancel": "Cancelar",
-
-  "shareAll": "Compartir en todas las cuentas",
-  "shareAllButton": "Compartir en todas las cuentas",
-
-  "connectFallbackTitle": "Conecta tus cuentas",
-  "connectFallbackBody": "Conecta cuentas desde tu perfil.",
-
-  "infoTitle": "Sobre compartir",
-  "infoBody": "El compartir es simulado.",
-
-  "shareAllTitle": "Compartir en todas",
-  "shareAllBody": "Compartido de forma simulada."
-},
+    "title": "Compartir",
+    "shareTitle": "Compartir",
+    "infoText": "Puedes compartir usando tus cuentas conectadas.",
+    "shareBody": "Puedes compartir usando tus cuentas conectadas.",
+    "noAccounts": "No hay cuentas conectadas.",
+    "connectButton": "Conectar cuentas",
+    "cancel": "Cancelar",
+    "shareAll": "Compartir en todas las cuentas",
+    "shareAllButton": "Compartir en todas las cuentas",
+    "connectFallbackTitle": "Conecta tus cuentas",
+    "connectFallbackBody": "Conecta cuentas desde tu perfil.",
+    "infoTitle": "Sobre compartir",
+    "infoBody": "El compartir es simulado.",
+    "shareAllTitle": "Compartir en todas",
+    "shareAllBody": "Compartido de forma simulada."
+  },
   "share": {
     "requireAccounts": {
       "title": "Vincula tus cuentas",
@@ -536,7 +543,7 @@
       "taskCard": "Tarjeta de tarea"
     },
     "external": {
-    "badge": "Contenido externo"
+      "badge": "Contenido externo"
     },
     "labels": {
       "descriptionPrefix": "Descripción:"
@@ -594,7 +601,9 @@
       "stateClosed": "desactivado",
       "stateOpened": "activado",
       "close": "Cerrar",
-      "addedComment": "Has agregado un comentario a «{{title}}»."
+      "addedComment": "Has agregado un comentario a «{{title}}».",
+      "reported": "You reported the post “{{title}}”.",
+      "blocked": "You blocked {{author}}."
     },
     "freeVideo": {
       "title": "Video",
@@ -602,21 +611,37 @@
       "delete": "Eliminar video"
     },
     "postActions": {
-  "title": "Acciones de la publicación",
-  "message": "¿Qué quieres hacer con esta publicación?",
-  "archive": "Archivar tarjeta",
-  "delete": "Eliminar tarjeta",
-  "noPermission": "Esta tarjeta no es tuya. No puedes eliminarla."
-  },
+      "title": "Acciones de la publicación",
+      "message": "¿Qué quieres hacer con esta publicación?",
+      "archive": "Archivar tarjeta",
+      "delete": "Eliminar tarjeta",
+      "noPermission": "Esta tarjeta no es tuya. No puedes eliminarla.",
+      "report": "Report",
+      "blockUser": "Block User"
+    },
     "time": {
       "justNow": "justo ahora",
       "minutesAgo": "hace {{count}} min",
       "hoursAgo": "hace {{count}} h",
       "yesterday": "ayer",
       "daysAgo": "hace {{count}} día(s)"
+    },
+    "report": {
+      "successTitle": "Report received",
+      "successMessage": "This post has been reported for review.",
+      "errorMessage": "Report could not be sent. Please try again."
+    },
+    "block": {
+      "userFallback": "this user",
+      "confirmTitle": "Block user",
+      "confirmMessage": "{{author}} will no longer appear in your feed.",
+      "confirmButton": "Block",
+      "successTitle": "User blocked",
+      "successMessage": "Posts from this user will no longer appear in your feed.",
+      "errorMessage": "User could not be blocked. Please try again."
     }
   },
-    "common__dup": {
+  "common__dup": {
     "warning": "Advertencia",
     "error": "Error",
     "success": "Éxito",
@@ -628,138 +653,137 @@
     "loading": "Cargando..."
   },
   "auth": {
-  "switch": {
-    "title": "Cambiar usuario",
-    "body": "Se limpiarán los campos. Para iniciar sesión se requiere correo/teléfono + contraseña."
+    "switch": {
+      "title": "Cambiar usuario",
+      "body": "Se limpiarán los campos. Para iniciar sesión se requiere correo/teléfono + contraseña."
+    },
+    "welcome": {
+      "title": "Bienvenido 👋",
+      "subtitle": "Formulario de registro para usuarios reales."
+    },
+    "login": {
+      "title": "Iniciar sesión",
+      "subtitle": "Inicia sesión con tu correo/teléfono y contraseña.",
+      "identifierPlaceholder": "Correo o Teléfono",
+      "passwordPlaceholder": "Tu contraseña",
+      "loginButton": "Iniciar sesión",
+      "loading": "Iniciando...",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "newHere": "¿Eres nuevo? Crear una cuenta",
+      "haveAccount": "¿Ya tienes una cuenta? Inicia sesión",
+      "switchUser": "Cambiar usuario",
+      "backToLogin": "← Volver al inicio de sesión"
+    },
+    "register": {
+      "subtitle": "Formulario de registro para usuarios reales.",
+      "fullNameLabel": "Nombre completo",
+      "fullNamePlaceholder": "Nombre completo",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "ejemplo@mail.com",
+      "phoneLabel": "Teléfono",
+      "phonePlaceholder": "5xx xxx xx xx",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Tu contraseña",
+      "passwordConfirmLabel": "Contraseña (confirmar)",
+      "passwordConfirmPlaceholder": "Confirmar contraseña",
+      "passwordHint": "La contraseña debe tener al menos 8 caracteres e incluir mayúsculas/minúsculas, un número y un símbolo.",
+      "submit": "Crear cuenta",
+      "haveAccount": "¿Ya tienes una cuenta? Inicia sesión",
+      "cta": "¿Ya tienes una cuenta? Inicia sesión"
+    },
+    "forgot": {
+      "title": "Olvidé mi contraseña",
+      "subtitle": "Puedes recibir un código usando tu correo registrado o tu número de teléfono.",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "channelEmail": "Correo electrónico",
+      "channelPhone": "Teléfono",
+      "emailPlaceholder": "Tu correo electrónico registrado",
+      "sendCode": "Enviar código de verificación",
+      "verifyTitle": "Verificar código",
+      "verifySubtitle": "Introduce el código y tu nueva contraseña.",
+      "codePlaceholder": "Código de verificación",
+      "newPasswordPlaceholder": "Nueva contraseña",
+      "newPasswordConfirmPlaceholder": "Nueva contraseña (confirmar)",
+      "updateButton": "Actualizar contraseña",
+      "backToLogin": "← Volver a iniciar sesión"
+    }
   },
-  "welcome": {
-    "title": "Bienvenido 👋",
-    "subtitle": "Formulario de registro para usuarios reales."
-  }, 
-  "login": {
-    "title": "Iniciar sesión",
-    "subtitle": "Inicia sesión con tu correo/teléfono y contraseña.",
-    "identifierPlaceholder": "Correo o Teléfono",
-    "passwordPlaceholder": "Tu contraseña",
-    "loginButton": "Iniciar sesión",
-    "loading": "Iniciando...",
-    "forgotPassword": "¿Olvidaste tu contraseña?",
-    "newHere": "¿Eres nuevo? Crear una cuenta",
-    "haveAccount": "¿Ya tienes una cuenta? Inicia sesión",
-    "switchUser": "Cambiar usuario",
-    "backToLogin": "← Volver al inicio de sesión"
-  },
-  "register": {
-    "subtitle": "Formulario de registro para usuarios reales.",
-    "fullNameLabel": "Nombre completo",
-    "fullNamePlaceholder": "Nombre completo",
-    "emailLabel": "Correo electrónico",
-    "emailPlaceholder": "ejemplo@mail.com",
-    "phoneLabel": "Teléfono",
-    "phonePlaceholder": "5xx xxx xx xx",
-    "passwordLabel": "Contraseña",
-    "passwordPlaceholder": "Tu contraseña",
-    "passwordConfirmLabel": "Contraseña (confirmar)",
-    "passwordConfirmPlaceholder": "Confirmar contraseña",
-    "passwordHint": "La contraseña debe tener al menos 8 caracteres e incluir mayúsculas/minúsculas, un número y un símbolo.",
-    "submit": "Crear cuenta",
-    "haveAccount": "¿Ya tienes una cuenta? Inicia sesión",
-    "cta": "¿Ya tienes una cuenta? Inicia sesión"
-  },
-  "forgot": {
-    "title": "Olvidé mi contraseña",
-    "subtitle": "Puedes recibir un código usando tu correo registrado o tu número de teléfono.",
-    "email": "Correo electrónico",
-    "phone": "Teléfono",
-    "channelEmail": "Correo electrónico",
-    "channelPhone": "Teléfono",
-    "emailPlaceholder": "Tu correo electrónico registrado",
-    "sendCode": "Enviar código de verificación",
-    "verifyTitle": "Verificar código",
-    "verifySubtitle": "Introduce el código y tu nueva contraseña.",
-    "codePlaceholder": "Código de verificación",
-    "newPasswordPlaceholder": "Nueva contraseña",
-    "newPasswordConfirmPlaceholder": "Nueva contraseña (confirmar)",
-    "updateButton": "Actualizar contraseña",
-    "backToLogin": "← Volver a iniciar sesión"
+  "focusNetwork": {
+    "title": "Red Focus",
+    "subtitle": "Aquí solo ves las publicaciones de las personas que elegiste.",
+    "tabs": {
+      "network": "Mi red",
+      "discover": "Descubrir",
+      "requests": "Solicitudes"
+    },
+    "search": {
+      "networkPlaceholder": "Buscar en tu red (@usuario, nombre)...",
+      "discoverPlaceholder": "Descubrir: @handle / nombre / correo / teléfono...",
+      "requestsPlaceholder": "Buscar en solicitudes..."
+    },
+    "sections": {
+      "network": "Mi red",
+      "discover": "Descubrir",
+      "incomingRequests": "Solicitudes recibidas"
+    },
+    "count": {
+      "people": "{{count}} personas",
+      "requests": "{{count}} solicitudes"
+    },
+    "summary": {
+      "inNetwork": "En la red Focus.",
+      "alreadyInNetwork": "Ya está en tu red.",
+      "incomingRequest": "Te envió una solicitud.",
+      "outgoingPending": "Solicitud enviada (pendiente).",
+      "discoverFallback": "Agregar desde la lista de descubrimiento.",
+      "requestPending": "La solicitud de amistad está pendiente."
+    },
+    "actions": {
+      "detail": "Detalle",
+      "accept": "Aceptar",
+      "decline": "Rechazar",
+      "sendRequest": "Enviar solicitud",
+      "addPerson": "Agregar persona",
+      "removeFromNetwork": "Eliminar de la red",
+      "inMyNetwork": "En mi red",
+      "pending": "Pendiente",
+      "requestExists": "Solicitud existente"
+    },
+    "banner": {
+      "newRequestTitle": "Nueva solicitud de conexión",
+      "newRequestBody": "{{count}} nuevas solicitudes. Toca para ver."
+    },
+    "empty": {
+      "noSearchMatch": "No se encontró ninguna persona coincidente.",
+      "noResults": "No hay resultados por ahora.",
+      "noPendingRequests": "No hay solicitudes pendientes."
+    },
+    "note": {
+      "backendDiscover": "Nota: la lista Descubrir viene del backend. Si no hay conexión, los resultados pueden no actualizarse."
+    },
+    "detail": {
+      "rule1": "• Sistema de amistad: enviar solicitud → la otra persona acepta.",
+      "rule2": "• No hay conexión forzada. Todo avanza con aprobación.",
+      "rule3": "• Si no hay conexión, las acciones pueden fallar."
+    },
+    "alerts": {
+      "loginRequiredTitle": "Inicio de sesión requerido",
+      "loginRequiredBody": "Se requiere una sesión de usuario para esta acción.",
+      "alreadyInNetworkTitle": "Ya está en tu red",
+      "alreadyInNetworkBody": "Esta persona ya está en tu Red Focus.",
+      "pendingTitle": "Pendiente",
+      "pendingBody": "Ya enviaste una solicitud a esta persona. Espera a que la acepte.",
+      "requestExistsTitle": "Existe una solicitud",
+      "requestExistsBody": "Esta persona ya te envió una solicitud. Puedes aceptarla desde la pestaña «Solicitudes».",
+      "actionFailedWithConnection": "La acción falló. (¿Conexión?)",
+      "declineFailed": "No se pudo rechazar.",
+      "requestSendFailed": "No se pudo enviar la solicitud. (¿Conexión?)",
+      "acceptFailed": "No se pudo aceptar. (¿Conexión?)"
+    },
+    "net": {
+      "invalidBaseUrl": "API_BASE_URL parece no válido.",
+      "onlineFetchError": "Error de carga en línea de Red Focus"
+    }
   }
- },
-"focusNetwork": {
-  "title": "Red Focus",
-  "subtitle": "Aquí solo ves las publicaciones de las personas que elegiste.",
-  "tabs": {
-    "network": "Mi red",
-    "discover": "Descubrir",
-    "requests": "Solicitudes"
-  },
-  "search": {
-    "networkPlaceholder": "Buscar en tu red (@usuario, nombre)...",
-    "discoverPlaceholder": "Descubrir: @handle / nombre / correo / teléfono...",
-    "requestsPlaceholder": "Buscar en solicitudes..."
-  },
-  "sections": {
-    "network": "Mi red",
-    "discover": "Descubrir",
-    "incomingRequests": "Solicitudes recibidas"
-  },
-  "count": {
-    "people": "{{count}} personas",
-    "requests": "{{count}} solicitudes"
-  },
-  "summary": {
-    "inNetwork": "En la red Focus.",
-    "alreadyInNetwork": "Ya está en tu red.",
-    "incomingRequest": "Te envió una solicitud.",
-    "outgoingPending": "Solicitud enviada (pendiente).",
-    "discoverFallback": "Agregar desde la lista de descubrimiento.",
-    "requestPending": "La solicitud de amistad está pendiente."
-  },
-  "actions": {
-    "detail": "Detalle",
-    "accept": "Aceptar",
-    "decline": "Rechazar",
-    "sendRequest": "Enviar solicitud",
-    "addPerson": "Agregar persona",
-    "removeFromNetwork": "Eliminar de la red",
-    "inMyNetwork": "En mi red",
-    "pending": "Pendiente",
-    "requestExists": "Solicitud existente"
-  },
-  "banner": {
-    "newRequestTitle": "Nueva solicitud de conexión",
-    "newRequestBody": "{{count}} nuevas solicitudes. Toca para ver."
-  },
-  "empty": {
-    "noSearchMatch": "No se encontró ninguna persona coincidente.",
-    "noResults": "No hay resultados por ahora.",
-    "noPendingRequests": "No hay solicitudes pendientes."
-  },
-  "note": {
-    "backendDiscover": "Nota: la lista Descubrir viene del backend. Si no hay conexión, los resultados pueden no actualizarse."
-  },
-  "detail": {
-    "rule1": "• Sistema de amistad: enviar solicitud → la otra persona acepta.",
-    "rule2": "• No hay conexión forzada. Todo avanza con aprobación.",
-    "rule3": "• Si no hay conexión, las acciones pueden fallar."
-  },
-  "alerts": {
-    "loginRequiredTitle": "Inicio de sesión requerido",
-    "loginRequiredBody": "Se requiere una sesión de usuario para esta acción.",
-    "alreadyInNetworkTitle": "Ya está en tu red",
-    "alreadyInNetworkBody": "Esta persona ya está en tu Red Focus.",
-    "pendingTitle": "Pendiente",
-    "pendingBody": "Ya enviaste una solicitud a esta persona. Espera a que la acepte.",
-    "requestExistsTitle": "Existe una solicitud",
-    "requestExistsBody": "Esta persona ya te envió una solicitud. Puedes aceptarla desde la pestaña «Solicitudes».",
-    "actionFailedWithConnection": "La acción falló. (¿Conexión?)",
-    "declineFailed": "No se pudo rechazar.",
-    "requestSendFailed": "No se pudo enviar la solicitud. (¿Conexión?)",
-    "acceptFailed": "No se pudo aceptar. (¿Conexión?)"
-  },
-  "net": {
-    "invalidBaseUrl": "API_BASE_URL parece no válido.",
-    "onlineFetchError": "Error de carga en línea de Red Focus"
-  }
- }
 }
-
