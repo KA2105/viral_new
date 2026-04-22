@@ -1825,55 +1825,70 @@ export default function FeedScreen({ go }: Props) {
     setShareVisible(false);
   };
 
-  const handlePostLongPress = (post: Post) => {
-    if (isExternalLocal(post)) {
-      Alert.alert(
-        t('feed.postActions.title', 'Gönderi işlemleri'),
-        t('feed.postActions.message', 'Bu gönderi için ne yapmak istersin?'),
-        [
-          { text: t('feed.postActions.delete', 'Kartı sil'), style: 'destructive', onPress: () => safeRemove(post) },
-          { text: t('common.cancel', 'İptal'), style: 'cancel' },
-        ],
-      );
-      return;
-    }
-
-    const anyP: any = post as any;
-
-    const isMinePost =
-      anyP.ownerId === userId ||
-      anyP.userId === userId ||
-      anyP.authorId === userId ||
-      (anyP.author && (anyP.author === displayName || (fullNameStr && anyP.author === fullNameStr)));
-
-    const isDisabled = !!commentsDisabledByPost[post.id];
-
-    const actions: any[] = [
-      { text: t('feed.postActions.archive', 'Kartı arşivle'), onPress: () => safeArchive(post) },
-      {
-        text: isDisabled ? t('feed.postActions.openComments', 'Yorumları aç') : t('feed.postActions.closeComments', 'Yorumları kapat'),
-        onPress: () => toggleCommentsDisabledForPost(post.id),
-      },
-    ];
-
-    if (!isMinePost) {
-      actions.push({ text: t('feed.postActions.report', 'Şikayet Et'), onPress: () => handleReportPost(post) });
-      actions.push({ text: t('feed.postActions.blockUser', 'Kullanıcıyı Engelle'), style: 'destructive', onPress: () => handleBlockUser(post) });
-    }
-
-    if (isMinePost) {
-      actions.push({ text: t('feed.postActions.delete', 'Kartı sil'), style: 'destructive', onPress: () => safeRemove(post) });
-    }
-
-    actions.push({ text: t('common.cancel', 'İptal'), style: 'cancel' });
-
+const handlePostLongPress = (post: Post) => {
+  if (isExternalLocal(post)) {
     Alert.alert(
       t('feed.postActions.title', 'Gönderi işlemleri'),
       t('feed.postActions.message', 'Bu gönderi için ne yapmak istersin?'),
-      actions,
-      { cancelable: true },
+      [
+        {
+          text: t('feed.postActions.delete', 'Kartı sil'),
+          style: 'destructive',
+          onPress: () => safeRemove(post),
+        },
+        { text: t('common.cancel', 'İptal'), style: 'cancel' },
+      ],
     );
-  };
+    return;
+  }
+
+  const anyP: any = post as any;
+
+  const isMinePost =
+    anyP.ownerId === userId ||
+    anyP.userId === userId ||
+    anyP.authorId === userId ||
+    (anyP.author && (anyP.author === displayName || (fullNameStr && anyP.author === fullNameStr)));
+
+  const isDisabled = !!commentsDisabledByPost[post.id];
+
+  let actions: any[] = [];
+
+  if (isMinePost) {
+    actions = [
+      { text: t('feed.postActions.archive', 'Kartı arşivle'), onPress: () => safeArchive(post) },
+      {
+        text: isDisabled
+          ? t('feed.postActions.openComments', 'Yorumları aç')
+          : t('feed.postActions.closeComments', 'Yorumları kapat'),
+        onPress: () => toggleCommentsDisabledForPost(post.id),
+      },
+      {
+        text: t('feed.postActions.delete', 'Kartı sil'),
+        style: 'destructive',
+        onPress: () => safeRemove(post),
+      },
+      { text: t('common.cancel', 'İptal'), style: 'cancel' },
+    ];
+  } else {
+    actions = [
+      { text: t('feed.postActions.report', 'Şikayet Et'), onPress: () => handleReportPost(post) },
+      {
+        text: t('feed.postActions.blockUser', 'Kullanıcıyı Engelle'),
+        style: 'destructive',
+        onPress: () => handleBlockUser(post),
+      },
+      { text: t('common.cancel', 'İptal'), style: 'cancel' },
+    ];
+  }
+
+  Alert.alert(
+    t('feed.postActions.title', 'Gönderi işlemleri'),
+    t('feed.postActions.message', 'Bu gönderi için ne yapmak istersin?'),
+    actions,
+    { cancelable: true },
+  );
+};
 
   const handleFreeVideoActions = (post: Post) => {
     handlePostLongPress(post);
