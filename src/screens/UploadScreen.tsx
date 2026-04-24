@@ -44,6 +44,62 @@ type SocialPlatform = {
   icon: any;
 };
 
+type UploadMode = 'task' | 'free' | 'praise';
+
+type PraiseCategoryId =
+  | 'kindness'
+  | 'success'
+  | 'support'
+  | 'energy'
+  | 'creativity'
+  | 'leadership';
+
+type PraiseCategory = {
+  id: PraiseCategoryId;
+  emoji: string;
+  labelKey: string;
+  fallback: string;
+};
+
+const PRAISE_CATEGORIES: PraiseCategory[] = [
+  {
+    id: 'kindness',
+    emoji: '🤍',
+    labelKey: 'upload.praise.categories.kindness',
+    fallback: 'Kindness',
+  },
+  {
+    id: 'success',
+    emoji: '🏆',
+    labelKey: 'upload.praise.categories.success',
+    fallback: 'Success',
+  },
+  {
+    id: 'support',
+    emoji: '🤝',
+    labelKey: 'upload.praise.categories.support',
+    fallback: 'Support',
+  },
+  {
+    id: 'energy',
+    emoji: '⚡',
+    labelKey: 'upload.praise.categories.energy',
+    fallback: 'Energy',
+  },
+  {
+    id: 'creativity',
+    emoji: '🎨',
+    labelKey: 'upload.praise.categories.creativity',
+    fallback: 'Creativity',
+  },
+  {
+    id: 'leadership',
+    emoji: '🌟',
+    labelKey: 'upload.praise.categories.leadership',
+    fallback: 'Leadership',
+  },
+];
+
 const SOCIAL_PLATFORMS: SocialPlatform[] = [
   {
     id: 'facebook',
@@ -106,8 +162,12 @@ function normalizeStringArray(input: any): string[] {
     .filter(Boolean);
 }
 
-// ✅ EK: video upload helper (local uri -> server url)
-// server index.ts’de /uploads/video endpoint’i zaten var demiştin.
+function normalizePraiseFriendName(raw: string) {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+  return value.replace(/^@+/, '').trim();
+}
+
 const uploadVideoToServer = async (
   localUri: string,
   token?: string | null,
@@ -165,7 +225,6 @@ const uploadVideoToServer = async (
   }
 };
 
-// ✅ NEW: çoklu foto upload helper (local uri[] -> server url[])
 const uploadSingleImageToServer = async (
   localUri: string,
   token?: string | null,
@@ -261,10 +320,8 @@ const uploadImagesToServer = async (
 const UploadScreen: React.FC = () => {
   const { t } = useTranslation();
 
-  // Kullanıcı adı (Akışta gösterilecek)
   const { userId, backendUserId, profile, token } = useAuth() as any;
 
-  // ✅ FIX: Feed'de de kullandığımız mantık: fullName > handle > userId > misafir
   const username: string =
     (profile?.fullName != null ? String(profile.fullName).trim() : '') ||
     (profile?.handle != null
@@ -273,7 +330,6 @@ const UploadScreen: React.FC = () => {
     (userId != null ? String(userId).trim() : '') ||
     t('feed.guestName', 'misafir');
 
-  // ✅ avatar uri normalize
   const authorAvatarUri: string | null = useMemo(() => {
     const raw =
       (profile?.avatarUri != null ? String(profile.avatarUri).trim() : '') ||
@@ -282,51 +338,50 @@ const UploadScreen: React.FC = () => {
     return raw && raw.length > 0 ? raw : null;
   }, [profile?.avatarUri, profile?.avatarUrl, profile?.avatar]);
 
-  // Görevler
   const tasks = useTasks(state => state.tasks);
   const completedTasks = useMemo(() => tasks.filter(tk => tk.done), [tasks]);
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-
-  // Görev listesini gizle/göster
   const [showTaskList, setShowTaskList] = useState(true);
-
-  // Kart başlığı / açıklaması
-  const [cardTitle, setCardTitle] = useState('');
   const [cardDescription, setCardDescription] = useState('');
-
   const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatformId[]>([]);
   const [plannedTimeLabel] = useState(t('feed.time.justNow'));
 
   const socialStore: any = useSocialAccounts();
   const addTaskCardFromTask = useFeed(s => s.addTaskCardFromTask);
 
-  // Hesap bağlama bölümünü aç/kapa (YÜKLE ekranında artık kullanılmıyor ama state kalsın)
   const [showAccounts, setShowAccounts] = useState(true);
 
-  // Video state
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const [videoLabel, setVideoLabel] = useState<string | null>(null);
 
-  // ✅ NEW: çoklu foto state
   const [imageUris, setImageUris] = useState<string[]>([]);
   const [imageLabels, setImageLabels] = useState<string[]>([]);
 
-  // Kart oluşturuluyor mu?
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Serbest paylaşım modu
   const [forceFreePost, setForceFreePost] = useState(false);
 
-  // TasksScreen'den gelen "ön seçili görev" bilgisi
+  // ✅ SÜRÜM 2 / ÖVGÜ PAYLAŞIMI
+  const [uploadMode, setUploadMode] = useState<UploadMode>('task');
+  const [praiseFriendName, setPraiseFriendName] = useState('');
+  const [praiseCategoryId, setPraiseCategoryId] =
+    useState<PraiseCategoryId>('kindness');
+  const [praiseMessage, setPraiseMessage] = useState('');
+
+  // ✅ Övgü arkadaş etiketi: Focus Ağı / kullanıcı arama sonuçları
+  const [praiseFriendResults, setPraiseFriendResults] = useState<any[]>([]);
+  const [selectedPraiseFriend, setSelectedPraiseFriend] = useState<any | null>(null);
+  const [isSearchingPraiseFriend, setIsSearchingPraiseFriend] = useState(false);
+
   const { preselectedTaskId, setPreselectedTaskId } = useUploadDraft();
 
   useEffect(() => {
     if (nextUploadIsFree) {
       setSelectedTaskId(null);
-      setCardTitle('');
       setCardDescription('');
       setForceFreePost(true);
+      setUploadMode('free');
       nextUploadIsFree = false;
 
       if (preselectedTaskId) {
@@ -335,11 +390,14 @@ const UploadScreen: React.FC = () => {
       return;
     }
 
+    if (uploadMode === 'praise') return;
+
     if (!forceFreePost && !selectedTaskId) {
       if (preselectedTaskId) {
         const found = completedTasks.find(tk => tk.id === preselectedTaskId);
         if (found) {
           setSelectedTaskId(preselectedTaskId);
+          setUploadMode('task');
         }
         setPreselectedTaskId(null);
         return;
@@ -348,6 +406,7 @@ const UploadScreen: React.FC = () => {
       if (completedTasks.length > 0) {
         const first = completedTasks[0];
         setSelectedTaskId(first.id);
+        setUploadMode('task');
       }
     }
   }, [
@@ -356,6 +415,7 @@ const UploadScreen: React.FC = () => {
     forceFreePost,
     preselectedTaskId,
     setPreselectedTaskId,
+    uploadMode,
   ]);
 
   const selectedTask: Task | undefined = useMemo(
@@ -363,21 +423,30 @@ const UploadScreen: React.FC = () => {
     [completedTasks, selectedTaskId],
   );
 
-  // 🔥 Görev kartı için varsayılan başlık (çok dilli)
   const defaultTitleFromTask = useMemo(() => {
     if (!selectedTask) return '';
     const prefix = t('tasks.completeCardPrefix');
     return `${prefix}${selectedTask.title}`;
   }, [selectedTask, t]);
 
-  // Sosyal hesapları storage'dan hydrate et
+  const selectedPraiseCategory = useMemo(() => {
+    return (
+      PRAISE_CATEGORIES.find(c => c.id === praiseCategoryId) ||
+      PRAISE_CATEGORIES[0]
+    );
+  }, [praiseCategoryId]);
+
+  const selectedPraiseCategoryLabel = t(
+    selectedPraiseCategory.labelKey,
+    selectedPraiseCategory.fallback,
+  );
+
   useEffect(() => {
     if (typeof socialStore?.hydrate === 'function' && !socialStore.hydrated) {
       socialStore.hydrate();
     }
   }, [socialStore]);
 
-  // Bağlı platform ID'leri
   const connectedPlatformIds: SocialPlatformId[] = useMemo(() => {
     if (Array.isArray(socialStore?.connectedPlatforms)) {
       return socialStore.connectedPlatforms as SocialPlatformId[];
@@ -392,7 +461,6 @@ const UploadScreen: React.FC = () => {
     return [];
   }, [socialStore]);
 
-  // PLATFORM SEÇME – BAĞLI DEĞİLSE UYAR
   const togglePlatform = (id: SocialPlatformId) => {
     const isConnected = connectedPlatformIds.includes(id);
 
@@ -440,9 +508,36 @@ const UploadScreen: React.FC = () => {
   const handleSelectTask = (task: Task) => {
     setSelectedTaskId(task.id);
     setForceFreePost(false);
+    setUploadMode('task');
   };
 
-  // Serbest paylaşım modunu toggle eden fonksiyon
+  const setModeTask = () => {
+    if (completedTasks.length > 0) {
+      const nextTask = selectedTask || completedTasks[0];
+      setSelectedTaskId(nextTask.id);
+      setForceFreePost(false);
+      setUploadMode('task');
+      return;
+    }
+
+    Alert.alert(
+      t('upload.mode.noCompletedTasksTitle'),
+      t('upload.mode.noCompletedTasksBody'),
+    );
+  };
+
+  const setModeFree = () => {
+    setSelectedTaskId(null);
+    setForceFreePost(true);
+    setUploadMode('free');
+  };
+
+  const setModePraise = () => {
+    setSelectedTaskId(null);
+    setForceFreePost(true);
+    setUploadMode('praise');
+  };
+
   const handleToggleFreePostMode = () => {
     const hasCompleted = completedTasks.length > 0;
     const currentlyFree = forceFreePost || !selectedTask;
@@ -452,6 +547,7 @@ const UploadScreen: React.FC = () => {
         const first = completedTasks[0];
         setSelectedTaskId(first.id);
         setForceFreePost(false);
+        setUploadMode('task');
       } else {
         Alert.alert(
           t('upload.mode.noCompletedTasksTitle'),
@@ -459,12 +555,86 @@ const UploadScreen: React.FC = () => {
         );
       }
     } else {
-      setSelectedTaskId(null);
-      setForceFreePost(true);
+      setModeFree();
     }
   };
 
-  // Video seçmek
+  const getPraiseFriendDisplayName = (user: any): string => {
+    const fullName = String(user?.fullName ?? user?.displayName ?? '').trim();
+    const handle = String(user?.handle ?? '').trim().replace(/^@+/, '');
+    return fullName || (handle ? `@${handle}` : '');
+  };
+
+  const getPraiseFriendAvatar = (user: any): string | null => {
+    const raw =
+      String(user?.avatarUri ?? '').trim() ||
+      String(user?.avatarUrl ?? '').trim() ||
+      String(user?.avatar ?? '').trim();
+    return raw || null;
+  };
+
+  const handlePraiseFriendSearch = async (text: string) => {
+    setPraiseFriendName(text);
+    setSelectedPraiseFriend(null);
+
+    const q = String(text || '').trim().replace(/^@+/, '');
+
+    if (q.length < 2) {
+      setPraiseFriendResults([]);
+      setIsSearchingPraiseFriend(false);
+      return;
+    }
+
+    setIsSearchingPraiseFriend(true);
+
+    try {
+      const headers: any = {
+        Accept: 'application/json',
+      };
+
+      if (token && String(token).trim().length) {
+        headers.Authorization = `Bearer ${String(token).trim()}`;
+      }
+
+      if (backendUserId != null) {
+        headers['x-user-id'] = String(backendUserId);
+      }
+
+      const res = await fetch(`${API_URL}/users/search?q=${encodeURIComponent(q)}&limit=20`, {
+        method: 'GET',
+        headers,
+      });
+
+      const json = await res.json().catch(() => null);
+      const items = Array.isArray(json?.items) ? json.items : [];
+
+      // ✅ Öncelik Focus Ağı arkadaşlarında; yoksa arama sonuçlarını yine göster.
+      const sorted = [...items].sort((a, b) => {
+        const ar = String(a?.relationship ?? '');
+        const br = String(b?.relationship ?? '');
+        if (ar === 'friend' && br !== 'friend') return -1;
+        if (ar !== 'friend' && br === 'friend') return 1;
+        return 0;
+      });
+
+      setPraiseFriendResults(sorted);
+    } catch (e) {
+      console.warn('[Upload] praise friend search error:', e);
+      setPraiseFriendResults([]);
+    } finally {
+      setIsSearchingPraiseFriend(false);
+    }
+  };
+
+  const handleSelectPraiseFriend = (user: any) => {
+    const handle = String(user?.handle ?? '').trim().replace(/^@+/, '');
+    const displayName = getPraiseFriendDisplayName(user);
+
+    setSelectedPraiseFriend(user);
+    setPraiseFriendName(handle || displayName);
+    setPraiseFriendResults([]);
+  };
+
   const pickVideo = async () => {
     try {
       const options: ImageLibraryOptions = {
@@ -530,7 +700,6 @@ const UploadScreen: React.FC = () => {
     }
   };
 
-  // ✅ NEW: çoklu foto seçmek
   const pickImages = async () => {
     try {
       const options: ImageLibraryOptions = {
@@ -574,8 +743,8 @@ const UploadScreen: React.FC = () => {
     } catch (e) {
       console.warn('[Upload] pickImages error:', e);
       Alert.alert(
-        t('upload.images.pickErrorTitle', 'Fotoğraflar seçilemedi'),
-        t('upload.images.pickErrorBody', 'Fotoğraf seçerken bir hata oluştu.'),
+        t('upload.images.pickErrorTitle'),
+        t('upload.images.pickErrorBody'),
       );
     }
   };
@@ -590,25 +759,42 @@ const UploadScreen: React.FC = () => {
     setImageLabels([]);
   };
 
-  // Form geçerli mi?
-  const canSubmit = !!(
-    selectedTask ||
-    cardTitle.trim() ||
-    cardDescription.trim() ||
-    videoUri ||
-    imageUris.length > 0
-  );
+  const isPraiseMode = uploadMode === 'praise';
+
+  const canSubmit = isPraiseMode
+    ? !!normalizePraiseFriendName(praiseFriendName) && !!praiseMessage.trim()
+    : !!(selectedTask || cardDescription.trim() || videoUri || imageUris.length > 0);
 
   const handleCreateCard = async () => {
     if (isSubmitting) return;
 
+    const isPraisePost = uploadMode === 'praise';
+
     const hasFreePostContent =
-      !!cardTitle.trim() ||
       !!cardDescription.trim() ||
       !!videoUri ||
       imageUris.length > 0;
 
-    if (!selectedTask && !hasFreePostContent) {
+    const safePraiseFriendName = normalizePraiseFriendName(praiseFriendName);
+    const safePraiseMessage = praiseMessage.trim();
+
+    if (isPraisePost) {
+      if (!safePraiseFriendName) {
+        Alert.alert(
+          t('upload.praise.missingFriendTitle', 'No friend selected'),
+          t('upload.praise.missingFriendBody', 'Write a friend name for the praise share.'),
+        );
+        return;
+      }
+
+      if (!safePraiseMessage) {
+        Alert.alert(
+          t('upload.praise.missingMessageTitle', 'Message missing'),
+          t('upload.praise.missingMessageBody', 'Write a short praise message.'),
+        );
+        return;
+      }
+    } else if (!selectedTask && !hasFreePostContent) {
       Alert.alert(
         t('upload.alerts.missingContentTitle'),
         t('upload.alerts.missingContentBody'),
@@ -622,34 +808,62 @@ const UploadScreen: React.FC = () => {
       let taskTitle = '';
       let note = '';
 
-      if (selectedTask && !forceFreePost) {
-        const baseTitle = selectedTask.title;
-        const autoTitle = defaultTitleFromTask || baseTitle;
-        const titleTrim = cardTitle.trim();
-        const descTrim = cardDescription.trim();
-
-        taskTitle = (titleTrim || autoTitle).trim();
-        note = (descTrim || baseTitle).trim();
-      } else {
-        const titleTrim = cardTitle.trim();
-        const descTrim = cardDescription.trim();
-
-        if (!titleTrim && !descTrim) {
-          taskTitle = '';
-          note = '';
-        } else {
-          taskTitle = titleTrim || descTrim;
-          note = descTrim || titleTrim;
-        }
-      }
-
       const shareTargets = selectedPlatforms
         .map(id => SOCIAL_PLATFORMS.find(p => p.id === id)?.label)
         .filter(Boolean) as string[];
 
-      const isFreePost = forceFreePost || !selectedTask;
+      let isFreePost = forceFreePost || !selectedTask;
 
-      // ✅ video varsa upload et
+      let extraPayload: any = {};
+
+      if (isPraisePost) {
+        isFreePost = true;
+
+        taskTitle = t('upload.praise.feedTitle', {
+          friend: safePraiseFriendName,
+          defaultValue: `Praise for @${safePraiseFriendName}`,
+        });
+
+        note = safePraiseMessage;
+
+        extraPayload = {
+          postType: 'praise',
+          isPraisePost: true,
+          praiseFriendName: safePraiseFriendName,
+          praiseFriendUserId:
+            selectedPraiseFriend?.id != null ? Number(selectedPraiseFriend.id) : null,
+          praiseFriendDisplayName:
+            selectedPraiseFriend ? getPraiseFriendDisplayName(selectedPraiseFriend) : safePraiseFriendName,
+          praiseFriendHandle:
+            selectedPraiseFriend?.handle != null
+              ? String(selectedPraiseFriend.handle).trim().replace(/^@+/, '')
+              : safePraiseFriendName,
+          praiseFriendAvatarUri:
+            selectedPraiseFriend ? getPraiseFriendAvatar(selectedPraiseFriend) : null,
+          praiseCategoryId,
+          praiseCategoryLabel: selectedPraiseCategoryLabel,
+          praiseCategoryEmoji: selectedPraiseCategory.emoji,
+          praiseMessage: safePraiseMessage,
+        };
+      } else if (selectedTask && !forceFreePost) {
+        const baseTitle = selectedTask.title;
+        const autoTitle = defaultTitleFromTask || baseTitle;
+        const descTrim = cardDescription.trim();
+
+        taskTitle = autoTitle.trim();
+        note = (descTrim || baseTitle).trim();
+      } else {
+        const descTrim = cardDescription.trim();
+
+        if (!descTrim) {
+          taskTitle = '';
+          note = '';
+        } else {
+          taskTitle = '';
+          note = descTrim;
+        }
+      }
+
       let finalVideoUri: string | null = videoUri;
 
       if (videoUri) {
@@ -657,10 +871,10 @@ const UploadScreen: React.FC = () => {
 
         if (!uploadedUrl) {
           Alert.alert(
-            t('upload.video.uploadFailedTitle', 'Video yüklenemedi'),
+            t('upload.video.uploadFailedTitle', 'Video could not be uploaded'),
             t(
               'upload.video.uploadFailedBody',
-              'Video sunucuya yüklenemedi. İnternet/Server kontrol et.',
+              'Video could not be uploaded to the server. Check your internet/server.',
             ),
           );
           return;
@@ -669,7 +883,6 @@ const UploadScreen: React.FC = () => {
         finalVideoUri = uploadedUrl;
       }
 
-      // ✅ çoklu foto varsa upload et
       let finalImageUris: string[] = normalizeStringArray(imageUris);
 
       if (imageUris.length > 0) {
@@ -677,10 +890,10 @@ const UploadScreen: React.FC = () => {
 
         if (!uploadedImages) {
           Alert.alert(
-            t('upload.images.uploadFailedTitle', 'Fotoğraflar yüklenemedi'),
+            t('upload.images.uploadFailedTitle', 'Photos could not be uploaded'),
             t(
               'upload.images.uploadFailedBody',
-              'Fotoğraflar sunucuya yüklenemedi. İnternet/Server kontrol et.',
+              'Photos could not be uploaded to the server. Check your internet/server.',
             ),
           );
           return;
@@ -689,19 +902,23 @@ const UploadScreen: React.FC = () => {
         finalImageUris = normalizeStringArray(uploadedImages);
       }
 
-      // 🟢 1) Önce yerel feed'e kartı ekle
-      addTaskCardFromTask({
-        taskTitle,
-        note,
-        author: username,
-        shareTargets,
-        videoUri: finalVideoUri,
-        imageUris: finalImageUris,
-        isFreePost,
-        authorAvatarUri,
-      });
+      // ✅ Övgü postunda optimistic local ekleme yapmıyoruz.
+      // Sebep: Aynı kart server'dan geri geldiğinde paylaşan kişide çift kart oluşuyordu.
+      // Diğer paylaşım tiplerinde mevcut davranış korunuyor.
+      if (!isPraisePost) {
+        (addTaskCardFromTask as any)({
+          taskTitle,
+          note,
+          author: username,
+          shareTargets,
+          videoUri: finalVideoUri,
+          imageUris: finalImageUris,
+          isFreePost,
+          authorAvatarUri,
+          ...extraPayload,
+        });
+      }
 
-      // 🟢 2) Sonra backend'e post kaydı gönder
       const createdAt = new Date().toISOString();
 
       const serverPayload = {
@@ -716,6 +933,7 @@ const UploadScreen: React.FC = () => {
         userId: backendUserId ?? null,
         authorAvatarUri,
         avatarUri: authorAvatarUri,
+        ...extraPayload,
       };
 
       try {
@@ -742,8 +960,6 @@ const UploadScreen: React.FC = () => {
         console.warn('[Upload] error while calling /posts:', err);
       }
 
-      // Instagram paylaşımı
-      // ⚠️ Instagram için genelde local uri gerekli
       if (selectedPlatforms.includes('instagram')) {
         const caption = (note || taskTitle || '').trim();
 
@@ -755,19 +971,33 @@ const UploadScreen: React.FC = () => {
       }
 
       Alert.alert(
-        t('upload.alerts.successTitle'),
-        selectedTask && !forceFreePost
-          ? t('upload.alerts.successTaskBody')
-          : t('upload.alerts.successFreeBody'),
+        isPraisePost
+          ? t('upload.praise.successTitle', 'Praise shared')
+          : t('upload.alerts.successTitle'),
+        isPraisePost
+          ? t('upload.praise.successBody', 'Your praise card has been added to the feed.')
+          : selectedTask && !forceFreePost
+            ? t('upload.alerts.successTaskBody')
+            : t('upload.alerts.successFreeBody'),
       );
 
-      if (selectedTask && !forceFreePost) {
+      if (isPraisePost) {
+        setPraiseFriendName('');
+        setSelectedPraiseFriend(null);
+        setPraiseFriendResults([]);
+        setPraiseCategoryId('kindness');
+        setPraiseMessage('');
+        setCardDescription('');
+        setSelectedTaskId(null);
+        setForceFreePost(true);
+        setUploadMode('praise');
+      } else if (selectedTask && !forceFreePost) {
         setCardDescription('');
       } else {
         setSelectedTaskId(null);
-        setCardTitle('');
         setCardDescription('');
         setForceFreePost(true);
+        setUploadMode('free');
       }
 
       setSelectedPlatforms([]);
@@ -780,24 +1010,44 @@ const UploadScreen: React.FC = () => {
     }
   };
 
-  const isFreePostPreview = forceFreePost || !selectedTask;
+  const isFreePostPreview = uploadMode === 'free' || (!selectedTask && uploadMode !== 'praise');
 
-  const screenTitle = isFreePostPreview
-    ? t('upload.screenTitleFree')
-    : t('upload.screenTitleTask');
+  const screenTitle =
+    uploadMode === 'praise'
+      ? t('upload.praise.screenTitle', 'Praise Share')
+      : isFreePostPreview
+        ? t('upload.screenTitleFree')
+        : t('upload.screenTitleTask');
 
-  const modeHelperText = isFreePostPreview
-    ? t('upload.mode.freeDescription')
-    : t('upload.mode.taskDescription');
+  const modeHelperText =
+    uploadMode === 'praise'
+      ? t(
+          'upload.praise.description',
+          'Write a short praise message for a friend and share it as a special card.',
+        )
+      : isFreePostPreview
+        ? t('upload.mode.freeDescription')
+        : t('upload.mode.taskDescription');
 
-  // Önizleme kartı için başlık
   const previewTitle =
-    (cardTitle || '').trim() ||
-    (isFreePostPreview
-      ? t('upload.preview.noTaskSelected')
-      : defaultTitleFromTask ||
-        selectedTask?.title ||
-        t('upload.preview.noTaskSelected'));
+    uploadMode === 'praise'
+      ? t('upload.praise.previewTitle', {
+          friend: normalizePraiseFriendName(praiseFriendName) || t('upload.praise.friendFallback', 'your friend'),
+          defaultValue: `Praise for @${normalizePraiseFriendName(praiseFriendName) || 'your friend'}`,
+        })
+      : isFreePostPreview
+        ? t('upload.preview.noTaskSelected')
+        : defaultTitleFromTask ||
+          selectedTask?.title ||
+          t('upload.preview.noTaskSelected');
+
+  const previewDescription =
+    uploadMode === 'praise'
+      ? praiseMessage
+      : cardDescription ||
+        (selectedTask
+          ? `${t('feed.labels.descriptionPrefix')} ${selectedTask.title}`
+          : '');
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -808,21 +1058,17 @@ const UploadScreen: React.FC = () => {
         <View style={styles.sectionHeaderRow}>
           <View style={styles.modeTabsRow}>
             <Pressable
-              onPress={() => {
-                if (isFreePostPreview) {
-                  handleToggleFreePostMode();
-                }
-              }}
+              onPress={setModeTask}
               style={({ pressed }) => [
                 styles.modeTabBtn,
-                !isFreePostPreview && styles.modeTabBtnActive,
+                uploadMode === 'task' && styles.modeTabBtnActive,
                 pressed && styles.modeTabBtnPressed,
               ]}
             >
               <Text
                 style={[
                   styles.modeTabText,
-                  !isFreePostPreview && styles.modeTabTextActive,
+                  uploadMode === 'task' && styles.modeTabTextActive,
                 ]}
                 numberOfLines={1}
               >
@@ -831,30 +1077,45 @@ const UploadScreen: React.FC = () => {
             </Pressable>
 
             <Pressable
-              onPress={() => {
-                if (!isFreePostPreview) {
-                  handleToggleFreePostMode();
-                }
-              }}
+              onPress={setModeFree}
               style={({ pressed }) => [
                 styles.modeTabBtn,
-                isFreePostPreview && styles.modeTabBtnActive,
+                uploadMode === 'free' && styles.modeTabBtnActive,
                 pressed && styles.modeTabBtnPressed,
               ]}
             >
               <Text
                 style={[
                   styles.modeTabText,
-                  isFreePostPreview && styles.modeTabTextActive,
+                  uploadMode === 'free' && styles.modeTabTextActive,
                 ]}
                 numberOfLines={1}
               >
                 {t('upload.mode.free')}
               </Text>
             </Pressable>
+
+            <Pressable
+              onPress={setModePraise}
+              style={({ pressed }) => [
+                styles.modeTabBtn,
+                uploadMode === 'praise' && styles.modeTabBtnActivePraise,
+                pressed && styles.modeTabBtnPressed,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.modeTabText,
+                  uploadMode === 'praise' && styles.modeTabTextActivePraise,
+                ]}
+                numberOfLines={1}
+              >
+                {t('upload.praise.tab', 'Praise')}
+              </Text>
+            </Pressable>
           </View>
 
-          {!isFreePostPreview && completedTasks.length > 0 && (
+          {uploadMode === 'task' && completedTasks.length > 0 && (
             <Pressable
               onPress={() => setShowTaskList(prev => !prev)}
               style={({ pressed }) => [
@@ -874,13 +1135,13 @@ const UploadScreen: React.FC = () => {
         <Text style={styles.helperText}>{modeHelperText}</Text>
 
         {completedTasks.length === 0 ? (
-          !isFreePostPreview && (
+          uploadMode === 'task' && (
             <Text style={[styles.helperText, { marginTop: 4 }]}>
               {t('upload.mode.noCompletedTasksInline')}
             </Text>
           )
         ) : (
-          !isFreePostPreview &&
+          uploadMode === 'task' &&
           showTaskList && (
             <View style={styles.taskList}>
               {completedTasks.map(task => {
@@ -912,33 +1173,175 @@ const UploadScreen: React.FC = () => {
         )}
       </View>
 
-      {/* 2) Kart başlığı & açıklaması */}
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>
-          {t('upload.fields.cardTitleLabel')}
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder={t('upload.fields.cardTitlePlaceholder')}
-          placeholderTextColor="#8a8a8a"
-          value={cardTitle}
-          onChangeText={setCardTitle}
-        />
-      </View>
+      {/* 2) Kart metni / Övgü metni */}
+      {uploadMode === 'praise' ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>
+            {t('upload.praise.friendLabel', 'Friend')}
+          </Text>
+          <TextInput
+            style={styles.input}
+            placeholder={t('upload.praise.friendPlaceholder', 'Friend name or username')}
+            placeholderTextColor="#8a8a8a"
+            value={praiseFriendName}
+            onChangeText={handlePraiseFriendSearch}
+            autoCapitalize="none"
+          />
 
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>
-          {t('upload.fields.cardDescriptionLabel')}
-        </Text>
-        <TextInput
-          style={[styles.input, styles.multilineInput]}
-          placeholder={t('upload.fields.cardDescriptionPlaceholder')}
-          placeholderTextColor="#8a8a8a"
-          value={cardDescription}
-          onChangeText={setCardDescription}
-          multiline
-        />
-      </View>
+          {selectedPraiseFriend && (
+            <View style={styles.selectedPraiseFriendBox}>
+              {getPraiseFriendAvatar(selectedPraiseFriend) ? (
+                <Image
+                  source={{ uri: getPraiseFriendAvatar(selectedPraiseFriend)! }}
+                  style={styles.praiseFriendAvatar}
+                />
+              ) : (
+                <View style={styles.praiseFriendAvatarFallback}>
+                  <Text style={styles.praiseFriendAvatarFallbackText}>
+                    {(getPraiseFriendDisplayName(selectedPraiseFriend)[0] || '@').toUpperCase()}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.praiseFriendTextWrap}>
+                <Text style={styles.selectedPraiseFriendName} numberOfLines={1}>
+                  {getPraiseFriendDisplayName(selectedPraiseFriend)}
+                </Text>
+                {!!selectedPraiseFriend?.handle && (
+                  <Text style={styles.selectedPraiseFriendHandle} numberOfLines={1}>
+                    @{String(selectedPraiseFriend.handle).replace(/^@+/, '')}
+                  </Text>
+                )}
+              </View>
+
+              <Pressable
+                onPress={() => {
+                  setSelectedPraiseFriend(null);
+                  setPraiseFriendName('');
+                }}
+                style={({ pressed }) => [
+                  styles.clearPraiseFriendBtn,
+                  pressed && styles.clearPraiseFriendBtnPressed,
+                ]}
+              >
+                <Text style={styles.clearPraiseFriendBtnText}>×</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {praiseFriendResults.length > 0 && (
+            <View style={styles.praiseFriendResultsBox}>
+              {praiseFriendResults.map(user => {
+                const avatar = getPraiseFriendAvatar(user);
+                const displayName = getPraiseFriendDisplayName(user);
+                const relationship = String(user?.relationship ?? '');
+
+                return (
+                  <Pressable
+                    key={String(user?.id ?? displayName)}
+                    onPress={() => handleSelectPraiseFriend(user)}
+                    style={({ pressed }) => [
+                      styles.praiseFriendResultItem,
+                      pressed && styles.praiseFriendResultItemPressed,
+                    ]}
+                  >
+                    {avatar ? (
+                      <Image source={{ uri: avatar }} style={styles.praiseFriendAvatar} />
+                    ) : (
+                      <View style={styles.praiseFriendAvatarFallback}>
+                        <Text style={styles.praiseFriendAvatarFallbackText}>
+                          {(displayName[0] || '@').toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+
+                    <View style={styles.praiseFriendTextWrap}>
+                      <Text style={styles.praiseFriendResultName} numberOfLines={1}>
+                        {displayName || t('profile.defaultUser', 'User')}
+                      </Text>
+                      <Text style={styles.praiseFriendResultHandle} numberOfLines={1}>
+                        {user?.handle ? `@${String(user.handle).replace(/^@+/, '')}` : ''}
+                      </Text>
+                    </View>
+
+                    {relationship === 'friend' && (
+                      <Text style={styles.praiseFriendRelationBadge}>
+                        {t('focusNetwork.friend', 'Friend')}
+                      </Text>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+
+          {isSearchingPraiseFriend && (
+            <Text style={styles.praiseFriendSearchingText}>
+              {t('common.loading', 'Loading...')}
+            </Text>
+          )}
+
+          <Text style={[styles.sectionLabel, { marginTop: 14 }]}>
+            {t('upload.praise.categoryLabel', 'Category')}
+          </Text>
+          <View style={styles.praiseCategoryRow}>
+            {PRAISE_CATEGORIES.map(category => {
+              const selected = category.id === praiseCategoryId;
+              return (
+                <Pressable
+                  key={category.id}
+                  onPress={() => setPraiseCategoryId(category.id)}
+                  style={({ pressed }) => [
+                    styles.praiseCategoryChip,
+                    selected && styles.praiseCategoryChipSelected,
+                    pressed && styles.praiseCategoryChipPressed,
+                  ]}
+                >
+                  <Text style={styles.praiseCategoryEmoji}>{category.emoji}</Text>
+                  <Text
+                    style={[
+                      styles.praiseCategoryText,
+                      selected && styles.praiseCategoryTextSelected,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {t(category.labelKey, category.fallback)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={[styles.sectionLabel, { marginTop: 14 }]}>
+            {t('upload.praise.messageLabel', 'Short message')}
+          </Text>
+          <TextInput
+            style={[styles.input, styles.multilineInput]}
+            placeholder={t(
+              'upload.praise.messagePlaceholder',
+              'Example: Your energy lifted everyone today.',
+            )}
+            placeholderTextColor="#8a8a8a"
+            value={praiseMessage}
+            onChangeText={setPraiseMessage}
+            multiline
+          />
+        </View>
+      ) : (
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>
+            {t('upload.fields.cardDescriptionLabel')}
+          </Text>
+          <TextInput
+            style={[styles.input, styles.multilineInput]}
+            placeholder={t('upload.fields.cardDescriptionPlaceholder')}
+            placeholderTextColor="#8a8a8a"
+            value={cardDescription}
+            onChangeText={setCardDescription}
+            multiline
+          />
+        </View>
+      )}
 
       {/* 2.5) Video (opsiyonel) */}
       <View style={styles.section}>
@@ -970,12 +1373,12 @@ const UploadScreen: React.FC = () => {
       {/* 2.6) Çoklu fotoğraf (opsiyonel) */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>
-          {t('upload.images.label', 'Fotoğraflar')}
+          {t('upload.images.label', 'Photos')}
         </Text>
         <Text style={styles.videoHint}>
           {t(
             'upload.images.hint',
-            'Birden fazla fotoğraf seçebilirsin.',
+            'You can select multiple photos.',
           )}
         </Text>
 
@@ -989,8 +1392,8 @@ const UploadScreen: React.FC = () => {
           >
             <Text style={styles.videoBtnText}>
               {imageUris.length > 0
-                ? t('upload.images.change', 'Fotoğrafları değiştir')
-                : t('upload.images.pick', 'Fotoğraf seç')}
+                ? t('upload.images.change', 'Change photos')
+                : t('upload.images.pick', 'Choose photo')}
             </Text>
           </Pressable>
 
@@ -999,9 +1402,9 @@ const UploadScreen: React.FC = () => {
               {imageUris.length > 0
                 ? t('upload.images.selectedCount', {
                     count: imageUris.length,
-                    defaultValue: `${imageUris.length} fotoğraf seçildi`,
+                    defaultValue: `${imageUris.length} photo(s) selected`,
                   })
-                : t('upload.images.notSelected', 'Fotoğraf seçilmedi')}
+                : t('upload.images.notSelected', 'No photo selected')}
             </Text>
           </View>
         </View>
@@ -1041,7 +1444,7 @@ const UploadScreen: React.FC = () => {
                 ]}
               >
                 <Text style={styles.clearImagesBtnText}>
-                  {t('upload.images.clearAll', 'Tümünü temizle')}
+                  {t('upload.images.clearAll', 'Clear all')}
                 </Text>
               </Pressable>
             </View>
@@ -1159,18 +1562,21 @@ const UploadScreen: React.FC = () => {
         <Text style={styles.sectionLabel}>{t('upload.preview.label')}</Text>
         <TaskPreviewCard
           isFreePost={isFreePostPreview}
+          isPraisePost={uploadMode === 'praise'}
           title={previewTitle}
-          description={
-            cardDescription ||
-            (selectedTask
-              ? `${t('feed.labels.descriptionPrefix')} ${selectedTask.title}`
-              : '')
-          }
+          description={previewDescription}
           platformIds={selectedPlatforms}
           plannedTimeLabel={plannedTimeLabel}
           hasVideo={!!videoUri}
           videoLabel={videoLabel}
           imageUris={imageUris}
+          praiseFriendName={
+            selectedPraiseFriend
+              ? getPraiseFriendDisplayName(selectedPraiseFriend).replace(/^@+/, '')
+              : normalizePraiseFriendName(praiseFriendName)
+          }
+          praiseCategoryLabel={selectedPraiseCategoryLabel}
+          praiseCategoryEmoji={selectedPraiseCategory.emoji}
         />
       </View>
 
@@ -1194,9 +1600,11 @@ const UploadScreen: React.FC = () => {
             </View>
           ) : (
             <Text style={styles.primaryButtonText}>
-              {selectedTask && !forceFreePost
-                ? t('upload.submit.task')
-                : t('upload.submit.free')}
+              {uploadMode === 'praise'
+                ? t('upload.praise.submit', 'Share Praise')
+                : selectedTask && !forceFreePost
+                  ? t('upload.submit.task')
+                  : t('upload.submit.free')}
             </Text>
           )}
         </TouchableOpacity>
@@ -1213,7 +1621,11 @@ type TaskPreviewCardProps = {
   hasVideo?: boolean;
   videoLabel?: string | null;
   isFreePost?: boolean;
+  isPraisePost?: boolean;
   imageUris?: string[];
+  praiseFriendName?: string;
+  praiseCategoryLabel?: string;
+  praiseCategoryEmoji?: string;
 };
 
 const TaskPreviewCard: React.FC<TaskPreviewCardProps> = ({
@@ -1224,25 +1636,132 @@ const TaskPreviewCard: React.FC<TaskPreviewCardProps> = ({
   hasVideo,
   videoLabel,
   isFreePost,
+  isPraisePost,
   imageUris,
+  praiseFriendName,
+  praiseCategoryLabel,
+  praiseCategoryEmoji,
 }) => {
   const { t } = useTranslation();
   const platforms = SOCIAL_PLATFORMS.filter(p => platformIds.includes(p.id));
   const safeImageUris = normalizeStringArray(imageUris);
 
-  const titlePrefix = isFreePost
-    ? t('upload.preview.freePrefix')
-    : t('upload.preview.taskPrefix');
+  const titlePrefix = isPraisePost
+    ? ''
+    : isFreePost
+      ? t('upload.preview.freePrefix')
+      : t('upload.preview.taskPrefix');
 
-  const badgeText = isFreePost
-    ? t('upload.preview.freeBadge')
-    : t('upload.preview.taskBadge');
+  const badgeText = isPraisePost
+    ? t('upload.praise.badge', 'Praise Card')
+    : isFreePost
+      ? t('upload.preview.freeBadge')
+      : t('upload.preview.taskBadge');
 
-  const contentLabel = isFreePost
-    ? t('upload.preview.contentLabelFree')
-    : t('upload.preview.contentLabelTask');
+  const contentLabel = isPraisePost
+    ? t('upload.praise.previewMessageLabel', 'Praise message')
+    : isFreePost
+      ? t('upload.preview.contentLabelFree')
+      : t('upload.preview.contentLabelTask');
 
   const videoText = videoLabel || t('upload.preview.videoFallback');
+
+  if (isPraisePost) {
+    return (
+      <View style={[styles.card, styles.praisePreviewCard]}>
+        <View style={styles.praisePreviewTopRow}>
+          <View style={styles.praisePreviewIcon}>
+            <Text style={styles.praisePreviewIconText}>
+              {praiseCategoryEmoji || '🌟'}
+            </Text>
+          </View>
+
+          <View style={styles.praisePreviewTitleWrap}>
+            <Text style={styles.praisePreviewBadge}>{badgeText}</Text>
+            <Text style={styles.praisePreviewTitle} numberOfLines={2}>
+              {title}
+            </Text>
+            <Text style={styles.praisePreviewCategory} numberOfLines={1}>
+              {praiseCategoryLabel || t('upload.praise.categoryFallback', 'Praise')}
+            </Text>
+          </View>
+
+          <Text style={styles.cardTime} numberOfLines={1}>
+            {plannedTimeLabel}
+          </Text>
+        </View>
+
+        <View style={styles.praiseMessageBox}>
+          <Text style={styles.cardSectionLabel}>{contentLabel}</Text>
+          <Text style={styles.praiseMessageText}>
+            {description ||
+              t(
+                'upload.praise.previewEmptyMessage',
+                'Your praise message will appear here.',
+              )}
+          </Text>
+        </View>
+
+        {!!praiseFriendName && (
+          <Text style={styles.praiseFriendHint}>
+            {t('upload.praise.previewFriendHint', {
+              friend: praiseFriendName,
+              defaultValue: `@${praiseFriendName} etiketlenecek`,
+            })}
+          </Text>
+        )}
+
+        {platforms.length > 0 && (
+          <>
+            <Text style={[styles.cardSectionLabel, { marginTop: 8 }]}>
+              {t('upload.preview.plannedLabel')}
+            </Text>
+            <View style={styles.cardPlatformsRow}>
+              {platforms.map(p => (
+                <View key={p.id} style={styles.cardPlatformItem}>
+                  <Image source={p.icon} style={styles.cardPlatformIcon} />
+                  <Text style={styles.cardPlatformText} numberOfLines={1}>
+                    {p.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
+
+        {hasVideo && (
+          <Text style={styles.cardVideoText}>
+            {t('upload.preview.videoLabel', { label: videoText })}
+          </Text>
+        )}
+
+        {safeImageUris.length > 0 && (
+          <>
+            <Text style={styles.cardVideoText}>
+              {t('upload.preview.imagesLabel', {
+                count: safeImageUris.length,
+                defaultValue: `${safeImageUris.length} fotoğraf eklendi`,
+              })}
+            </Text>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.cardImagesRow}
+            >
+              {safeImageUris.map((uri, index) => (
+                <Image
+                  key={`${uri}_${index}`}
+                  source={{ uri }}
+                  style={styles.cardImageThumb}
+                />
+              ))}
+            </ScrollView>
+          </>
+        )}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.card}>
@@ -1367,8 +1886,9 @@ const styles = StyleSheet.create({
   },
   modeTabBtn: {
     flex: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    minWidth: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: '#ddd',
@@ -1380,16 +1900,23 @@ const styles = StyleSheet.create({
     borderColor: '#ffb300',
     backgroundColor: '#fff7e0',
   },
+  modeTabBtnActivePraise: {
+    borderColor: VIRAL_RED,
+    backgroundColor: '#fff0f1',
+  },
   modeTabBtnPressed: {
     opacity: 0.9,
   },
   modeTabText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     color: '#555',
   },
   modeTabTextActive: {
     color: '#b27100',
+  },
+  modeTabTextActivePraise: {
+    color: VIRAL_RED,
   },
   taskList: {
     borderRadius: 10,
@@ -1428,6 +1955,149 @@ const styles = StyleSheet.create({
   multilineInput: {
     minHeight: 80,
     textAlignVertical: 'top',
+  },
+  praiseCategoryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  praiseCategoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    backgroundColor: '#fff',
+  },
+  praiseCategoryChipSelected: {
+    borderColor: VIRAL_RED,
+    backgroundColor: '#fff0f1',
+  },
+  praiseCategoryChipPressed: {
+    opacity: 0.9,
+  },
+  praiseCategoryEmoji: {
+    fontSize: 14,
+    marginRight: 5,
+  },
+  praiseCategoryText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#555',
+  },
+  praiseCategoryTextSelected: {
+    color: VIRAL_RED,
+  },
+  selectedPraiseFriendBox: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ffd6da',
+    backgroundColor: '#fffafb',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  praiseFriendResultsBox: {
+    marginTop: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+  },
+  praiseFriendResultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f2f2f2',
+  },
+  praiseFriendResultItemPressed: {
+    backgroundColor: '#fff0f1',
+  },
+  praiseFriendAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#eee',
+    marginRight: 10,
+  },
+  praiseFriendAvatarFallback: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#fff0f1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  praiseFriendAvatarFallbackText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: VIRAL_RED,
+  },
+  praiseFriendTextWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
+  praiseFriendResultName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111',
+  },
+  praiseFriendResultHandle: {
+    marginTop: 1,
+    fontSize: 11,
+    color: '#777',
+  },
+  selectedPraiseFriendName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111',
+  },
+  selectedPraiseFriendHandle: {
+    marginTop: 1,
+    fontSize: 11,
+    color: '#777',
+  },
+  praiseFriendRelationBadge: {
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: '#fff0f1',
+    color: VIRAL_RED,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  praiseFriendSearchingText: {
+    marginTop: 6,
+    fontSize: 11,
+    color: '#777',
+  },
+  clearPraiseFriendBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  clearPraiseFriendBtnPressed: {
+    backgroundColor: '#e2e2e2',
+  },
+  clearPraiseFriendBtnText: {
+    fontSize: 18,
+    lineHeight: 20,
+    fontWeight: '700',
+    color: '#555',
   },
   videoRow: {
     flexDirection: 'row',
@@ -1621,6 +2291,66 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2,
+  },
+  praisePreviewCard: {
+    borderColor: '#ffd6da',
+    backgroundColor: '#fffafb',
+  },
+  praisePreviewTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  praisePreviewIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#fff0f1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  praisePreviewIconText: {
+    fontSize: 22,
+  },
+  praisePreviewTitleWrap: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  praisePreviewBadge: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: VIRAL_RED,
+    marginBottom: 2,
+  },
+  praisePreviewTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111',
+  },
+  praisePreviewCategory: {
+    marginTop: 3,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#777',
+  },
+  praiseMessageBox: {
+    marginTop: 12,
+    borderRadius: 14,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#f1e0e2',
+    padding: 10,
+  },
+  praiseMessageText: {
+    marginTop: 2,
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#333',
+  },
+  praiseFriendHint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#777',
   },
   cardHeaderRow: {
     flexDirection: 'row',

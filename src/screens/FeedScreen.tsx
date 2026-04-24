@@ -83,6 +83,16 @@ type Notification = {
   ts: number;
   read: boolean;
   postId?: string | null;
+  serverId?: number | null;
+  type?: string | null;
+};
+
+// ❤️ Beğenen kullanıcı tipi
+type LikeUser = {
+  id: string;
+  name: string;
+  handle?: string | null;
+  avatarUri?: string | null;
 };
 
 // Akış filtre tipi
@@ -307,7 +317,7 @@ export default function FeedScreen({ go }: Props) {
   const { t } = useTranslation();
 
   const auth = useAuth() as any;
-  const { userId, profile } = auth || {};
+  const { userId, backendUserId, profile } = auth || {};
 
   const [feedError, setFeedError] = useState<string>('');
 
@@ -567,6 +577,227 @@ export default function FeedScreen({ go }: Props) {
       console.warn('[Feed] likePost hata:', e);
       Alert.alert(t('common.error', 'Hata'), getUserMessage(e));
     }
+  };
+
+  const buildCurrentLikeUser = (): LikeUser => {
+    const rawId =
+      resolvedUserId ??
+      backendUserId ??
+      userId ??
+      profile?.id ??
+      displayName;
+
+    return {
+      id: String(rawId ?? displayName ?? 'me'),
+      name: displayName || t('feed.guestName', 'misafir'),
+      handle: handleStr ? `@${handleStr.replace(/^@/, '')}` : null,
+      avatarUri: myAvatarUri,
+    };
+  };
+
+  const normalizeLikeUser = (raw: any, index: number): LikeUser | null => {
+    try {
+      if (raw == null) return null;
+
+      if (typeof raw === 'string' || typeof raw === 'number') {
+        const name = String(raw).trim();
+        if (!name) return null;
+        return {
+          id: name.toLowerCase(),
+          name,
+          handle: null,
+          avatarUri: null,
+        };
+      }
+
+      if (typeof raw === 'object') {
+        const rawId =
+          raw?.id ??
+          raw?.userId ??
+          raw?.ownerId ??
+          raw?.authorId ??
+          raw?.handle ??
+          raw?.username ??
+          raw?.name ??
+          raw?.fullName ??
+          index;
+
+        const name =
+          (raw?.fullName != null ? String(raw.fullName).trim() : '') ||
+          (raw?.name != null ? String(raw.name).trim() : '') ||
+          (raw?.username != null ? String(raw.username).trim() : '') ||
+          (raw?.handle != null ? `@${String(raw.handle).trim().replace(/^@/, '')}` : '') ||
+          t('feed.likes.userFallback', 'Kullanıcı');
+
+        const handle =
+          raw?.handle != null
+            ? `@${String(raw.handle).trim().replace(/^@/, '')}`
+            : raw?.username != null
+            ? `@${String(raw.username).trim().replace(/^@/, '')}`
+            : null;
+
+        const avatarUri =
+          (raw?.avatarUri != null ? String(raw.avatarUri).trim() : '') ||
+          (raw?.avatarUrl != null ? String(raw.avatarUrl).trim() : '') ||
+          (raw?.photoUrl != null ? String(raw.photoUrl).trim() : '') ||
+          null;
+
+        return {
+          id: String(rawId ?? `${name}_${index}`),
+          name,
+          handle,
+          avatarUri,
+        };
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const getPostLikeUsers = (post: Post | null): LikeUser[] => {
+    if (!post) return [];
+
+    const anyPost: any = post as any;
+    const postId = String(anyPost?.id ?? '');
+    const rawSources = [
+      anyPost?.likedBy,
+      anyPost?.likedByUsers,
+      anyPost?.likeUsers,
+      anyPost?.likesUsers,
+      anyPost?.likedUsers,
+      anyPost?.reactions,
+    ];
+
+    const users: LikeUser[] = [];
+
+    rawSources.forEach(source => {
+      if (!Array.isArray(source)) return;
+      source.forEach((item, index) => {
+        const u = normalizeLikeUser(item, index);
+        if (u) users.push(u);
+      });
+    });
+
+    const localUsers = postId ? localLikedUsersByPost[postId] : [];
+    if (Array.isArray(localUsers)) users.push(...localUsers);
+
+    // ✅ SÜRÜM 2: Backend'den gelen gerçek beğenen kullanıcılar
+    const serverUsers = postId ? serverLikedUsersByPost[postId] : [];
+    if (Array.isArray(serverUsers)) users.push(...serverUsers);
+
+    const seen = new Set<string>();
+    return users.filter(u => {
+      const key = String(u.id || u.name || '').trim().toLowerCase();
+      if (!key) return false;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const fetchServerLikeUsers = async (post: Post) => {
+    const postId = String((post as any)?.id ?? '').trim();
+    if (!postId) return;
+
+    // Local / dış paylaşım postlarında backend id olmadığı için API'ye gitme.
+    if (!/^\d+$/.test(postId)) return;
+
+    setServerLikesLoadingByPost(prev => ({ ...prev, [postId]: true }));
+
+    try {
+      const authState = useAuth.getState() as any;
+      const token =
+        authState?.token ??
+        authState?.accessToken ??
+        authState?.authToken ??
+        null;
+
+      const response = await fetch(`${API_BASE_URL}/posts/${encodeURIComponent(postId)}/likes`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      const json = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        console.log('[Feed] likes fetch non-200:', response.status, json);
+        return;
+      }
+
+      const rawItems =
+        Array.isArray(json)
+          ? json
+          : Array.isArray(json?.items)
+            ? json.items
+            : Array.isArray(json?.users)
+              ? json.users
+              : Array.isArray(json?.likes)
+                ? json.likes
+                : [];
+
+      const users = rawItems
+        .map((item: any, index: number) => normalizeLikeUser(item?.user ?? item, index))
+        .filter(Boolean) as LikeUser[];
+
+      setServerLikedUsersByPost(prev => ({ ...prev, [postId]: users }));
+    } catch (e) {
+      console.warn('[Feed] likes fetch error:', e);
+    } finally {
+      setServerLikesLoadingByPost(prev => ({ ...prev, [postId]: false }));
+    }
+  };
+
+  const openLikesModal = (post: Post) => {
+    setLikesModalPost(post);
+    setLikesModalVisible(true);
+    fetchServerLikeUsers(post);
+  };
+
+  const closeLikesModal = () => {
+    setLikesModalVisible(false);
+    setLikesModalPost(null);
+  };
+
+  const safeLikeAndTrack = (p: Post) => {
+    safeLike(p);
+
+    const postId = String((p as any)?.id ?? '');
+    if (!postId) return;
+
+    const me = buildCurrentLikeUser();
+
+    setLocalLikedUsersByPost(prev => {
+      const current = Array.isArray(prev[postId]) ? prev[postId] : [];
+      const exists = current.some(u => String(u.id).toLowerCase() === String(me.id).toLowerCase());
+      if (exists) return prev;
+      return {
+        ...prev,
+        [postId]: [me, ...current],
+      };
+    });
+  };
+
+  const renderLikeActions = (post: Post, likes: number) => {
+    return (
+      <View style={styles.likeActionsWrap}>
+        <AnimatedLikeButton likes={likes} onPress={() => safeLikeAndTrack(post)} />
+        <Pressable
+          style={({ pressed }) => [styles.likesListBtn, pressed && styles.likesListBtnPressed]}
+          onPress={(e: any) => {
+            e?.stopPropagation?.();
+            openLikesModal(post);
+          }}
+        >
+          <Text style={styles.likesListText}>👥</Text>
+        </Pressable>
+      </View>
+    );
   };
 
   const safeRemove = async (p: Post) => {
@@ -1098,15 +1329,51 @@ export default function FeedScreen({ go }: Props) {
   const dedupedVisiblePosts = useMemo(() => {
     const seen = new Set<string>();
 
-    return visiblePosts.filter(p => {
-      const imageKey = getSafeImageUris(p).join('|');
-      const isFreeVideo = !p.isTaskCard && !!(p as any).videoUri;
-      const key = isFreeVideo
-        ? `freeVideo:${p.id}|${String((p as any).videoUri)}`
-        : `post:${p.id}|${imageKey}`;
+    const normalizeKeyText = (v: any) =>
+      String(v ?? '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase();
 
-      if (seen.has(key)) return false;
-      seen.add(key);
+    return visiblePosts.filter(p => {
+      const anyP: any = p as any;
+      const id = String(anyP?.id ?? '').trim();
+      if (!id) return false;
+
+      // 1) Aynı id varsa kesin duplicate.
+      const idKey = `id:${id}`;
+      if (seen.has(idKey)) return false;
+      seen.add(idKey);
+
+      const authorKey = normalizeKeyText(
+        anyP?.ownerId ??
+          anyP?.userId ??
+          anyP?.authorId ??
+          anyP?.author ??
+          anyP?.authorHandle ??
+          'unknown',
+      );
+
+      const imageKey = getSafeImageUris(anyP).join('|');
+      const videoKey = typeof anyP?.videoUri === 'string' ? anyP.videoUri.trim() : '';
+      const contentKey = normalizeKeyText(
+        anyP?.note || anyP?.body || anyP?.text || anyP?.content || anyP?.title || '',
+      );
+
+      // 2) Aynı medya / aynı yazı içeriği farklı id ile gelirse local+remote duplicate say.
+      const semanticKey = videoKey
+        ? `video:${authorKey}:${videoKey}`
+        : imageKey
+        ? `images:${authorKey}:${imageKey}`
+        : contentKey
+        ? `text:${authorKey}:${contentKey}`
+        : '';
+
+      if (semanticKey) {
+        if (seen.has(semanticKey)) return false;
+        seen.add(semanticKey);
+      }
+
       return true;
     });
   }, [visiblePosts]);
@@ -1141,6 +1408,16 @@ export default function FeedScreen({ go }: Props) {
 
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
+
+  // ✅ Uzun yazı kartlarında 5 satır + Devamını gör kontrolü
+  const [expandedTextPosts, setExpandedTextPosts] = useState<Record<string, boolean>>({});
+
+  // ❤️ Beğenenler modal state
+  const [likesModalVisible, setLikesModalVisible] = useState(false);
+  const [likesModalPost, setLikesModalPost] = useState<Post | null>(null);
+  const [localLikedUsersByPost, setLocalLikedUsersByPost] = useState<Record<string, LikeUser[]>>({});
+  const [serverLikedUsersByPost, setServerLikedUsersByPost] = useState<Record<string, LikeUser[]>>({});
+  const [serverLikesLoadingByPost, setServerLikesLoadingByPost] = useState<Record<string, boolean>>({});
 
   // ✅ NEW: foto viewer state
   const [imageViewerVisible, setImageViewerVisible] = useState(false);
@@ -1197,6 +1474,124 @@ export default function FeedScreen({ go }: Props) {
   const [notificationsVisible, setNotificationsVisible] = useState(false);
 
   const unreadNotificationCount = notifications.filter(n => !n.read).length;
+
+  const normalizeServerNotification = (raw: any): Notification | null => {
+    try {
+      const rawId = raw?.id;
+      const serverId = typeof rawId === 'number' ? rawId : typeof rawId === 'string' ? Number(rawId.trim()) : NaN;
+      if (!Number.isFinite(serverId) || serverId <= 0) return null;
+
+      const text =
+        (raw?.text != null ? String(raw.text).trim() : '') ||
+        (raw?.message != null ? String(raw.message).trim() : '') ||
+        t('feed.notifications.generic', 'Yeni bir bildirimin var.');
+
+      const createdRaw = raw?.createdAt ?? raw?.ts ?? raw?.time;
+      const parsedTs =
+        typeof createdRaw === 'number'
+          ? createdRaw
+          : typeof createdRaw === 'string'
+            ? Date.parse(createdRaw)
+            : 0;
+
+      const postIdRaw = raw?.postId ?? raw?.post?.id ?? null;
+      const postId = postIdRaw === undefined || postIdRaw === null ? null : String(postIdRaw);
+
+      return {
+        id: `server_${serverId}`,
+        serverId,
+        type: raw?.type != null ? String(raw.type) : null,
+        text,
+        ts: Number.isFinite(parsedTs) && parsedTs > 0 ? parsedTs : Date.now(),
+        read: raw?.read === true,
+        postId,
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  const mergeServerNotifications = (serverItems: Notification[]) => {
+    if (!Array.isArray(serverItems) || serverItems.length === 0) return;
+
+    setNotifications(prev => {
+      const prevList = Array.isArray(prev) ? prev : [];
+      const prevById = new Map(prevList.map(n => [String(n.id), n]));
+      const nextById = new Map<string, Notification>();
+
+      for (const item of serverItems) {
+        const existing = prevById.get(String(item.id));
+        nextById.set(String(item.id), {
+          ...item,
+          read: existing?.read === true ? true : item.read === true,
+        });
+      }
+
+      for (const item of prevList) {
+        const id = String(item.id);
+        if (!id.startsWith('server_') && !nextById.has(id)) {
+          nextById.set(id, item);
+        }
+      }
+
+      const next = Array.from(nextById.values()).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      return next.slice(0, MAX_NOTIFICATIONS);
+    });
+  };
+
+  const fetchRemoteNotifications = async () => {
+    try {
+      const authState = useAuth.getState?.() as any;
+      const authToken = authState?.token ?? authState?.accessToken ?? authState?.authToken ?? null;
+      const uid = resolvedUserId ?? backendUserId ?? authState?.backendUserId ?? authState?.user?.id ?? null;
+
+      const url = `${API_BASE_URL}/notifications?limit=${MAX_NOTIFICATIONS}${uid ? `&userId=${encodeURIComponent(String(uid))}` : ''}&_=${Date.now()}`;
+
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store',
+          ...(authToken ? { Authorization: `Bearer ${String(authToken).trim()}` } : {}),
+          ...(uid ? { 'x-user-id': String(uid) } : {}),
+        },
+      });
+
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        console.log('[Feed] notifications fetch non-200:', res.status, json);
+        return;
+      }
+
+      const rawItems = Array.isArray(json) ? json : Array.isArray(json?.items) ? json.items : [];
+      const items = rawItems.map(normalizeServerNotification).filter(Boolean) as Notification[];
+      mergeServerNotifications(items);
+    } catch (e) {
+      console.warn('[Feed] notifications fetch error:', e);
+    }
+  };
+
+  const markRemoteNotificationRead = async (serverId?: number | null) => {
+    try {
+      const authState = useAuth.getState?.() as any;
+      const authToken = authState?.token ?? authState?.accessToken ?? authState?.authToken ?? null;
+      const uid = resolvedUserId ?? backendUserId ?? authState?.backendUserId ?? authState?.user?.id ?? null;
+
+      await fetch(`${API_BASE_URL}/notifications/read`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${String(authToken).trim()}` } : {}),
+          ...(uid ? { 'x-user-id': String(uid) } : {}),
+        },
+        body: JSON.stringify({ id: serverId ?? undefined, userId: uid ?? undefined }),
+      });
+    } catch (e) {
+      console.warn('[Feed] notification read sync error:', e);
+    }
+  };
 
   const [createdAtByPost, setCreatedAtByPost] = useState<Record<string, number>>({});
   const [createdAtHydrated, setCreatedAtHydrated] = useState(false);
@@ -1330,6 +1725,27 @@ export default function FeedScreen({ go }: Props) {
     };
     save();
   }, [notifications, notificationsHydrated]);
+
+  // 🔔 Server bildirimlerini de çek (övgü etiketi vb.)
+  useEffect(() => {
+    let alive = true;
+
+    const tick = async () => {
+      if (!alive) return;
+      await fetchRemoteNotifications();
+    };
+
+    tick();
+
+    const iv = setInterval(() => {
+      tick();
+    }, 9000);
+
+    return () => {
+      alive = false;
+      clearInterval(iv);
+    };
+  }, [resolvedUserId, backendUserId]);
 
   // ⏱ createdAt yükle
   useEffect(() => {
@@ -1551,6 +1967,7 @@ export default function FeedScreen({ go }: Props) {
 
   const markAllNotificationsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    markRemoteNotificationRead(null);
   };
 
   const goToOriginalPost = (originalId: string) => {
@@ -1581,6 +1998,7 @@ export default function FeedScreen({ go }: Props) {
 
   const handleNotificationPress = (n: Notification) => {
     setNotifications(prev => prev.map(x => (x.id === n.id ? { ...x, read: true } : x)));
+    if (n.serverId) markRemoteNotificationRead(n.serverId);
     setNotificationsVisible(false);
 
     if (!n.postId) return;
@@ -2157,8 +2575,46 @@ const closeImageViewer = () => {
     });
   };
 
+  const finishInlineVideo = (instanceId: string) => {
+    setActiveVideo(prev => {
+      if (!prev || prev.instanceId !== instanceId) return prev;
+      return { ...prev, paused: true };
+    });
+  };
+
   const stopInlineVideo = () => {
     stopAllVideos();
+  };
+
+  const renderExpandableBodyText = (postId: string, text: string, enabled: boolean = true) => {
+    const cleanText = String(text || '').trim();
+    if (!cleanText) return null;
+
+    const isLongText = cleanText.length > 220 || cleanText.split(/\r?\n/).length > 5;
+    const isExpanded = !!expandedTextPosts[postId];
+
+    if (!enabled || !isLongText) {
+      return <Text style={styles.body}>{cleanText}</Text>;
+    }
+
+    return (
+      <View>
+        <Text style={styles.body} numberOfLines={isExpanded ? undefined : 5}>
+          {cleanText}
+        </Text>
+        <Pressable
+          style={styles.expandTextButton}
+          onPress={(e: any) => {
+            e?.stopPropagation?.();
+            setExpandedTextPosts(prev => ({ ...prev, [postId]: !isExpanded }));
+          }}
+        >
+          <Text style={styles.expandText}>
+            {isExpanded ? t('feed.post.showLess', 'Daha az göster') : t('feed.post.readMore', '... Devamını gör')}
+          </Text>
+        </Pressable>
+      </View>
+    );
   };
 
   // 🔥 Tüm gönderiler için ortak kart render fonksiyonu
@@ -2174,11 +2630,16 @@ const renderFullPostCard = (
 ) => {
   const anyBase: any = base;
 
-  const isFreeVideoPost = !base.isTaskCard && !!anyBase.videoUri;
+  const isPraisePost =
+    String(anyBase?.postType ?? '').trim() === 'praise' ||
+    anyBase?.isPraisePost === true ||
+    String(anyBase?.type ?? '').trim() === 'praise';
+
+  const isFreeVideoPost = !base.isTaskCard && !!anyBase.videoUri && !isPraisePost;
   const isHighlighted = options?.isHighlighted ?? false;
   const embedded = options?.embedded ?? false;
 
-  const cardTitleText = anyBase.title || anyBase.note || t('feed.post.genericTitle', 'Paylaşım');
+  const cardTitleText = base.isTaskCard ? (anyBase.title || anyBase.note || t('feed.post.genericTitle', 'Paylaşım')) : '';
 
   const cardDisplayName = anyBase.author || displayName;
   const avatarInitial = (cardDisplayName[0] || displayName[0] || 'U').toUpperCase();
@@ -2228,6 +2689,19 @@ const renderFullPostCard = (
   const hasImages = imageUris.length > 0;
   const isSingleImage = imageUris.length === 1;
   const isMultiImage = imageUris.length > 1;
+
+  const praiseFriendName = String(anyBase?.praiseFriendName ?? '').trim();
+  const praiseCategoryLabel = String(anyBase?.praiseCategoryLabel ?? '').trim();
+  const praiseCategoryEmoji = String(anyBase?.praiseCategoryEmoji ?? '').trim() || '🌟';
+  const praiseMessage = String(anyBase?.praiseMessage ?? anyBase?.note ?? '').trim();
+  const praiseTitleText =
+    String(anyBase?.title ?? '').trim() ||
+    (praiseFriendName
+      ? t('feed.praise.title', {
+          friend: praiseFriendName,
+          defaultValue: `@${praiseFriendName} için övgü`,
+        })
+      : t('feed.praise.titleFallback', 'Övgü paylaşımı'));
 
   const isThisVideoActive = !!videoUri && activeVideo?.instanceId === instanceId;
   const isThisVideoPaused = isThisVideoActive ? !!activeVideo?.paused : true;
@@ -2290,6 +2764,9 @@ const renderFullPostCard = (
       style={styles.postSingleImage}
       resizeMode="cover"
     />
+    <View style={styles.videoWatermark}>
+      <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
+    </View>
   </Pressable>
 )}
 
@@ -2304,6 +2781,7 @@ const renderFullPostCard = (
     {imageUris.map((imgUri, idx) => (
       <Pressable
         key={`${base.id}_img_${idx}`}
+        style={styles.postImageThumbWrap}
         onPress={(e: any) => {
           e?.stopPropagation?.();
           stopAllVideos();
@@ -2315,6 +2793,9 @@ const renderFullPostCard = (
           style={styles.postImageThumb}
           resizeMode="cover"
         />
+        <View style={styles.videoWatermark}>
+          <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
+        </View>
       </Pressable>
     ))}
   </ScrollView>
@@ -2332,7 +2813,7 @@ const renderFullPostCard = (
               source={{ uri: videoUri }}
               style={{ width: '100%', height: '100%' }}
               controls={isThisVideoActive}
-              resizeMode="contain"
+              resizeMode="cover"
               paused={!isThisVideoActive || isThisVideoPaused}
               repeat={false}
               playInBackground={false}
@@ -2342,7 +2823,7 @@ const renderFullPostCard = (
                 console.warn('[Feed] inline video error:', e);
                 stopInlineVideo();
               }}
-              onEnd={() => stopInlineVideo()}
+              onEnd={() => finishInlineVideo(instanceId)}
             />
           </View>
 
@@ -2424,7 +2905,7 @@ const renderFullPostCard = (
               <Text style={styles.repostBtnText}>🔁 {reshareCount}</Text>
             </Pressable>
 
-            <AnimatedLikeButton likes={likeCount} onPress={() => safeLike(base)} />
+            {renderLikeActions(base, likeCount)}
           </View>
         </View>
       </Pressable>
@@ -2434,7 +2915,7 @@ const renderFullPostCard = (
   // 🔵 GÖREV / NORMAL KART
   return (
     <Pressable
-      style={[styles.card, isHighlighted && styles.cardHighlighted, embedded && styles.embeddedCard]}
+      style={[styles.card, isPraisePost && styles.praiseCard, isHighlighted && styles.cardHighlighted, embedded && styles.embeddedCard]}
       onPress={() => {
         if (options?.onPressCard) options.onPressCard();
         else handleOpenDetail(base);
@@ -2443,7 +2924,7 @@ const renderFullPostCard = (
     >
       <View style={styles.cardHeader}>
         <View style={{ flex: 1, paddingRight: 8 }}>
-          <Text style={styles.title}>{cardTitleText}</Text>
+          {cardTitleText ? <Text style={styles.title}>{cardTitleText}</Text> : null}
           {base.isTaskCard && (
             <View style={styles.taskBadgeRow}>
               <Image source={VIRAL_LOGO} style={styles.taskBadgeLogo} />
@@ -2487,6 +2968,42 @@ const renderFullPostCard = (
         </Text>
       </View>
 
+      {isPraisePost && (
+        <View style={styles.praiseCardBox}>
+          <View style={styles.praiseEmojiRow}>
+            <Text style={styles.praiseFloatingEmoji}>🎉</Text>
+            <Text style={styles.praiseFloatingEmoji}>👏</Text>
+            <Text style={styles.praiseFloatingEmoji}>{praiseCategoryEmoji}</Text>
+            <Text style={styles.praiseFloatingEmoji}>✨</Text>
+          </View>
+
+          <View style={styles.praiseTitleRow}>
+            <View style={styles.praiseMainEmojiCircle}>
+              <Text style={styles.praiseMainEmoji}>{praiseCategoryEmoji}</Text>
+            </View>
+            <View style={styles.praiseTitleTextWrap}>
+              <Text style={styles.praiseSmallLabel}>
+                {t('feed.praise.badge', 'Övgü Kartı')}
+              </Text>
+              <Text style={styles.praiseTitle} numberOfLines={2}>
+                {praiseTitleText}
+              </Text>
+              {!!praiseCategoryLabel && (
+                <Text style={styles.praiseCategoryText} numberOfLines={1}>
+                  {praiseCategoryLabel}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {!!praiseMessage && (
+            <View style={styles.praiseMessageBubble}>
+              <Text style={styles.praiseMessageText}>{praiseMessage}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
       {(() => {
         const contentTextRaw =
           (anyBase.body != null ? String(anyBase.body) : '').trim() ||
@@ -2508,7 +3025,7 @@ const renderFullPostCard = (
 
         return (
           <>
-            {contentText ? <Text style={styles.body}>{contentText}</Text> : null}
+            {contentText && !isPraisePost ? renderExpandableBodyText(base.id, contentText, !hasImages && !videoUri) : null}
 
             {!!linkText && (
               <Pressable
@@ -2542,6 +3059,9 @@ const renderFullPostCard = (
       style={styles.postSingleImage}
       resizeMode="cover"
     />
+    <View style={styles.videoWatermark}>
+      <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
+    </View>
   </Pressable>
 )}
 
@@ -2556,6 +3076,7 @@ const renderFullPostCard = (
     {imageUris.map((imgUri, idx) => (
       <Pressable
         key={`${base.id}_img_${idx}`}
+        style={styles.postImageThumbWrap}
         onPress={(e: any) => {
           e?.stopPropagation?.();
           stopAllVideos();
@@ -2567,6 +3088,9 @@ const renderFullPostCard = (
           style={styles.postImageThumb}
           resizeMode="cover"
         />
+        <View style={styles.videoWatermark}>
+          <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
+        </View>
       </Pressable>
     ))}
   </ScrollView>
@@ -2613,7 +3137,7 @@ const renderFullPostCard = (
                 source={{ uri: videoUri }}
                 style={{ width: '100%', height: '100%' }}
                 controls={isThisVideoActive}
-                resizeMode="contain"
+                resizeMode="cover"
                 paused={!isThisVideoActive || isThisVideoPaused}
                 repeat={false}
                 playInBackground={false}
@@ -2623,7 +3147,7 @@ const renderFullPostCard = (
                   console.warn('[Feed] inline task video error:', e);
                   stopInlineVideo();
                 }}
-                onEnd={() => stopInlineVideo()}
+                onEnd={() => finishInlineVideo(instanceId)}
               />
             </View>
 
@@ -2659,7 +3183,7 @@ const renderFullPostCard = (
             <Text style={styles.repostBtnText}>🔁 {reshareCount}</Text>
           </Pressable>
 
-          <AnimatedLikeButton likes={likeCount} onPress={() => safeLike(base)} />
+          {renderLikeActions(base, likeCount)}
         </View>
       </View>
     </Pressable>
@@ -2888,7 +3412,7 @@ const renderNotifications = () => {
       <Text style={styles.notificationsEmptyText}>
         {t(
           'feed.notifications.empty',
-          'Henüz bildirimin yok. Yorum yazdıkça ve ayarlarla oynadıkça burada gözükecek.',
+          'Henüz bildirimin yok. Etiketler, yorumlar ve diğer hareketler burada görünecek.',
         )}
       </Text>
     );
@@ -2945,7 +3469,10 @@ return (
       </View>
       <Pressable
         style={({ pressed }) => [styles.bellBtn, pressed && styles.bellBtnPressed]}
-        onPress={() => setNotificationsVisible(true)}
+        onPress={() => {
+          setNotificationsVisible(true);
+          fetchRemoteNotifications();
+        }}
       >
         <Text style={styles.bellIcon}>🔔</Text>
         {unreadNotificationCount > 0 && (
@@ -3158,15 +3685,13 @@ return (
 
           <View style={styles.modalFooterRow}>
             <Text style={styles.modalAuthor}>{(selectedPost as any).author || displayName}</Text>
-            <AnimatedLikeButton
-              likes={
-                typeof (selectedPost as any).likes === 'number' &&
+            {renderLikeActions(
+              selectedPost,
+              typeof (selectedPost as any).likes === 'number' &&
                 Number.isFinite((selectedPost as any).likes)
-                  ? (selectedPost as any).likes
-                  : 0
-              }
-              onPress={() => safeLike(selectedPost)}
-            />
+                ? (selectedPost as any).likes
+                : 0,
+            )}
           </View>
 
           <Pressable style={styles.modalCloseBtn} onPress={handleCloseDetail}>
@@ -3175,6 +3700,95 @@ return (
         </View>
       </Modal>
     )}
+
+    {/* ❤️ Beğenenler modal */}
+    <Modal visible={likesModalVisible} transparent animationType="slide" onRequestClose={closeLikesModal}>
+      <TouchableWithoutFeedback onPress={closeLikesModal}>
+        <View style={styles.modalBackdrop} />
+      </TouchableWithoutFeedback>
+
+      <View style={styles.likesSheet}>
+        <View style={styles.modalHandle} />
+        <Text style={styles.likesTitle}>{t('feed.likes.title', 'Beğenenler')}</Text>
+
+        {(() => {
+          const users = getPostLikeUsers(likesModalPost);
+          const count =
+            likesModalPost &&
+            typeof (likesModalPost as any).likes === 'number' &&
+            Number.isFinite((likesModalPost as any).likes)
+              ? (likesModalPost as any).likes
+              : users.length;
+          const postId = likesModalPost ? String((likesModalPost as any)?.id ?? '').trim() : '';
+          const loading = postId ? !!serverLikesLoadingByPost[postId] : false;
+
+          if (users.length === 0) {
+            return (
+              <View style={styles.likesEmptyBox}>
+                <Text style={styles.likesEmptyText}>
+                  {loading
+                    ? t('feed.likes.loading', 'Beğenenler yükleniyor...')
+                    : count > 0
+                    ? t(
+                        'feed.likes.detailNotAvailable',
+                        'Bu gönderinin beğeni sayısı görünüyor, ancak beğenen kullanıcı listesi henüz sunucudan gelmiyor.',
+                      )
+                    : t('feed.likes.empty', 'Henüz beğeni yok.')}
+                </Text>
+              </View>
+            );
+          }
+
+          return (
+            <>
+              {loading && (
+                <Text style={styles.likesLoadingText}>
+                  {t('feed.likes.loading', 'Beğenenler yükleniyor...')}
+                </Text>
+              )}
+              <ScrollView style={styles.likesList} showsVerticalScrollIndicator={false}>
+              {users.map(u => {
+                const initial = (u.name?.[0] || u.handle?.[1] || 'U').toUpperCase();
+
+                return (
+                  <Pressable
+                    key={`${u.id}_${u.name}`}
+                    style={({ pressed }) => [styles.likeUserRow, pressed && styles.likeUserRowPressed]}
+                    onPress={() => {
+                      // Profil geçişi için altyapı hazır; ProfileScreen kullanıcı parametresi alınca burası bağlanacak.
+                    }}
+                  >
+                    {u.avatarUri ? (
+                      <Image source={{ uri: u.avatarUri }} style={styles.likeUserAvatar} />
+                    ) : (
+                      <View style={styles.likeUserAvatarFallback}>
+                        <Text style={styles.likeUserAvatarInitial}>{initial}</Text>
+                      </View>
+                    )}
+
+                    <View style={styles.likeUserTextBox}>
+                      <Text style={styles.likeUserName} numberOfLines={1}>
+                        {u.name}
+                      </Text>
+                      {!!u.handle && (
+                        <Text style={styles.likeUserHandle} numberOfLines={1}>
+                          {u.handle}
+                        </Text>
+                      )}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            </>
+          );
+        })()}
+
+        <Pressable style={styles.likesCloseBtn} onPress={closeLikesModal}>
+          <Text style={styles.likesCloseText}>{t('common.close', 'Kapat')}</Text>
+        </Pressable>
+      </View>
+    </Modal>
 
 {/* ✅ NEW: Foto viewer */}
 <Modal
@@ -3759,6 +4373,77 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#22263A',
   },
+  praiseCard: {
+    borderColor: 'rgba(229,9,20,0.48)',
+    backgroundColor: '#191421',
+  },
+  praiseCardBox: {
+    marginTop: 10,
+    marginBottom: 8,
+    borderRadius: 16,
+    padding: 12,
+    backgroundColor: 'rgba(255,255,255,0.055)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  praiseEmojiRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 6,
+    marginBottom: 6,
+  },
+  praiseFloatingEmoji: {
+    fontSize: 17,
+  },
+  praiseTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  praiseMainEmojiCircle: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: 'rgba(229,9,20,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  praiseMainEmoji: {
+    fontSize: 25,
+  },
+  praiseTitleTextWrap: {
+    flex: 1,
+  },
+  praiseSmallLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFB4BA',
+    letterSpacing: 0.3,
+    marginBottom: 2,
+  },
+  praiseTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  praiseCategoryText: {
+    marginTop: 3,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#C9CEDF',
+  },
+  praiseMessageBubble: {
+    marginTop: 12,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+  praiseMessageText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#F7F7F7',
+  },
   cardHighlighted: {
     borderColor: '#E50914',
     shadowColor: '#E50914',
@@ -3828,13 +4513,23 @@ const styles = StyleSheet.create({
     color: '#E5E7F3',
     marginBottom: 6,
   },
+  expandTextButton: {
+    alignSelf: 'flex-start',
+    marginTop: 2,
+    marginBottom: 6,
+  },
+  expandText: {
+    color: '#E50914',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   freeVideoPlayerWrapper: {
     position: 'relative',
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#000000',
     marginBottom: 6,
-    height: 210,
+    height: Math.round((Dimensions.get('window').width - 32) * 16 / 9),
   },
   freeVideoPlayer: {
     width: '100%',
@@ -3852,12 +4547,17 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
     gap: 8,
   },
+  postImageThumbWrap: {
+    position: 'relative',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginRight: 8,
+  },
   postImageThumb: {
     width: 240,
     height: 240,
     borderRadius: 12,
     backgroundColor: '#202433',
-    marginRight: 8,
   },
   postSingleImageWrap: {
   marginTop: 2,
@@ -4682,6 +5382,126 @@ modalShare: {
   notificationTime: {
     fontSize: 11,
     color: '#9CA3C7',
+  },
+
+  likeActionsWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  likesListBtn: {
+    minWidth: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#262A33',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  likesListBtnPressed: {
+    opacity: 0.82,
+  },
+  likesListText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  likesSheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    maxHeight: '68%',
+    backgroundColor: '#101219',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 18,
+  },
+  likesTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 6,
+    marginBottom: 12,
+  },
+  likesList: {
+    maxHeight: 360,
+  },
+  likesLoadingText: {
+    color: '#AAB0C5',
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  likesEmptyBox: {
+    paddingVertical: 22,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    backgroundColor: '#171A22',
+  },
+  likesEmptyText: {
+    color: '#AAB0C5',
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  likeUserRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: 14,
+  },
+  likeUserRowPressed: {
+    backgroundColor: '#171A22',
+  },
+  likeUserAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    marginRight: 10,
+    backgroundColor: '#2B2F3A',
+  },
+  likeUserAvatarFallback: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    marginRight: 10,
+    backgroundColor: '#2B2F3A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  likeUserAvatarInitial: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  likeUserTextBox: {
+    flex: 1,
+  },
+  likeUserName: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  likeUserHandle: {
+    marginTop: 2,
+    color: '#8E95A8',
+    fontSize: 12,
+  },
+  likesCloseBtn: {
+    marginTop: 14,
+    borderRadius: 999,
+    paddingVertical: 10,
+    backgroundColor: '#E50914',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  likesCloseText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '800',
   },
 
   // BOŞ LİSTE

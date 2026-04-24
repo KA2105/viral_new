@@ -36,12 +36,6 @@ let _remoteSyncLastHash = '';
 
 // -------------------- Helpers --------------------
 
-// ✅ Remote/DB tarafında bazen:
-// - array: ["Instagram","X"]
-// - string JSON: '["Instagram","X"]'
-// - string: '[]'
-// - undefined / null
-// Bu helper her durumda güvenli string[] döndürür.
 function safeParseStringArray(v: any): string[] {
   if (Array.isArray(v)) return v.filter(x => typeof x === 'string').map(x => x.trim()).filter(Boolean);
 
@@ -54,7 +48,6 @@ function safeParseStringArray(v: any): string[] {
         return parsed.filter(x => typeof x === 'string').map(x => x.trim()).filter(Boolean);
       }
     } catch {
-      // JSON değilse (örn "Instagram,X") gibi saçma bir şey gelirse parçalamayı dene
       if (s.includes(',')) {
         return s
           .split(',')
@@ -67,8 +60,6 @@ function safeParseStringArray(v: any): string[] {
   return [];
 }
 
-// ✅ NEW: imageUris için de aynı mantık.
-// String[] field olsa da bazı yerlerde string JSON gelebilir.
 function safeParseImageUris(v: any): string[] {
   return safeParseStringArray(v);
 }
@@ -100,7 +91,6 @@ function sameStringArray(a: string[], b: string[]): boolean {
   return true;
 }
 
-// ✅ NEW: cache bust + no-cache ile 304/ETag saçmalığını pratikte öldür
 function withNoCache(url: string) {
   try {
     const sep = url.includes('?') ? '&' : '?';
@@ -110,15 +100,66 @@ function withNoCache(url: string) {
   }
 }
 
-// ✅ Remote'dan gelen postları normalize ederken aynı helper'ı kullanacağız
-// ✅ FIX: rawLikes'i return öncesi hesaplayıp sonra object'e koyduk.
+// ✅ SÜRÜM 2: Övgü alanlarını normalize et
+function normalizePraiseFields(raw: any) {
+  const postType = String(raw?.postType ?? '').trim();
+  const isPraisePost =
+    postType === 'praise' ||
+    raw?.isPraisePost === true ||
+    String(raw?.type ?? '').trim() === 'praise';
+
+  if (!isPraisePost) {
+    return {};
+  }
+
+  return {
+    postType: 'praise',
+    isPraisePost: true,
+    praiseFriendName:
+      raw?.praiseFriendName === undefined || raw?.praiseFriendName === null
+        ? ''
+        : String(raw.praiseFriendName).trim(),
+    praiseCategoryId:
+      raw?.praiseCategoryId === undefined || raw?.praiseCategoryId === null
+        ? ''
+        : String(raw.praiseCategoryId).trim(),
+    praiseCategoryLabel:
+      raw?.praiseCategoryLabel === undefined || raw?.praiseCategoryLabel === null
+        ? ''
+        : String(raw.praiseCategoryLabel).trim(),
+    praiseCategoryEmoji:
+      raw?.praiseCategoryEmoji === undefined || raw?.praiseCategoryEmoji === null
+        ? ''
+        : String(raw.praiseCategoryEmoji).trim(),
+    praiseTaggedUserId:
+      raw?.praiseTaggedUserId === undefined || raw?.praiseTaggedUserId === null
+        ? null
+        : String(raw.praiseTaggedUserId).trim(),
+    praiseTaggedUserName:
+      raw?.praiseTaggedUserName === undefined || raw?.praiseTaggedUserName === null
+        ? ''
+        : String(raw.praiseTaggedUserName).trim(),
+    praiseTaggedUserHandle:
+      raw?.praiseTaggedUserHandle === undefined || raw?.praiseTaggedUserHandle === null
+        ? ''
+        : String(raw.praiseTaggedUserHandle).trim(),
+    praiseTaggedUserAvatarUri:
+      raw?.praiseTaggedUserAvatarUri === undefined || raw?.praiseTaggedUserAvatarUri === null
+        ? null
+        : String(raw.praiseTaggedUserAvatarUri).trim(),
+    praiseMessage:
+      raw?.praiseMessage === undefined || raw?.praiseMessage === null
+        ? String(raw?.note ?? '').trim()
+        : String(raw.praiseMessage).trim(),
+  };
+}
+
 const normalizePost = (raw: any): Post => {
   const rawLikes =
     (typeof raw?.likes === 'number' && Number.isFinite(raw.likes) ? raw.likes : null) ??
     (typeof raw?.likeCount === 'number' && Number.isFinite(raw.likeCount) ? raw.likeCount : null) ??
     (typeof raw?.likesCount === 'number' && Number.isFinite(raw.likesCount) ? raw.likesCount : null);
 
-  // ✅ commentCount farklı isimlerle gelebilir
   const rawCommentCount =
     (typeof raw?.commentCount === 'number' && Number.isFinite(raw.commentCount) ? raw.commentCount : null) ??
     (typeof raw?.commentsCount === 'number' && Number.isFinite(raw.commentsCount) ? raw.commentsCount : null) ??
@@ -127,10 +168,8 @@ const normalizePost = (raw: any): Post => {
   return {
     ...raw,
 
-    // ✅ DB (Int) -> RN (string) uyumu: karşılaştırmalar sağlam olsun
     id: raw?.id === undefined || raw?.id === null ? String(Date.now()) : String(raw.id),
 
-    // ✅ Like sayısı farklı isimlerle gelebiliyor (likes / likeCount / likesCount)
     likes: typeof rawLikes === 'number' ? rawLikes : 0,
 
     archived: !!raw.archived,
@@ -138,16 +177,12 @@ const normalizePost = (raw: any): Post => {
       typeof raw.lastSharedAt === 'number' && Number.isFinite(raw.lastSharedAt) ? raw.lastSharedAt : undefined,
     lastSharedTargets: Array.isArray(raw.lastSharedTargets) ? raw.lastSharedTargets : undefined,
 
-    // ✅ CRASH FIX: shareTargets her zaman string[] olsun (join güvenli)
     shareTargets: safeParseStringArray((raw as any)?.shareTargets),
 
     videoUri: raw.videoUri === undefined || raw.videoUri === null ? null : String(raw.videoUri),
 
-    // ✅ NEW: Çoklu fotoğraf alanı
     imageUris: safeParseImageUris((raw as any)?.imageUris),
 
-    // ✅ ZAMAN FIX:
-    // time yoksa createdAt / clientCreatedAt üzerinden üret.
     time:
       typeof raw.time === 'string' && raw.time.trim().length > 0
         ? raw.time
@@ -163,18 +198,17 @@ const normalizePost = (raw: any): Post => {
     repostOfId: typeof (raw as any).repostOfId === 'string' ? (raw as any).repostOfId : undefined,
     originalPostId: typeof (raw as any).originalPostId === 'string' ? (raw as any).originalPostId : undefined,
 
-    // ✅ Avatar snapshot alanı (post'a bağlı kalsın)
     authorAvatarUri:
       (raw as any)?.authorAvatarUri === undefined || (raw as any)?.authorAvatarUri === null
         ? (raw as any)?.avatarUri === undefined || (raw as any)?.avatarUri === null
           ? null
           : String((raw as any)?.avatarUri)
         : String((raw as any)?.authorAvatarUri),
+
+    ...normalizePraiseFields(raw),
   } as any as Post;
 };
 
-// 🌐 Remote feed'i sessizce çekmeye çalışan helper.
-// 404 veya hata durumunda NULL döner, app'i bozmadan devam eder.
 async function tryRemoteFeed(): Promise<Post[] | null> {
   try {
     const url = withNoCache(`${API_BASE_URL}/feed`);
@@ -184,20 +218,17 @@ async function tryRemoteFeed(): Promise<Post[] | null> {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        // ✅ 304/ETag saçmalığını azalt
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         Pragma: 'no-cache',
       },
     });
 
     if (!res.ok) {
-      // 404 => endpoint henüz yok; sarı ekran istemiyoruz
       if (res.status === 404) {
         console.log('[Feed] remote endpoint yok (404), lokal feed kullanılıyor.');
         return null;
       }
 
-      // 304 geliyorsa: bu endpoint için istemiyoruz, json gelmez -> null
       if (res.status === 304) {
         console.log('[Feed] remote hydrate 304 (NOT MODIFIED) -> json yok, null dönüyorum.');
         return null;
@@ -223,19 +254,15 @@ async function tryRemoteFeed(): Promise<Post[] | null> {
   }
 }
 
-// ✅ Kalıcılık için override tipleri
-type LikeOverrides = Record<string, number>; // postId -> likes
-type ReshareOverrides = Record<string, number>; // postId -> reshareCount
-type CommentCountOverrides = Record<string, number>; // postId -> commentCount
-
-// ✅ B: tek-like için map
+type LikeOverrides = Record<string, number>;
+type ReshareOverrides = Record<string, number>;
+type CommentCountOverrides = Record<string, number>;
 type LikedByMe = Record<string, true>;
 
 function safeId(v: any): string {
   return v === undefined || v === null ? '' : String(v);
 }
 
-// ✅ Remote hydrate geldiğinde merge
 function applyOverridesAndMerge(params: {
   basePosts: Post[];
   likeOverrides: LikeOverrides;
@@ -267,7 +294,6 @@ function applyOverridesAndMerge(params: {
           ? Number((next as any).commentCount)
           : 0;
 
-      // ✅ remote > override ise remote kazanır
       next.commentCount = Math.max(remoteCount, Number(commentOverrides[id]));
     }
 
@@ -275,22 +301,49 @@ function applyOverridesAndMerge(params: {
   }
 
   const localNormalized = (localPosts || []).map(normalizePost);
+
   for (const lp of localNormalized) {
     const id = safeId((lp as any).id);
     if (!id) continue;
+
+    // ✅ FIX: Local-temp kart server'da artık varsa local kopyayı ekleme.
+    const sameRemote = basePosts.some(bp => looksSamePost(lp as any, bp as any));
+    if (sameRemote) continue;
+
+    // ✅ FIX: Aynı içerik map içinde başka id ile varsa tekrar ekleme.
+    const sameExisting = Array.from(map.values()).some(p => {
+      const existingId = safeId((p as any).id);
+      if (existingId && existingId === id) return false;
+      return looksSamePost(p as any, lp as any);
+    });
+    if (sameExisting) continue;
+
     if (!map.has(id)) {
       map.set(id, lp);
     }
   }
 
-  const localIds = new Set(localNormalized.map(p => safeId((p as any).id)));
-
   const localsOnTop: Post[] = [];
+  const pushedLocalIds = new Set<string>();
+
   for (const lp of localNormalized) {
     const id = safeId((lp as any).id);
+    if (!id) continue;
+    if (pushedLocalIds.has(id)) continue;
+
+    if (basePosts.some(bp => looksSamePost(lp as any, bp as any))) continue;
+
     const got = map.get(id);
-    if (got) localsOnTop.push(got);
+    if (!got) continue;
+
+    const alreadyPushed = localsOnTop.some(p => looksSamePost(p as any, got as any));
+    if (alreadyPushed) continue;
+
+    localsOnTop.push(got);
+    pushedLocalIds.add(id);
   }
+
+  const localIds = new Set(localNormalized.map(p => safeId((p as any).id)));
 
   const rest: Post[] = [];
   for (const p of basePosts) {
@@ -303,7 +356,12 @@ function applyOverridesAndMerge(params: {
 
   if (rest.length + localsOnTop.length < map.size) {
     for (const [id, p] of map.entries()) {
-      const already = localIds.has(id) || basePosts.some(bp => safeId((bp as any).id) === id);
+      const already =
+        pushedLocalIds.has(id) ||
+        rest.some(x => safeId((x as any).id) === id) ||
+        basePosts.some(bp => safeId((bp as any).id) === id) ||
+        localsOnTop.some(x => looksSamePost(x as any, p as any));
+
       if (!already) rest.push(p);
     }
   }
@@ -350,7 +408,6 @@ function formatRelativeTimeTR(input: any): string {
   return `${diffYear} yıl önce`;
 }
 
-// ✅ Temp local id -> server id migrate helpers
 function parseCreatedAtMs(p: any): number | null {
   if (typeof p?.clientCreatedAt === 'number' && Number.isFinite(p.clientCreatedAt)) {
     return p.clientCreatedAt;
@@ -370,6 +427,59 @@ function parseCreatedAtMs(p: any): number | null {
 }
 
 function looksSamePost(a: any, b: any): boolean {
+  const normalizeCompareText = (v: any) =>
+    String(v ?? '')
+      .trim()
+      .replace(/^@+/, '')
+      .replace(/\s+/g, ' ')
+      .toLocaleLowerCase('tr-TR');
+
+  const aPraise = normalizePraiseFields(a) as any;
+  const bPraise = normalizePraiseFields(b) as any;
+
+  const aIsPraise = aPraise?.postType === 'praise';
+  const bIsPraise = bPraise?.postType === 'praise';
+
+  const ta = parseCreatedAtMs(a);
+  const tb = parseCreatedAtMs(b);
+  const timeClose = ta && tb ? Math.abs(ta - tb) <= 10 * 60 * 1000 : true;
+
+  // ✅ SÜRÜM 2 FIX: Övgü postlarında local-temp ile remote eşleşsin, duplicate görünmesin.
+  // Not: Local kart ile server kartında author bazen fullName/@handle farkıyla gelebiliyor.
+  // Bu yüzden praise eşleşmesinde asıl belirleyici: arkadaş + mesaj + kategori + yakın zaman.
+  if (aIsPraise || bIsPraise) {
+    if (!aIsPraise || !bIsPraise) return false;
+    if (!timeClose) return false;
+
+    const aFriend = normalizeCompareText(aPraise?.praiseFriendName);
+    const bFriend = normalizeCompareText(bPraise?.praiseFriendName);
+
+    const aMsg = normalizeCompareText(aPraise?.praiseMessage ?? a?.note);
+    const bMsg = normalizeCompareText(bPraise?.praiseMessage ?? b?.note);
+
+    const aCat = normalizeCompareText(aPraise?.praiseCategoryId ?? aPraise?.praiseCategoryLabel);
+    const bCat = normalizeCompareText(bPraise?.praiseCategoryId ?? bPraise?.praiseCategoryLabel);
+
+    const aTaggedId = normalizeCompareText(aPraise?.praiseTaggedUserId);
+    const bTaggedId = normalizeCompareText(bPraise?.praiseTaggedUserId);
+    const aTaggedName = normalizeCompareText(aPraise?.praiseTaggedUserName);
+    const bTaggedName = normalizeCompareText(bPraise?.praiseTaggedUserName);
+    const aTaggedHandle = normalizeCompareText(aPraise?.praiseTaggedUserHandle);
+    const bTaggedHandle = normalizeCompareText(bPraise?.praiseTaggedUserHandle);
+
+    if (aTaggedId && bTaggedId && aTaggedId !== bTaggedId) return false;
+    if (aTaggedName && bTaggedName && aTaggedName !== bTaggedName) return false;
+    if (aTaggedHandle && bTaggedHandle && aTaggedHandle !== bTaggedHandle) return false;
+    if (aFriend && bFriend && aFriend !== bFriend) return false;
+    if (aMsg && bMsg && aMsg !== bMsg) return false;
+    if (aCat && bCat && aCat !== bCat) return false;
+
+    if (aFriend && bFriend && aMsg && bMsg) return true;
+    if (aMsg && bMsg && aMsg === bMsg) return true;
+
+    return false;
+  }
+
   const aAuthor = String(a?.author ?? '').trim();
   const bAuthor = String(b?.author ?? '').trim();
   if (!aAuthor || !bAuthor) return false;
@@ -386,7 +496,6 @@ function looksSamePost(a: any, b: any): boolean {
 
   const hasExactVideoMatch = !!aVidStr && !!bVidStr && aVidStr === bVidStr;
 
-  // ✅ NEW: çoklu foto karşılaştırması
   const aImages = normalizeUriArray(a?.imageUris);
   const bImages = normalizeUriArray(b?.imageUris);
 
@@ -401,33 +510,22 @@ function looksSamePost(a: any, b: any): boolean {
   const aNote = String(a?.note ?? '').trim();
   const bNote = String(b?.note ?? '').trim();
 
-  const ta = parseCreatedAtMs(a);
-  const tb = parseCreatedAtMs(b);
-  const timeClose = ta && tb ? Math.abs(ta - tb) <= 10 * 60 * 1000 : true;
-
-  // ✅ Başlık/not aynıysa, local file uri ile remote https uri farkını eşleşmeyi bozma.
   if (aTitle && bTitle) {
     if (aTitle !== bTitle) return false;
     if (aNote !== bNote) return false;
     if (!timeClose) return false;
 
-    // exact video eşleşmesi varsa zaten tamam
     if (hasExactVideoMatch) return true;
-
-    // exact image list eşleşmesi varsa tamam
     if (hasExactImagesMatch) return true;
 
-    // biri local-only video diğeri remote ise yine aynı post kabul et
     if ((aIsLocalOnlyVideo && !bIsLocalOnlyVideo) || (!aIsLocalOnlyVideo && bIsLocalOnlyVideo)) {
       return true;
     }
 
-    // image tarafında biri local-only, diğeri remote ise yine aynı post kabul et
     if (hasAnyImages && ((aHasLocalOnlyImages && !bHasLocalOnlyImages) || (!aHasLocalOnlyImages && bHasLocalOnlyImages))) {
       return true;
     }
 
-    // ikisinde de video ve image yoksa da aynı post olabilir
     if (!aVidStr && !bVidStr && aImages.length === 0 && bImages.length === 0) return true;
 
     return false;
@@ -439,8 +537,6 @@ function looksSamePost(a: any, b: any): boolean {
     return true;
   }
 
-  // ✅ Ek fallback:
-  // Note aynıysa ve local-vs-remote medya farkı varsa yine aynı post say.
   if (aNote && bNote && aNote === bNote && timeClose) {
     if ((aIsLocalOnlyVideo && !bIsLocalOnlyVideo) || (!aIsLocalOnlyVideo && bIsLocalOnlyVideo)) {
       return true;
@@ -449,6 +545,29 @@ function looksSamePost(a: any, b: any): boolean {
     if (hasAnyImages && ((aHasLocalOnlyImages && !bHasLocalOnlyImages) || (!aHasLocalOnlyImages && bHasLocalOnlyImages))) {
       return true;
     }
+
+    if (!aVidStr && !bVidStr && aImages.length === 0 && bImages.length === 0) {
+      return true;
+    }
+  }
+
+  const aContentCandidates = [aTitle, aNote, String(a?.body ?? '').trim()].filter(Boolean);
+  const bContentCandidates = [bTitle, bNote, String(b?.body ?? '').trim()].filter(Boolean);
+
+  const hasSameTextContent =
+    aContentCandidates.length > 0 &&
+    bContentCandidates.length > 0 &&
+    aContentCandidates.some(x => bContentCandidates.includes(x));
+
+  if (
+    hasSameTextContent &&
+    timeClose &&
+    !aVidStr &&
+    !bVidStr &&
+    aImages.length === 0 &&
+    bImages.length === 0
+  ) {
+    return true;
   }
 
   return false;
@@ -467,8 +586,11 @@ function migrateLocalIdsToRemote(params: {
   reshareOverrides: ReshareOverrides;
   commentOverrides: CommentCountOverrides;
   likedByMe: LikedByMe;
+  pendingLikePostIds: string[];
 } {
   const { remotePosts, localPosts, likeOverrides, reshareOverrides, commentOverrides, likedByMe } = params;
+
+  const pendingLikePostIds: string[] = [];
 
   const nextLike = { ...likeOverrides };
   const nextReshare = { ...reshareOverrides };
@@ -512,6 +634,9 @@ function migrateLocalIdsToRemote(params: {
 
       if (nextLiked[localId] && !nextLiked[remoteId]) {
         nextLiked[remoteId] = true;
+        if (isProbablyRemoteNumericId(remoteId)) {
+          pendingLikePostIds.push(remoteId);
+        }
       }
       if (nextLiked[localId]) {
         delete nextLiked[localId];
@@ -529,12 +654,9 @@ function migrateLocalIdsToRemote(params: {
     reshareOverrides: nextReshare,
     commentOverrides: nextComment,
     likedByMe: nextLiked,
+    pendingLikePostIds,
   };
 }
-
-// ================================
-// ✅ Remote action helpers
-// ================================
 
 function isProbablyRemoteNumericId(id: any): boolean {
   const s = String(id ?? '').trim();
@@ -550,17 +672,14 @@ async function safeJson(res: Response) {
   }
 }
 
-// ✅ Token cache
 let _cachedAuthToken: string | null = null;
 let _cachedAuthTokenAt = 0;
 
-// ✅ userId cache
 let _cachedAuthUserId: number | null = null;
 let _cachedAuthUserIdAt = 0;
 
 function pickTokenFromAnyShape(v: any): string | null {
   try {
-    // ✅ auth_v2 yapısına özel fallback
     if (v && typeof v === 'object' && v.version === 2 && Array.isArray(v.accounts)) {
       const activeIdentifier =
         typeof v.activeIdentifier === 'string' ? v.activeIdentifier.trim().toLowerCase() : '';
@@ -572,7 +691,6 @@ function pickTokenFromAnyShape(v: any): string | null {
       const t1 = activeAcc?.token;
       if (typeof t1 === 'string' && t1.trim().length) return t1.trim();
 
-      // ✅ EK: activeIdentifier yoksa da ilk hesabın token’ını dene
       const t2 = v.accounts?.[0]?.token;
       if (typeof t2 === 'string' && t2.trim().length) return t2.trim();
     }
@@ -599,7 +717,6 @@ async function getAuthTokenFromStorage(): Promise<string | null> {
     const now = Date.now();
     if (_cachedAuthToken && now - _cachedAuthTokenAt < 5000) return _cachedAuthToken;
 
-    // ✅ SENDE auth key: auth_v2
     const possibleKeys = ['auth_v2', 'auth_v1', 'auth', 'session_v1', 'session', 'token', 'auth_token'];
 
     for (const k of possibleKeys) {
@@ -619,7 +736,6 @@ async function getAuthTokenFromStorage(): Promise<string | null> {
 
 function pickUserIdFromAnyShape(v: any): number | null {
   try {
-    // ✅ auth_v2 yapısına özel fallback
     if (v && typeof v === 'object' && v.version === 2 && Array.isArray(v.accounts)) {
       const activeIdentifier =
         typeof v.activeIdentifier === 'string' ? v.activeIdentifier.trim().toLowerCase() : '';
@@ -659,13 +775,11 @@ function pickUserIdFromAnyShape(v: any): number | null {
   return null;
 }
 
-// ✅ EN SAĞLAM: önce zustand store'dan al, yoksa storage fallback
 async function getAuthUserId(): Promise<number | null> {
   try {
     const now = Date.now();
     if (_cachedAuthUserId && now - _cachedAuthUserIdAt < 2000) return _cachedAuthUserId;
 
-    // 1) ✅ Direkt store (senin useAuth.ts kesin var)
     try {
       const st: any = useAuth.getState?.() as any;
 
@@ -684,7 +798,6 @@ async function getAuthUserId(): Promise<number | null> {
       }
     } catch {}
 
-    // 2) storage fallback
     const possibleKeys = ['auth_v2', 'auth_v1', 'auth', 'session_v1', 'session', 'user', 'me'];
     for (const k of possibleKeys) {
       const obj = await storage.loadJson<any>(k);
@@ -701,12 +814,11 @@ async function getAuthUserId(): Promise<number | null> {
   return null;
 }
 
-// ✅ tek yerden remote action çağır
 async function tryRemoteAction(params: {
-  path: string; // "/feed/123/like" gibi
+  path: string;
   method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: any;
-  label: string; // log etiketi
+  label: string;
 }): Promise<{ ok: boolean; status?: number; json?: any }> {
   const { path, method = 'POST', body, label } = params;
 
@@ -715,17 +827,12 @@ async function tryRemoteAction(params: {
 
     console.log(`[Feed][Remote] ${label} ->`, method, url);
 
-    // ✅ Authorization ekle (varsa)
     const token = await getAuthTokenFromStorage();
     const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
-    // ✅ x-user-id ekle (varsa) -> server requireUserId 400 vermesin
     const uid = await getAuthUserId();
     const userIdHeader = uid ? { 'x-user-id': String(uid) } : {};
 
-    // ✅ body bozulmasın:
-    // - body varsa ve userId yoksa ekle
-    // - body yoksa ama uid varsa { userId: uid } gönder (like/repost gibi endpointler için kritik)
     let finalBody = body;
 
     if (finalBody === undefined && uid) {
@@ -736,7 +843,6 @@ async function tryRemoteAction(params: {
       }
     }
 
-    // ✅ Debug
     console.log('[Feed][Remote] uid:', uid, 'token?', !!token);
 
     const res = await fetch(url, {
@@ -744,7 +850,6 @@ async function tryRemoteAction(params: {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        // ✅ proxy cache/etag saçmalığını azaltır
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         Pragma: 'no-cache',
         ...authHeader,
@@ -768,9 +873,6 @@ async function tryRemoteAction(params: {
   }
 }
 
-// ================================
-// ✅ Pending actions (remote retry)
-// ================================
 type PendingAction =
   | { type: 'like'; postId: string; ts: number }
   | { type: 'comment'; postId: string; ts: number; text: string; parentId?: string | null }
@@ -788,23 +890,19 @@ async function savePendingActions(actions: PendingAction[]) {
   try {
     const cleaned = Array.isArray(actions) ? actions.slice(0, 250) : [];
     await storage.saveJson(STORAGE_PENDING_ACTIONS_KEY, cleaned);
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 async function enqueuePendingAction(a: PendingAction) {
   try {
     const prev = await loadPendingActions();
 
-    // ✅ comment birikmeli (ama aynı yorumu “yanlışlıkla” tekrar tekrar kuyruğa atma)
     if ((a as any).type === 'comment') {
       const pid = String((a as any).postId ?? '').trim();
       const text = String((a as any).text ?? '').trim();
       const parentId = (a as any).parentId ?? null;
       const now = Date.now();
 
-      // ✅ Son 60 sn içinde aynı postId + text + parentId varsa tekrar ekleme
       const exists = prev.some(x => {
         if ((x as any).type !== 'comment') return false;
         const xp = String((x as any).postId ?? '').trim();
@@ -830,13 +928,10 @@ async function enqueuePendingAction(a: PendingAction) {
       return;
     }
 
-    // ✅ diğerleri (like/repost vb.) tekilleştirilebilir
     const key = `${(a as any).type}:${(a as any).postId}`;
     const next = [a, ...prev.filter(x => `${(x as any).type}:${(x as any).postId}` !== key)];
     await savePendingActions(next);
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 async function flushPendingActions(): Promise<void> {
@@ -845,7 +940,6 @@ async function flushPendingActions(): Promise<void> {
 
   const remaining: PendingAction[] = [];
 
-  // ✅ NEW: Pending comment başarıyla gidince comment override'ını temizle
   const commentOverrideIdsToClear = new Set<string>();
 
   for (const a of pending) {
@@ -854,7 +948,6 @@ async function flushPendingActions(): Promise<void> {
       if (!pid) continue;
 
       if ((a as any).type !== 'delete' && !isProbablyRemoteNumericId(pid)) {
-        // local/temp id’ler remote’a gidemez -> drop
         continue;
       }
 
@@ -890,7 +983,6 @@ async function flushPendingActions(): Promise<void> {
           body: { text, parentId },
         });
         if (r1.ok) {
-          // ✅ NEW: Remote yazıldı -> bu post için commentCount override'ını kaldır
           commentOverrideIdsToClear.add(pid);
           continue;
         }
@@ -1007,7 +1099,6 @@ async function flushPendingActions(): Promise<void> {
     }
   }
 
-  // ✅ NEW: Remote'a başarıyla giden comment'lerin override'ını temizle
   if (commentOverrideIdsToClear.size > 0) {
     try {
       const overrides =
@@ -1032,9 +1123,6 @@ async function flushPendingActions(): Promise<void> {
   await savePendingActions(remaining);
 }
 
-// ================================
-// ✅ Remote auto-sync internals
-// ================================
 function buildPostsHash(posts: Post[]): string {
   try {
     const parts = (Array.isArray(posts) ? posts : [])
@@ -1043,6 +1131,10 @@ function buildPostsHash(posts: Post[]): string {
         const anyP: any = p as any;
         return [
           String(anyP?.id ?? ''),
+          String(anyP?.postType ?? ''),
+          String(anyP?.praiseFriendName ?? ''),
+          String(anyP?.praiseCategoryId ?? ''),
+          String(anyP?.praiseMessage ?? ''),
           Number(anyP?.likes ?? 0),
           Number(anyP?.commentCount ?? 0),
           Number(anyP?.reshareCount ?? 0),
@@ -1106,6 +1198,12 @@ async function performRemoteSync(set: any, get: any) {
     storage.saveJson(STORAGE_COMMENTCOUNTS_KEY, migrated.commentOverrides);
     storage.saveJson(STORAGE_LOCAL_POSTS_KEY, migrated.localPosts);
     storage.saveJson(STORAGE_LIKED_BY_ME_KEY, migrated.likedByMe);
+
+    if (Array.isArray(migrated.pendingLikePostIds) && migrated.pendingLikePostIds.length > 0) {
+      migrated.pendingLikePostIds.forEach(postId => {
+        enqueuePendingAction({ type: 'like', postId, ts: Date.now() });
+      });
+    }
   } catch (e) {
     console.log('[Feed] remote sync error:', e);
   } finally {
@@ -1136,7 +1234,29 @@ function stopRemoteAutoSync() {
   _remoteSyncInFlight = false;
 }
 
-// ================================
+type AddTaskCardParams = {
+  taskTitle: string;
+  note: string;
+  author: string;
+  shareTargets: string[];
+  videoUri?: string | null;
+  imageUris?: string[];
+  isFreePost?: boolean;
+  authorAvatarUri?: string | null;
+
+  // ✅ SÜRÜM 2: Övgü Paylaşımı alanları
+  postType?: string;
+  isPraisePost?: boolean;
+  praiseFriendName?: string;
+  praiseCategoryId?: string;
+  praiseCategoryLabel?: string;
+  praiseCategoryEmoji?: string;
+  praiseTaggedUserId?: string | number | null;
+  praiseTaggedUserName?: string;
+  praiseTaggedUserHandle?: string;
+  praiseTaggedUserAvatarUri?: string | null;
+  praiseMessage?: string;
+};
 
 type FeedState = {
   posts: Post[];
@@ -1145,21 +1265,11 @@ type FeedState = {
   hydrate: () => Promise<void>;
   likePost: (id: string) => void;
 
-  // ✅ YENİ: yorum ekleme (server’a gitsin)
   addCommentToPost: (params: { postId: string; text: string; parentId?: string | null }) => void;
 
   clearAll: () => void;
 
-  addTaskCardFromTask: (params: {
-    taskTitle: string;
-    note: string;
-    author: string;
-    shareTargets: string[];
-    videoUri?: string | null;
-    imageUris?: string[];
-    isFreePost?: boolean;
-    authorAvatarUri?: string | null;
-  }) => void;
+  addTaskCardFromTask: (params: AddTaskCardParams) => void;
 
   removePost: (id: string) => void;
   archivePost: (id: string) => void;
@@ -1218,6 +1328,12 @@ export const useFeed = create<FeedState>((set, get) => ({
         storage.saveJson(STORAGE_LOCAL_POSTS_KEY, migrated.localPosts);
 
         storage.saveJson(STORAGE_LIKED_BY_ME_KEY, migrated.likedByMe);
+
+    if (Array.isArray(migrated.pendingLikePostIds) && migrated.pendingLikePostIds.length > 0) {
+      migrated.pendingLikePostIds.forEach(postId => {
+        enqueuePendingAction({ type: 'like', postId, ts: Date.now() });
+      });
+    }
 
         startRemoteAutoSync(set, get);
 
@@ -1278,45 +1394,7 @@ export const useFeed = create<FeedState>((set, get) => ({
       const localPosts = (await storage.loadJson<Post[]>(STORAGE_LOCAL_POSTS_KEY)) || [];
       const likedByMe = (await storage.loadJson<LikedByMe>(STORAGE_LIKED_BY_ME_KEY)) || {};
 
-      const normalizedInitial = INITIAL_FEED.map(p => ({
-        ...p,
-        id: (p as any)?.id === undefined || (p as any)?.id === null ? String(Date.now()) : String((p as any).id),
-
-        likes: typeof p.likes === 'number' && Number.isFinite(p.likes) ? p.likes : 0,
-        archived: !!p.archived,
-        lastSharedAt:
-          typeof (p as any).lastSharedAt === 'number' && Number.isFinite((p as any).lastSharedAt)
-            ? (p as any).lastSharedAt
-            : undefined,
-        lastSharedTargets: Array.isArray((p as any).lastSharedTargets) ? (p as any).lastSharedTargets : undefined,
-
-        shareTargets: safeParseStringArray((p as any)?.shareTargets),
-
-        videoUri: (p as any).videoUri === undefined || (p as any).videoUri === null ? null : String((p as any).videoUri),
-        imageUris: safeParseImageUris((p as any)?.imageUris),
-
-        time: typeof p.time === 'string' && p.time.trim().length > 0 ? p.time : 'az önce',
-
-        commentCount:
-          typeof (p as any).commentCount === 'number' && Number.isFinite((p as any).commentCount)
-            ? (p as any).commentCount
-            : 0,
-
-        reshareCount:
-          typeof (p as any).reshareCount === 'number' && Number.isFinite((p as any).reshareCount)
-            ? (p as any).reshareCount
-            : 0,
-        rootPostId: typeof (p as any).rootPostId === 'string' ? (p as any).rootPostId : undefined,
-        repostOfId: typeof (p as any).repostOfId === 'string' ? (p as any).repostOfId : undefined,
-        originalPostId: typeof (p as any).originalPostId === 'string' ? (p as any).originalPostId : undefined,
-
-        authorAvatarUri:
-          (p as any)?.authorAvatarUri === undefined || (p as any)?.authorAvatarUri === null
-            ? (p as any)?.avatarUri === undefined || (p as any)?.avatarUri === null
-              ? null
-              : String((p as any)?.avatarUri)
-            : String((p as any)?.authorAvatarUri),
-      }));
+      const normalizedInitial = INITIAL_FEED.map(normalizePost);
 
       const merged = applyOverridesAndMerge({
         basePosts: (normalizedInitial as any) as Post[],
@@ -1401,7 +1479,6 @@ export const useFeed = create<FeedState>((set, get) => ({
     })();
   },
 
-  // ✅ YENİ: yorum gönder (like ile aynı pattern)
   addCommentToPost: (params: { postId: string; text: string; parentId?: string | null }) => {
     const pid = String(params?.postId ?? '').trim();
     const text = String(params?.text ?? '').trim();
@@ -1409,7 +1486,6 @@ export const useFeed = create<FeedState>((set, get) => ({
 
     if (!pid || !text) return;
 
-    // 1) optimistic: commentCount +1
     try {
       const prev = get().posts;
       const hit = prev.find(p => String(p.id) === pid);
@@ -1432,7 +1508,6 @@ export const useFeed = create<FeedState>((set, get) => ({
       })();
     } catch {}
 
-    // 2) remote
     (async () => {
       try {
         if (!isProbablyRemoteNumericId(pid)) {
@@ -1498,9 +1573,26 @@ export const useFeed = create<FeedState>((set, get) => ({
     stopRemoteAutoSync();
   },
 
-  addTaskCardFromTask: ({ taskTitle, note, author, shareTargets, videoUri, imageUris, isFreePost, authorAvatarUri }) => {
+  addTaskCardFromTask: params => {
+    const {
+      taskTitle,
+      note,
+      author,
+      shareTargets,
+      videoUri,
+      imageUris,
+      isFreePost,
+      authorAvatarUri,
+      ...extra
+    } = params;
+
     const isFree = !!isFreePost;
     const title = (taskTitle || '').trim();
+
+    const praiseFields = normalizePraiseFields({
+      ...extra,
+      note,
+    });
 
     const newPost = {
       id: String(Date.now()),
@@ -1516,7 +1608,7 @@ export const useFeed = create<FeedState>((set, get) => ({
       authorAvatarUri: authorAvatarUri ?? null,
 
       time: 'az önce',
-      isTaskCard: !isFree,
+      isTaskCard: !isFree && (praiseFields as any).postType !== 'praise',
       likes: 0,
       archived: false,
       lastSharedAt: undefined,
@@ -1528,23 +1620,38 @@ export const useFeed = create<FeedState>((set, get) => ({
       rootPostId: undefined,
       repostOfId: undefined,
       originalPostId: undefined,
+
+      ...praiseFields,
     } as any as Post;
 
-    const next = [newPost, ...get().posts];
+    const normalizedNewPost = normalizePost(newPost as any);
+
+    const currentPosts = get().posts || [];
+    const withoutDuplicate = currentPosts.filter(p => {
+      const sameId = String((p as any)?.id ?? '') === String((normalizedNewPost as any)?.id ?? '');
+      if (sameId) return false;
+      return !looksSamePost(p as any, normalizedNewPost as any);
+    });
+
+    const next = [normalizedNewPost, ...withoutDuplicate];
     set({ posts: next });
     storage.saveJson(STORAGE_KEY, next);
 
     (async () => {
       try {
         const localPosts = (await storage.loadJson<Post[]>(STORAGE_LOCAL_POSTS_KEY)) || [];
-        const normalizedNew = normalizePost(newPost as any);
 
-        const exists = localPosts.some(p => String((p as any).id) === String((normalizedNew as any).id));
-        const nextLocalPosts = exists ? localPosts : [normalizedNew, ...localPosts];
+        const cleanedLocalPosts = localPosts.filter(p => {
+          const sameId = String((p as any).id) === String((normalizedNewPost as any).id);
+          if (sameId) return false;
+          return !looksSamePost(p as any, normalizedNewPost as any);
+        });
+
+        const nextLocalPosts = [normalizedNewPost, ...cleanedLocalPosts];
 
         storage.saveJson(STORAGE_LOCAL_POSTS_KEY, nextLocalPosts);
       } catch (e) {
-        console.log('[Feed] localPosts save (task/free) failed:', e);
+        console.log('[Feed] localPosts save (task/free/praise) failed:', e);
       }
     })();
   },
@@ -1771,7 +1878,7 @@ export const useFeed = create<FeedState>((set, get) => ({
       imageUris: normalizeUriArray((base as any)?.imageUris),
     } as any as Post;
 
-    const cloned = {
+    const cloned = normalizePost({
       ...original,
       id: clonedId,
       clientCreatedAt: Date.now(),
@@ -1782,7 +1889,7 @@ export const useFeed = create<FeedState>((set, get) => ({
       originalPostId: rootPostId,
       authorAvatarUri: (base as any)?.authorAvatarUri ?? null,
       imageUris: normalizeUriArray((base as any)?.imageUris),
-    } as any as Post;
+    } as any) as any as Post;
 
     const next = [cloned, ...posts.map(p => (p.id === original.id ? updatedOriginal : p))];
 
