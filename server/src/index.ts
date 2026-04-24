@@ -2069,6 +2069,46 @@ app.get('/notifications', async (req, res) => {
   }
 });
 
+
+// ✅ Manuel bildirim oluşturma (client fallback / test için)
+app.post('/notifications', async (req, res) => {
+  try {
+    const body = req.body ?? {};
+
+    const toUserIdRaw = body.toUserId ?? body.userId;
+    const toUserId = typeof toUserIdRaw === 'number' ? toUserIdRaw : typeof toUserIdRaw === 'string' ? Number(toUserIdRaw.trim()) : null;
+
+    if (!Number.isFinite(toUserId as any) || Number(toUserId) <= 0) {
+      return res.status(400).json({ ok: false, error: 'toUserId-required' });
+    }
+
+    const actorUserId = parseUserIdFromReq(req);
+    const postIdRaw = body.postId;
+    const postId = typeof postIdRaw === 'number' ? postIdRaw : typeof postIdRaw === 'string' ? Number(postIdRaw.trim()) : null;
+
+    const type = safeStringOrNull(body.type) ?? 'general';
+    const message =
+      safeStringOrNull(body.message) ??
+      safeStringOrNull(body.text) ??
+      'Yeni bir bildirimin var.';
+
+    const created = await (prisma as any).notification.create({
+      data: {
+        userId: Number(toUserId),
+        actorUserId: actorUserId ?? null,
+        postId: Number.isFinite(postId as any) && Number(postId) > 0 ? Number(postId) : null,
+        type,
+        message,
+      },
+    });
+
+    return res.json({ ok: true, notification: created });
+  } catch (e) {
+    console.error('[POST /notifications] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
 app.post('/notifications/read', async (req, res) => {
   try {
     const userId = parseUserIdFromReq(req);
