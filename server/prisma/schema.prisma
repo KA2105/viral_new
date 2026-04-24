@@ -51,6 +51,9 @@ model User {
 
   // ✅ Şifre sıfırlama tokenları
   passwordResetTokens PasswordResetToken[]
+
+  // 🔔 Bildirimler
+  notifications Notification[] @relation("UserNotifications")
 }
 
 model Task {
@@ -114,6 +117,19 @@ model Post {
   // Medya bilgisi
   videoUri     String?
   imageUris    String[]   @default([])
+
+  // ✅ SÜRÜM 2: Övgü Paylaşımı meta alanları
+  postType            String?
+  isPraisePost        Boolean   @default(false)
+  praiseFriendName    String?
+  praiseTaggedUserId        Int?
+  praiseTaggedUserName      String?
+  praiseTaggedUserHandle    String?
+  praiseTaggedUserAvatarUri String?
+  praiseCategoryId    String?
+  praiseCategoryLabel String?
+  praiseCategoryEmoji String?
+  praiseMessage       String?
 
   // ✅ NEW: Repost / Archive / Share meta (server/src/index.ts ile uyum)
   // - repost endpointi "reshareCount increment" yapıyor
@@ -228,4 +244,26 @@ model PasswordResetToken {
   @@index([userId])
   @@index([token])
   @@index([code])
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+
+  userId      Int
+  user        User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  actorUserId Int?
+  postId      Int?
+
+  type        String   @default("general")
+  message     String
+  read        Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, read, createdAt])
+  @@index([userId, createdAt])
+  @@index([postId])
+  @@index([actorUserId])
 }

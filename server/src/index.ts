@@ -287,6 +287,45 @@ function safeParseStringArray(v: any): string[] {
   return [];
 }
 
+// ✅ SÜRÜM 2: Övgü Paylaşımı payload normalizer
+function safeStringOrNull(v: any): string | null {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  return s.length ? s : null;
+}
+
+function safeIntOrNull(v: any): number | null {
+  const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v.trim()) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function normalizePraisePostPayload(body: any): Record<string, any> {
+  const postTypeRaw = safeStringOrNull(body?.postType);
+  const isPraisePostRaw = body?.isPraisePost === true || postTypeRaw === 'praise';
+
+  if (!isPraisePostRaw) {
+    return {};
+  }
+
+  const praiseMessage =
+    safeStringOrNull(body?.praiseMessage) ??
+    safeStringOrNull(body?.note);
+
+  return {
+    postType: 'praise',
+    isPraisePost: true,
+    praiseFriendName: safeStringOrNull(body?.praiseFriendName),
+    praiseTaggedUserId: safeIntOrNull(body?.praiseTaggedUserId),
+    praiseTaggedUserName: safeStringOrNull(body?.praiseTaggedUserName),
+    praiseTaggedUserHandle: safeStringOrNull(body?.praiseTaggedUserHandle),
+    praiseTaggedUserAvatarUri: safeStringOrNull(body?.praiseTaggedUserAvatarUri),
+    praiseCategoryId: safeStringOrNull(body?.praiseCategoryId),
+    praiseCategoryLabel: safeStringOrNull(body?.praiseCategoryLabel),
+    praiseCategoryEmoji: safeStringOrNull(body?.praiseCategoryEmoji),
+    praiseMessage,
+  };
+}
+
 // -------------------- Uploads (Video/Avatar) Helpers --------------------
 
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || '';
@@ -657,6 +696,16 @@ function toPublicUserWithAvatar(u: any, req: any) {
     avatarUri: base.avatarUri ?? null,
     avatarUrl: base.avatarUrl ?? null,
   };
+}
+
+function displayNameForNotification(u: any, fallback?: string | null): string {
+  const name =
+    (typeof u?.fullName === 'string' && u.fullName.trim()) ||
+    (typeof u?.handle === 'string' && u.handle.trim()) ||
+    (typeof fallback === 'string' && fallback.trim()) ||
+    'Bir kullanıcı';
+
+  return name.replace(/^@+/, '').trim();
 }
 
 // -------------------- Password Reset Helpers --------------------
@@ -1989,6 +2038,71 @@ app.post('/friends/remove', async (req, res) => {
   }
 });
 
+
+// -------------------- Notifications API --------------------
+
+app.get('/notifications', async (req, res) => {
+  try {
+    const userId = parseUserIdFromReq(req);
+
+    if (!userId) {
+      return res.status(400).json({
+        ok: false,
+        error: 'userId-required',
+        message: 'userId is required (token or query ?userId= or header x-user-id)',
+      });
+    }
+
+    const limitRaw = typeof req.query.limit === 'string' ? Number(req.query.limit) : 50;
+    const limit = Number.isFinite(limitRaw) && limitRaw > 0 && limitRaw <= 100 ? limitRaw : 50;
+
+    const items = await (prisma as any).notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    return res.json({ ok: true, items });
+  } catch (e) {
+    console.error('[GET /notifications] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+app.post('/notifications/read', async (req, res) => {
+  try {
+    const userId = parseUserIdFromReq(req);
+
+    if (!userId) {
+      return res.status(400).json({
+        ok: false,
+        error: 'userId-required',
+        message: 'userId is required (token or body.userId or query or header x-user-id)',
+      });
+    }
+
+    const idRaw = (req.body ?? {}).id;
+    const id = typeof idRaw === 'number' ? idRaw : typeof idRaw === 'string' ? Number(idRaw.trim()) : null;
+
+    if (id && Number.isFinite(id) && id > 0) {
+      await (prisma as any).notification.updateMany({
+        where: { id, userId },
+        data: { read: true },
+      });
+    } else {
+      await (prisma as any).notification.updateMany({
+        where: { userId, read: false },
+        data: { read: true },
+      });
+    }
+
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('[POST /notifications/read] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
 // -------------------- Posts / Feed --------------------
 
 // 🟢 Kart oluşturma – UploadScreen'den gelen /posts isteği
@@ -2004,6 +2118,13 @@ app.post('/posts', async (req, res) => {
       imageUris,
       createdAt,
       userId,
+      postType,
+      isPraisePost,
+      praiseFriendName,
+      praiseCategoryId,
+      praiseCategoryLabel,
+      praiseCategoryEmoji,
+      praiseMessage,
     } = req.body ?? {};
 
     console.log('[API] POST /posts {');
@@ -2016,6 +2137,11 @@ app.post('/posts', async (req, res) => {
     console.log('  imageUris   :', imageUris);
     console.log('  createdAt   :', createdAt);
     console.log('  userId      :', userId);
+    console.log('  postType    :', postType);
+    console.log('  isPraisePost:', isPraisePost);
+    console.log('  praiseFriend:', praiseFriendName);
+    console.log('  praiseCatId :', praiseCategoryId);
+    console.log('  praiseMsg   :', praiseMessage);
     console.log('}');
 
     if (!author || typeof author !== 'string' || author.trim().length === 0) {
@@ -2081,6 +2207,8 @@ app.post('/posts', async (req, res) => {
       .filter(Boolean)
       .filter(x => !isLocalOnlyUri(x));
 
+    const praisePayload = normalizePraisePostPayload(req.body ?? {});
+
     const post = await prisma.post.create({
       data: {
         taskTitle: typeof taskTitle === 'string' && taskTitle.trim().length ? taskTitle : null,
@@ -2090,10 +2218,96 @@ app.post('/posts', async (req, res) => {
         shareTargets: shareTargetsJson,
         videoUri: safeVideoUri,
         imageUris: safeImageUris,
+        ...praisePayload,
         createdAt: createdAtDate,
         user: userConnect,
       } as any,
     });
+
+    // 🔔 Övgü etiket bildirimi
+    if ((praisePayload as any)?.isPraisePost) {
+      try {
+        const taggedId = safeIntOrNull((praisePayload as any)?.praiseTaggedUserId);
+        const taggedHandle = safeStringOrNull((praisePayload as any)?.praiseTaggedUserHandle);
+        const taggedName =
+          safeStringOrNull((praisePayload as any)?.praiseTaggedUserName) ??
+          safeStringOrNull((praisePayload as any)?.praiseFriendName);
+
+        let targetUser: any = null;
+
+        if (taggedId) {
+          targetUser = await prisma.user.findUnique({
+            where: { id: taggedId },
+          });
+        }
+
+        if (!targetUser && taggedHandle) {
+          targetUser = await prisma.user.findFirst({
+            where: {
+              handle: {
+                equals: taggedHandle.replace(/^@+/, ''),
+                mode: 'insensitive',
+              } as any,
+            },
+          });
+        }
+
+        if (!targetUser && taggedName) {
+          const cleanTaggedName = taggedName.replace(/^@+/, '').trim();
+
+          targetUser = await prisma.user.findFirst({
+            where: {
+              OR: [
+                {
+                  handle: {
+                    equals: cleanTaggedName,
+                    mode: 'insensitive',
+                  } as any,
+                },
+                {
+                  fullName: {
+                    equals: cleanTaggedName,
+                    mode: 'insensitive',
+                  } as any,
+                },
+              ],
+            },
+          });
+        }
+
+        const actorUserId =
+          typeof effectiveUserId === 'number' && Number.isFinite(effectiveUserId) && effectiveUserId > 0
+            ? effectiveUserId
+            : null;
+
+        if (targetUser?.id && actorUserId !== targetUser.id) {
+          const actorUser = actorUserId
+            ? await prisma.user.findUnique({ where: { id: actorUserId } })
+            : null;
+
+          const actorName = displayNameForNotification(actorUser, author);
+          const message = `${actorName}, senden Övgü ile bahsetti.`;
+
+          await (prisma as any).notification.create({
+            data: {
+              userId: targetUser.id,
+              actorUserId,
+              postId: post.id,
+              type: 'praise',
+              message,
+            },
+          });
+
+          console.log('[Notification][Praise] created', {
+            toUserId: targetUser.id,
+            actorUserId,
+            postId: post.id,
+          });
+        }
+      } catch (notifyErr) {
+        console.warn('[Notification][Praise] create failed:', notifyErr);
+      }
+    }
 
     return res.json({
       ok: true,
@@ -2343,28 +2557,17 @@ app.post('/posts/:id/like', async (req, res) => {
       return res.status(501).json({ ok: false, error: 'like-model-not-ready' });
     }
 
-    const del = await anyPrisma.like.deleteMany({ where: { postId, userId } });
-
-    let liked = false;
-
-    if (del?.count && del.count > 0) {
-      liked = false;
-    } else {
-      try {
-        await anyPrisma.like.create({ data: { postId, userId } });
-        liked = true;
-      } catch (e: any) {
-        if (isPrismaP2002(e)) {
-          liked = true;
-        } else {
-          throw e;
-        }
-      }
+    // ✅ SÜRÜM 2 FIX: Like artık toggle değil, idempotent çalışır.
+    // Aynı kullanıcı tekrar basarsa kayıt silinmez; beğenenler listesi kalıcı kalır.
+    try {
+      await anyPrisma.like.create({ data: { postId, userId } });
+    } catch (e: any) {
+      if (!isPrismaP2002(e)) throw e;
     }
 
     const likeCount = await anyPrisma.like.count({ where: { postId } });
 
-    return res.json({ ok: true, liked, likeCount });
+    return res.json({ ok: true, liked: true, likeCount });
   } catch (e) {
     console.error('[POST /posts/:id/like] error:', e);
     return res.status(500).json({ ok: false, error: 'server-error' });
@@ -2404,6 +2607,63 @@ app.post('/feed/:id/like', async (req, res) => {
     return res.status(500).json({ ok: false, error: 'server-error' });
   }
 });
+
+// ✅ Beğenenler listesi
+const handleListPostLikes = async (req: express.Request, res: express.Response) => {
+  try {
+    const postId = Number(req.params.id);
+    if (!Number.isFinite(postId) || postId <= 0) {
+      return res.status(400).json({ ok: false, error: 'postId-invalid' });
+    }
+
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+    if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
+
+    const anyPrisma: any = prisma as any;
+    if (!anyPrisma.like) {
+      return res.status(501).json({ ok: false, error: 'like-model-not-ready' });
+    }
+
+    const rows = await anyPrisma.like.findMany({
+      where: { postId },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: {
+        user: true,
+      },
+    });
+
+    const items = (Array.isArray(rows) ? rows : []).map((row: any) => {
+      const u = row?.user;
+      const publicUser = u ? toPublicUserWithAvatar(u, req) : null;
+      const name =
+        publicUser?.fullName ||
+        publicUser?.displayName ||
+        (publicUser?.handle ? `@${String(publicUser.handle).replace(/^@/, '')}` : null) ||
+        'Kullanıcı';
+
+      return {
+        id: String(publicUser?.id ?? row?.userId ?? row?.id),
+        userId: publicUser?.id ?? row?.userId ?? null,
+        name,
+        fullName: publicUser?.fullName ?? null,
+        displayName: publicUser?.displayName ?? name,
+        handle: publicUser?.handle ? `@${String(publicUser.handle).replace(/^@/, '')}` : null,
+        avatarUri: publicUser?.avatarUri ?? null,
+        avatarUrl: publicUser?.avatarUrl ?? null,
+        likedAt: row?.createdAt ?? null,
+      };
+    });
+
+    return res.json({ ok: true, postId, count: items.length, items });
+  } catch (e) {
+    console.error('[GET /posts/:id/likes] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+};
+
+app.get('/posts/:id/likes', handleListPostLikes);
+app.get('/feed/:id/likes', handleListPostLikes);
 
 // ✅ Comment create
 const handleCreateComment = async (req: any, res: any) => {
