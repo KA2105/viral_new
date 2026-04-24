@@ -2404,16 +2404,20 @@ app.post('/posts', async (req, res) => {
         : null;
 
     if (postingUser) {
-      const postRestriction = getAccountRestriction(postingUser, 'post');
-      if (!postRestriction.ok) {
-        return res.status(Number((postRestriction as any).status || 403)).json({ ok: false, ...postRestriction });
-      }
+  const postRestriction = getAccountRestriction(postingUser, 'post');
+  if (!postRestriction.ok) {
+    return res
+      .status(Number((postRestriction as any).status || 403))
+      .json({ ...postRestriction, ok: false });
+  }
 
-      if (safeVideoUri) {
-        const videoRestriction = getAccountRestriction(postingUser, 'video');
-        if (!videoRestriction.ok) {
-          return res.status(Number((videoRestriction as any).status || 403)).json({ ok: false, ...videoRestriction });
-        }
+  if (safeVideoUri) {
+    const videoRestriction = getAccountRestriction(postingUser, 'video');
+    if (!videoRestriction.ok) {
+      return res
+        .status(Number((videoRestriction as any).status || 403))
+        .json({ ...videoRestriction, ok: false });
+    }
 
         const durationSeconds = safeNumberOrNull(videoDurationSeconds);
         const policy = buildUserVideoPolicy(postingUser);
