@@ -30,6 +30,18 @@ model User {
   // 🔐 Şifre hash (email/phone login için)
   passwordHash    String?
 
+  // ✅ PRO / ADMIN / CREATOR + yaptırım alanları
+  role                    String    @default("user") // user | pro | admin | creator
+  accountStatus           String    @default("active") // active | warned | limited | suspended | banned
+  isPro                   Boolean   @default(false)
+  isFeaturedCreator       Boolean   @default(false)
+  maxVideoSeconds         Int       @default(30)
+  canUploadLongVideo      Boolean   @default(false)
+  videoUploadBlockedUntil DateTime?
+  postUploadBlockedUntil  DateTime?
+  warningCount            Int       @default(0)
+  strikeCount             Int       @default(0)
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

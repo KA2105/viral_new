@@ -61,6 +61,17 @@ type PraiseCategory = {
   fallback: string;
 };
 
+type VideoPolicy = {
+  role: string;
+  accountStatus: string;
+  isPro: boolean;
+  isFeaturedCreator: boolean;
+  maxVideoSeconds: number;
+  canUploadLongVideo: boolean;
+  videoUploadBlockedUntil?: string | null;
+  postUploadBlockedUntil?: string | null;
+};
+
 const PRAISE_CATEGORIES: PraiseCategory[] = [
   {
     id: 'kindness',
@@ -146,8 +157,9 @@ export const markNextUploadAsFree = () => {
 };
 
 // Video süre limitleri (saniye)
-const MAX_FREE_DURATION = 60; // Ücretsiz kullanıcı
-const MAX_APP_DURATION = 180; // Uygulamanın üst limiti (3 dakika)
+const NORMAL_VIDEO_LIMIT_SECONDS = 30; // Normal kullanıcı
+const PRO_VIDEO_LIMIT_SECONDS = 300; // Pro kullanıcı: 5 dakika
+const ADMIN_VIDEO_LIMIT_SECONDS = 24 * 60 * 60; // Admin için pratikte sınırsız
 
 // ✅ Çoklu foto limit
 const MAX_IMAGE_COUNT = 10;
@@ -354,6 +366,7 @@ const UploadScreen: React.FC = () => {
 
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const [videoLabel, setVideoLabel] = useState<string | null>(null);
+  const [videoDurationSeconds, setVideoDurationSeconds] = useState<number | null>(null);
 
   const [imageUris, setImageUris] = useState<string[]>([]);
   const [imageLabels, setImageLabels] = useState<string[]>([]);
@@ -361,6 +374,8 @@ const UploadScreen: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [forceFreePost, setForceFreePost] = useState(false);
+
+  const [videoPolicy, setVideoPolicy] = useState<VideoPolicy | null>(null);
 
   // ✅ SÜRÜM 2 / ÖVGÜ PAYLAŞIMI
   const [uploadMode, setUploadMode] = useState<UploadMode>('task');
@@ -440,6 +455,77 @@ const UploadScreen: React.FC = () => {
     selectedPraiseCategory.labelKey,
     selectedPraiseCategory.fallback,
   );
+
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadVideoPolicy = async () => {
+      try {
+        const headers: any = {
+          Accept: 'application/json',
+        };
+
+        if (token && String(token).trim().length) {
+          headers.Authorization = `Bearer ${String(token).trim()}`;
+        }
+
+        if (backendUserId != null) {
+          headers['x-user-id'] = String(backendUserId);
+        }
+
+        const res = await fetch(`${API_URL}/me/video-policy`, {
+          method: 'GET',
+          headers,
+        });
+
+        const json = await res.json().catch(() => null);
+        if (!cancelled && res.ok && json?.policy) {
+          setVideoPolicy(json.policy as VideoPolicy);
+        }
+      } catch (e) {
+        console.warn('[Upload] video policy load error:', e);
+      }
+    };
+
+    loadVideoPolicy();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [backendUserId, token]);
+
+  const effectiveMaxVideoSeconds = useMemo(() => {
+    const source: any = videoPolicy || profile || {};
+    const role = String(source?.role ?? 'user').trim().toLowerCase();
+    const rawMax = typeof source?.maxVideoSeconds === 'number' ? source.maxVideoSeconds : Number(source?.maxVideoSeconds);
+    const customMax = Number.isFinite(rawMax) && rawMax > 0 ? Math.floor(rawMax) : NORMAL_VIDEO_LIMIT_SECONDS;
+
+    if (role === 'admin') return ADMIN_VIDEO_LIMIT_SECONDS;
+    if (source?.isPro === true || role === 'pro') return Math.max(customMax, PRO_VIDEO_LIMIT_SECONDS);
+    if (source?.canUploadLongVideo === true || source?.isFeaturedCreator === true || role === 'creator') {
+      return Math.max(customMax, NORMAL_VIDEO_LIMIT_SECONDS);
+    }
+
+    return NORMAL_VIDEO_LIMIT_SECONDS;
+  }, [profile, videoPolicy]);
+
+  const videoLimitLabel = useMemo(() => {
+    if (effectiveMaxVideoSeconds >= ADMIN_VIDEO_LIMIT_SECONDS) return 'unlimited';
+    if (effectiveMaxVideoSeconds >= 60) {
+      const min = Math.floor(effectiveMaxVideoSeconds / 60);
+      const sec = effectiveMaxVideoSeconds % 60;
+      return sec > 0 ? `${min}m ${sec}s` : `${min}m`;
+    }
+    return `${effectiveMaxVideoSeconds}s`;
+  }, [effectiveMaxVideoSeconds]);
+
+
+  const currentUserIsProAuthor = useMemo(() => {
+    const source: any = videoPolicy || profile || {};
+    const role = String(source?.role ?? '').trim().toLowerCase();
+    return source?.isPro === true || source?.isFeaturedCreator === true || role === 'pro' || role === 'admin' || role === 'creator';
+  }, [profile, videoPolicy]);
 
   useEffect(() => {
     if (typeof socialStore?.hydrate === 'function' && !socialStore.hydrated) {
@@ -661,36 +747,20 @@ const UploadScreen: React.FC = () => {
       if (durationSec > 0) {
         console.log('[Upload] video duration (s):', durationSec);
 
-        if (durationSec > MAX_APP_DURATION) {
-          Alert.alert(t('upload.video.tooLongTitle'), t('upload.video.tooLongBody'));
-          return;
-        }
-
-        if (durationSec > MAX_FREE_DURATION) {
+        if (durationSec > effectiveMaxVideoSeconds) {
           Alert.alert(
-            t('upload.video.overFreeLimitTitle'),
-            t('upload.video.overFreeLimitBody'),
-            [
-              {
-                text: t('upload.video.overFreeLimitCancel'),
-                style: 'cancel',
-              },
-              {
-                text: t('upload.video.overFreeLimitPro'),
-                onPress: () => {
-                  Alert.alert(
-                    t('upload.video.proInfoTitle'),
-                    t('upload.video.proInfoBody'),
-                  );
-                },
-              },
-            ],
+            t('upload.video.tooLongTitle', 'Video is too long'),
+            t('upload.video.dynamicLimitBody', {
+              limit: videoLimitLabel,
+              defaultValue: `This account can upload videos up to ${videoLimitLabel}.`,
+            }),
           );
           return;
         }
       }
 
       setVideoUri(asset.uri);
+      setVideoDurationSeconds(durationSec > 0 ? Math.ceil(durationSec) : null);
       setVideoLabel(asset.fileName ?? t('upload.video.selectedFallback'));
 
       console.log('[Upload] pickVideo success:', asset.uri);
@@ -915,6 +985,7 @@ const UploadScreen: React.FC = () => {
           imageUris: finalImageUris,
           isFreePost,
           authorAvatarUri,
+          authorIsPro: currentUserIsProAuthor,
           ...extraPayload,
         });
       }
@@ -928,6 +999,7 @@ const UploadScreen: React.FC = () => {
         isFreePost,
         shareTargets,
         videoUri: finalVideoUri,
+        videoDurationSeconds,
         imageUris: finalImageUris,
         createdAt,
         userId: backendUserId ?? null,
@@ -1003,6 +1075,7 @@ const UploadScreen: React.FC = () => {
       setSelectedPlatforms([]);
       setVideoUri(null);
       setVideoLabel(null);
+      setVideoDurationSeconds(null);
       setImageUris([]);
       setImageLabels([]);
     } finally {

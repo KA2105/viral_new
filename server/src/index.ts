@@ -17,6 +17,12 @@ import nodemailer from 'nodemailer';
 const prisma = new PrismaClient();
 const app = express();
 
+// ✅ Video süre / yetki politikası
+const NORMAL_VIDEO_LIMIT_SECONDS = 30;
+const PRO_VIDEO_LIMIT_SECONDS = 300; // 5 dakika
+const ADMIN_VIDEO_LIMIT_SECONDS = 24 * 60 * 60; // pratikte sınırsız
+
+
 console.log('[BOOT] src/index.ts loaded at', new Date().toISOString());
 
 // ✅ Render/Proxy ortamlarında proto/host doğru gelsin (x-forwarded-proto)
@@ -641,6 +647,23 @@ function toPublicUser(u: any, req?: express.Request) {
     email: u.email,
     phone: u.phone,
     isPhoneVerified: u.isPhoneVerified,
+
+    // ✅ PRO / ADMIN / CREATOR + video yetkileri
+    role: u.role ?? 'user',
+    accountStatus: u.accountStatus ?? 'active',
+    isPro: !!u.isPro,
+    isFeaturedCreator: !!u.isFeaturedCreator,
+    maxVideoSeconds:
+      typeof u.maxVideoSeconds === 'number' && Number.isFinite(u.maxVideoSeconds)
+        ? u.maxVideoSeconds
+        : NORMAL_VIDEO_LIMIT_SECONDS,
+    canUploadLongVideo: !!u.canUploadLongVideo,
+    videoUploadBlockedUntil: u.videoUploadBlockedUntil ?? null,
+    postUploadBlockedUntil: u.postUploadBlockedUntil ?? null,
+    warningCount:
+      typeof u.warningCount === 'number' && Number.isFinite(u.warningCount) ? u.warningCount : 0,
+    strikeCount:
+      typeof u.strikeCount === 'number' && Number.isFinite(u.strikeCount) ? u.strikeCount : 0,
   };
 }
 
@@ -706,6 +729,101 @@ function displayNameForNotification(u: any, fallback?: string | null): string {
     'Bir kullanıcı';
 
   return name.replace(/^@+/, '').trim();
+}
+
+
+function dateFromAny(v: any): Date | null {
+  if (!v) return null;
+  const d = v instanceof Date ? v : new Date(v);
+  return Number.isFinite(d.getTime()) ? d : null;
+}
+
+function buildUserVideoPolicy(u: any) {
+  const role = String(u?.role ?? 'user').trim().toLowerCase() || 'user';
+  const accountStatus = String(u?.accountStatus ?? 'active').trim().toLowerCase() || 'active';
+  const isAdmin = role === 'admin';
+  const isPro = !!u?.isPro || role === 'pro' || isAdmin;
+  const isFeaturedCreator = !!u?.isFeaturedCreator || role === 'creator';
+  const canUploadLongVideo = !!u?.canUploadLongVideo || isPro || isFeaturedCreator || isAdmin;
+
+  const rawMax = typeof u?.maxVideoSeconds === 'number' ? u.maxVideoSeconds : Number(u?.maxVideoSeconds);
+  const customMax = Number.isFinite(rawMax) && rawMax > 0 ? Math.floor(rawMax) : NORMAL_VIDEO_LIMIT_SECONDS;
+
+  const maxVideoSeconds = isAdmin
+    ? ADMIN_VIDEO_LIMIT_SECONDS
+    : isPro
+      ? Math.max(customMax, PRO_VIDEO_LIMIT_SECONDS)
+      : canUploadLongVideo
+        ? Math.max(customMax, NORMAL_VIDEO_LIMIT_SECONDS)
+        : NORMAL_VIDEO_LIMIT_SECONDS;
+
+  return {
+    role,
+    accountStatus,
+    isPro,
+    isFeaturedCreator,
+    canUploadLongVideo,
+    maxVideoSeconds,
+    videoUploadBlockedUntil: u?.videoUploadBlockedUntil ?? null,
+    postUploadBlockedUntil: u?.postUploadBlockedUntil ?? null,
+    warningCount: typeof u?.warningCount === 'number' ? u.warningCount : 0,
+    strikeCount: typeof u?.strikeCount === 'number' ? u.strikeCount : 0,
+  };
+}
+
+function getAccountRestriction(u: any, action: 'post' | 'video') {
+  const policy = buildUserVideoPolicy(u);
+  const now = Date.now();
+
+  if (policy.accountStatus === 'banned') {
+    return { ok: false, status: 403, error: 'account-banned', message: 'Hesabın engellenmiş durumda.' };
+  }
+
+  if (policy.accountStatus === 'suspended') {
+    return { ok: false, status: 403, error: 'account-suspended', message: 'Hesabın geçici olarak dondurulmuş durumda.' };
+  }
+
+  if (policy.accountStatus === 'limited') {
+    const blockedUntil = action === 'video' ? dateFromAny(policy.videoUploadBlockedUntil) : dateFromAny(policy.postUploadBlockedUntil);
+    if (blockedUntil && blockedUntil.getTime() > now) {
+      return {
+        ok: false,
+        status: 403,
+        error: action === 'video' ? 'video-upload-blocked' : 'post-upload-blocked',
+        message: action === 'video' ? 'Video yükleme yetkin geçici olarak kısıtlandı.' : 'Paylaşım yapma yetkin geçici olarak kısıtlandı.',
+        blockedUntil: blockedUntil.toISOString(),
+      };
+    }
+  }
+
+  const videoBlockedUntil = dateFromAny(policy.videoUploadBlockedUntil);
+  if (action === 'video' && videoBlockedUntil && videoBlockedUntil.getTime() > now) {
+    return {
+      ok: false,
+      status: 403,
+      error: 'video-upload-blocked',
+      message: 'Video yükleme yetkin geçici olarak kısıtlandı.',
+      blockedUntil: videoBlockedUntil.toISOString(),
+    };
+  }
+
+  const postBlockedUntil = dateFromAny(policy.postUploadBlockedUntil);
+  if (action === 'post' && postBlockedUntil && postBlockedUntil.getTime() > now) {
+    return {
+      ok: false,
+      status: 403,
+      error: 'post-upload-blocked',
+      message: 'Paylaşım yapma yetkin geçici olarak kısıtlandı.',
+      blockedUntil: postBlockedUntil.toISOString(),
+    };
+  }
+
+  return { ok: true, policy };
+}
+
+function safeNumberOrNull(v: any): number | null {
+  const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v.trim()) : NaN;
+  return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
 // -------------------- Password Reset Helpers --------------------
@@ -1379,6 +1497,35 @@ app.get('/me', async (req, res) => {
       ok: false,
       error: 'server-error',
     });
+  }
+});
+
+
+// 🟢 ME: Video yetki/policy oku
+app.get('/me/video-policy', async (req, res) => {
+  try {
+    const userId = parseUserIdFromReq(req);
+
+    if (!userId) {
+      return res.status(400).json({
+        ok: false,
+        error: 'userId-required',
+        message: 'userId is required (token or query ?userId= or header x-user-id)',
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ ok: false, error: 'not-found', message: 'User not found' });
+    }
+
+    return res.json({ ok: true, policy: buildUserVideoPolicy(user), user: toPublicUser(user, req) });
+  } catch (err) {
+    console.error('[GET /me/video-policy] error:', err);
+    return res.status(500).json({ ok: false, error: 'server-error' });
   }
 });
 
@@ -2155,6 +2302,7 @@ app.post('/posts', async (req, res) => {
       isFreePost,
       shareTargets,
       videoUri,
+      videoDurationSeconds,
       imageUris,
       createdAt,
       userId,
@@ -2174,6 +2322,7 @@ app.post('/posts', async (req, res) => {
     console.log('  isFreePost  :', isFreePost);
     console.log('  shareTargets:', shareTargets);
     console.log('  videoUri    :', videoUri);
+    console.log('  videoDuration:', videoDurationSeconds);
     console.log('  imageUris   :', imageUris);
     console.log('  createdAt   :', createdAt);
     console.log('  userId      :', userId);
@@ -2248,6 +2397,37 @@ app.post('/posts', async (req, res) => {
       .filter(x => !isLocalOnlyUri(x));
 
     const praisePayload = normalizePraisePostPayload(req.body ?? {});
+
+    const postingUser =
+      typeof effectiveUserId === 'number' && Number.isFinite(effectiveUserId) && effectiveUserId > 0
+        ? await prisma.user.findUnique({ where: { id: effectiveUserId } })
+        : null;
+
+    if (postingUser) {
+      const postRestriction = getAccountRestriction(postingUser, 'post');
+      if (!postRestriction.ok) {
+        return res.status(Number((postRestriction as any).status || 403)).json({ ok: false, ...postRestriction });
+      }
+
+      if (safeVideoUri) {
+        const videoRestriction = getAccountRestriction(postingUser, 'video');
+        if (!videoRestriction.ok) {
+          return res.status(Number((videoRestriction as any).status || 403)).json({ ok: false, ...videoRestriction });
+        }
+
+        const durationSeconds = safeNumberOrNull(videoDurationSeconds);
+        const policy = buildUserVideoPolicy(postingUser);
+        if (durationSeconds != null && durationSeconds > policy.maxVideoSeconds) {
+          return res.status(403).json({
+            ok: false,
+            error: 'video-duration-limit-exceeded',
+            message: `Bu hesap için video üst sınırı ${policy.maxVideoSeconds} saniye.`,
+            maxVideoSeconds: policy.maxVideoSeconds,
+            durationSeconds,
+          });
+        }
+      }
+    }
 
     const post = await prisma.post.create({
       data: {
@@ -2826,7 +3006,7 @@ app.get('/posts/:id/comments', async (req, res) => {
       orderBy: { createdAt: 'desc' },
       take: limit,
       include: {
-        user: { select: { id: true, fullName: true, handle: true, avatarUri: true } },
+        user: { select: { id: true, fullName: true, handle: true, avatarUri: true, role: true, isPro: true, isFeaturedCreator: true } },
       },
     });
 
@@ -3082,7 +3262,7 @@ app.get('/feed', async (req, res) => {
       orderBy: { createdAt: 'desc' },
       take: limit,
       include: {
-        user: { select: { id: true, fullName: true, handle: true, avatarUri: true } },
+        user: { select: { id: true, fullName: true, handle: true, avatarUri: true, role: true, isPro: true, isFeaturedCreator: true } },
       },
     });
 
@@ -3120,6 +3300,9 @@ app.get('/feed', async (req, res) => {
     author: authorName,
     authorAvatarUri: authorAvatarUrl ?? null,
     authorAvatarUrl: authorAvatarUrl ?? null,
+    authorIsPro: !!((p as any)?.user?.isPro) || String((p as any)?.user?.role ?? '').toLowerCase() === 'pro' || String((p as any)?.user?.role ?? '').toLowerCase() === 'admin',
+    authorIsFeaturedCreator: !!((p as any)?.user?.isFeaturedCreator),
+    authorRole: (p as any)?.user?.role ?? 'user',
 
     videoUri: safeVideoOut,
     imageUris: safeImageUris,

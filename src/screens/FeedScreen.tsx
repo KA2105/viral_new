@@ -2642,6 +2642,12 @@ const renderFullPostCard = (
   const cardTitleText = base.isTaskCard ? (anyBase.title || anyBase.note || t('feed.post.genericTitle', 'Paylaşım')) : '';
 
   const cardDisplayName = anyBase.author || displayName;
+  const isProAuthor =
+    anyBase?.authorIsPro === true ||
+    anyBase?.authorIsFeaturedCreator === true ||
+    String(anyBase?.authorRole ?? '').toLowerCase() === 'pro' ||
+    String(anyBase?.authorRole ?? '').toLowerCase() === 'admin' ||
+    anyBase?.isProAuthor === true;
   const avatarInitial = (cardDisplayName[0] || displayName[0] || 'U').toUpperCase();
 
   const isMinePost =
@@ -2723,9 +2729,16 @@ const renderFullPostCard = (
               </View>
             )}
             <View>
-              <Text style={styles.authorName} numberOfLines={1}>
-                {cardDisplayName}
-              </Text>
+              <View style={styles.authorNameBadgeRow}>
+                <Text style={styles.authorName} numberOfLines={1}>
+                  {cardDisplayName}
+                </Text>
+                {isProAuthor && (
+                  <View style={styles.viralProBadge}>
+                    <Text style={styles.viralProBadgeText}>V</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.freeVideoTimeText}>{getTimeLabel(base)}</Text>
             </View>
           </View>
@@ -2963,9 +2976,16 @@ const renderFullPostCard = (
             <Text style={styles.authorAvatarInitial}>{avatarInitial}</Text>
           </View>
         )}
-        <Text style={styles.cardAuthorName} numberOfLines={1}>
-          {cardDisplayName}
-        </Text>
+        <View style={styles.authorNameBadgeRow}>
+          <Text style={styles.cardAuthorName} numberOfLines={1}>
+            {cardDisplayName}
+          </Text>
+          {isProAuthor && (
+            <View style={styles.viralProBadge}>
+              <Text style={styles.viralProBadgeText}>V</Text>
+            </View>
+          )}
+        </View>
       </View>
 
       {isPraisePost && (
@@ -4492,6 +4512,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     maxWidth: 160,
+  },
+  authorNameBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+  },
+  viralProBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#E50914',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 5,
+  },
+  viralProBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    lineHeight: 12,
   },
   freeVideoTimeText: {
     fontSize: 11,
