@@ -59,7 +59,7 @@ export default function TaskInlineVideo({
               source={{ uri: taskVideoUri }}
               style={{ width: '100%', height: '100%' }}
               controls
-              resizeMode="contain"
+              resizeMode="cover"
               paused={isPaused}
               repeat={false}
               playInBackground={false}

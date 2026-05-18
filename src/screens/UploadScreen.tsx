@@ -11,6 +11,7 @@ import {
   Pressable,
   Alert,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import { useSocialAccounts } from '../store/useSocialAccounts';
 import { useTasks, Task } from '../store/useTasks';
@@ -1008,6 +1009,8 @@ const UploadScreen: React.FC = () => {
         ...extraPayload,
       };
 
+      let serverShareUrl: string | null = null;
+
       try {
         const headers: any = {
           'Content-Type': 'application/json',
@@ -1026,10 +1029,42 @@ const UploadScreen: React.FC = () => {
           console.warn('[API] post failed /posts', response.status);
         } else {
           const data = await response.json().catch(() => null);
+          const createdPostId =
+            data?.post?.id !== undefined && data?.post?.id !== null
+              ? String(data.post.id).trim()
+              : data?.id !== undefined && data?.id !== null
+                ? String(data.id).trim()
+                : '';
+
+          serverShareUrl =
+            (data?.shareUrl != null ? String(data.shareUrl).trim() : '') ||
+            (createdPostId ? `${API_URL}/p/${encodeURIComponent(createdPostId)}` : null);
+
           console.log('[Upload] post saved on server', data || '(no body)');
         }
       } catch (err) {
         console.warn('[Upload] error while calling /posts:', err);
+      }
+
+      if (selectedPlatforms.length > 0 && serverShareUrl) {
+        try {
+          const platformLabels = SOCIAL_PLATFORMS
+            .filter(p => selectedPlatforms.includes(p.id))
+            .map(p => p.label)
+            .join(', ');
+
+          // KRİTİK: Facebook/LinkedIn/X önizlemeyi mesaj içindeki linklerden seçebiliyor.
+          // Bu yüzden dış paylaşımda SADECE Viral post linkini gönderiyoruz.
+          // Açıklama, Android/iOS mağaza linki veya post içindeki başka URL gönderilirse
+          // Facebook yine yanlış siteyi (örn. viral.app) kart olarak çekebiliyor.
+          await Share.share({
+            title: platformLabels ? `Viral - ${platformLabels}` : 'Viral',
+            message: serverShareUrl,
+            url: serverShareUrl,
+          });
+        } catch (shareErr) {
+          console.warn('[Upload] external share cancelled/failed:', shareErr);
+        }
       }
 
       if (selectedPlatforms.includes('instagram')) {
