@@ -908,6 +908,166 @@ async function sendResetPasswordEmail(to: string, code: string) {
   }
 }
 
+
+function escapeHtml(v: any): string {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+
+type WelcomeLanguage = 'tr' | 'en';
+
+function normalizeWelcomeLanguage(value: any): WelcomeLanguage {
+  const raw = String(value ?? '').trim().toLowerCase();
+  return raw.startsWith('en') ? 'en' : 'tr';
+}
+
+function welcomeCopy(fullName: string | null | undefined, language: WelcomeLanguage) {
+  const safeName = String(fullName ?? '').trim();
+  const firstName = safeName ? safeName.split(/\s+/)[0] : '';
+
+  if (language === 'en') {
+    return {
+      subject: 'Welcome to Viral',
+      notification: `Welcome to Viral${firstName ? `, ${firstName}` : ''}! Share your first post, create tasks and discover new people in the Focus Network.`,
+      heading: `Welcome to Viral${firstName ? `, ${firstName}` : ''}!`,
+      intro: 'Viral is a place where you can share what you create, follow your goals and connect with people who are focused on their own journey.',
+      items: [
+        'Share photos, videos and ideas.',
+        'Create tasks and turn your progress into a visible journey.',
+        'Discover new people through the Focus Network.',
+        'Join conversations with comments, likes and reposts.',
+      ],
+      closing: 'Your first post is the best way to begin. We are glad you are here.',
+      signature: 'The Viral Team',
+    };
+  }
+
+  return {
+    subject: "Viral'e hoş geldin",
+    notification: `Viral'e hoş geldin${firstName ? `, ${firstName}` : ''}! İlk paylaşımını yapabilir, görevlerini oluşturabilir ve Focus Ağı'nda yeni insanlar keşfedebilirsin.`,
+    heading: `Viral'e hoş geldin${firstName ? `, ${firstName}` : ''}!`,
+    intro: 'Viral; ürettiklerini paylaşabileceğin, hedeflerini takip edebileceğin ve kendi yolculuğuna odaklanan insanlarla bağlantı kurabileceğin bir alan.',
+    items: [
+      'Fotoğraf, video ve fikirlerini paylaşabilirsin.',
+      'Görevlerini oluşturup ilerlemeni görünür bir yolculuğa dönüştürebilirsin.',
+      "Focus Ağı'nda yeni insanları keşfedebilirsin.",
+      'Yorum, beğeni ve yeniden paylaşımlarla topluluğa katılabilirsin.',
+    ],
+    closing: 'Başlamak için ilk paylaşımını yapman yeterli. Aramıza katıldığın için mutluyuz.',
+    signature: 'Viral Ekibi',
+  };
+}
+
+async function sendWelcomeEmail(to: string, fullName: string | null | undefined, language: WelcomeLanguage) {
+  if (!mailer) {
+    console.log('[WELCOME][MAIL SKIPPED] mailer disabled', { to, language });
+    return;
+  }
+
+  const copy = welcomeCopy(fullName, language);
+  const listHtml = copy.items.map(item => `<li style="margin: 8px 0;">${escapeHtml(item)}</li>`).join('');
+
+  const info = await mailer.sendMail({
+    from: smtpFrom,
+    to,
+    subject: copy.subject,
+    text: [
+      copy.heading,
+      '',
+      copy.intro,
+      '',
+      ...copy.items.map(item => `• ${item}`),
+      '',
+      copy.closing,
+      '',
+      copy.signature,
+    ].join('\n'),
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111; max-width: 620px; margin: 0 auto;">
+        <div style="background:#E50914; color:#fff; padding:18px 22px; border-radius:14px 14px 0 0;">
+          <div style="font-size:28px; font-weight:800; letter-spacing:.4px;">Viral</div>
+        </div>
+        <div style="border:1px solid #ececec; border-top:0; padding:24px 22px; border-radius:0 0 14px 14px;">
+          <h2 style="margin:0 0 12px; font-size:24px;">${escapeHtml(copy.heading)}</h2>
+          <p>${escapeHtml(copy.intro)}</p>
+          <ul style="padding-left:22px; margin:18px 0;">${listHtml}</ul>
+          <p>${escapeHtml(copy.closing)}</p>
+          <p style="margin-top:24px; color:#666;">${escapeHtml(copy.signature)}</p>
+        </div>
+      </div>
+    `,
+  });
+
+  console.log('[WELCOME][MAIL SENT]', {
+    to,
+    messageId: info.messageId,
+    accepted: info.accepted,
+    rejected: info.rejected,
+  });
+}
+
+async function createWelcomeNotification(userId: number, fullName: string | null | undefined, language: WelcomeLanguage) {
+  const copy = welcomeCopy(fullName, language);
+  const created = await (prisma as any).notification.create({
+    data: {
+      userId,
+      actorUserId: null,
+      postId: null,
+      type: 'welcome',
+      message: copy.notification,
+    },
+  });
+
+  console.log('[WELCOME][NOTIFICATION CREATED]', { userId, notificationId: created.id, language });
+}
+
+async function deliverWelcomeExperience(user: any, languageRaw: any) {
+  const language = normalizeWelcomeLanguage(languageRaw ?? user?.language);
+  const tasks: Promise<any>[] = [createWelcomeNotification(Number(user.id), user.fullName, language)];
+
+  if (user?.email) {
+    tasks.push(sendWelcomeEmail(String(user.email), user.fullName, language));
+  }
+
+  const results = await Promise.allSettled(tasks);
+  results.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      console.error(index === 0 ? '[WELCOME][NOTIFICATION ERROR]' : '[WELCOME][MAIL ERROR]', result.reason);
+    }
+  });
+}
+
+function firstPublicImageFromPost(req: express.Request, p: any): string | null {
+  const imageUris = Array.isArray(p?.imageUris) ? p.imageUris : [];
+  const firstFromArray = imageUris.find((x: any) => typeof x === 'string' && x.trim().length && !isLocalOnlyUri(x));
+
+  const directImage =
+    typeof p?.imageUri === 'string' && p.imageUri.trim().length && !isLocalOnlyUri(p.imageUri)
+      ? p.imageUri
+      : null;
+
+  const picked = firstFromArray || directImage;
+  return picked ? toAbsoluteIfPath(req, picked) : null;
+}
+
+function shuffleItems<T>(items: T[]): T[] {
+  const out = [...items];
+
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = out[i];
+    out[i] = out[j];
+    out[j] = tmp;
+  }
+
+  return out;
+}
+
 // -------------------- Routes --------------------
 
 // Basit health check
@@ -937,6 +1097,153 @@ app.get('/app/version', (_req, res) => {
     time: new Date().toISOString(),
   });
 });
+
+// 🟢 Dış paylaşım için fallback Open Graph görseli
+app.get('/p/:id/card.svg', async (req, res) => {
+  try {
+    const id = String(req.params.id ?? '').trim();
+    const numericId = Number(id);
+    const postWhere = Number.isFinite(numericId) && numericId > 0 ? { id: numericId } : { id };
+
+    const post = await prisma.post.findUnique({
+      where: postWhere as any,
+      include: {
+        user: { select: { id: true, fullName: true, handle: true } },
+      },
+    } as any);
+
+    const anyP: any = post as any;
+    const authorName =
+      (typeof anyP?.user?.fullName === 'string' && anyP.user.fullName.trim()) ||
+      (typeof anyP?.user?.handle === 'string' && anyP.user.handle.trim()) ||
+      (typeof anyP?.author === 'string' && anyP.author.trim()) ||
+      'Viral';
+
+    const rawText =
+      (typeof anyP?.note === 'string' && anyP.note.trim()) ||
+      (typeof anyP?.taskTitle === 'string' && anyP.taskTitle.trim()) ||
+      'Viral Network’te yeni bir paylaşım';
+
+    const safeAuthor = escapeHtml(authorName).slice(0, 80);
+    const safeText = escapeHtml(rawText).slice(0, 160);
+
+    res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
+    return res.send(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0B0C10"/>
+  <rect x="56" y="56" width="1088" height="518" rx="36" fill="#151722"/>
+  <circle cx="140" cy="145" r="42" fill="#E50914"/>
+  <text x="140" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="800" fill="#FFFFFF">V</text>
+  <text x="210" y="135" font-family="Arial, sans-serif" font-size="44" font-weight="800" fill="#FFFFFF">Viral Network</text>
+  <text x="210" y="180" font-family="Arial, sans-serif" font-size="28" fill="#D0D4E4">${safeAuthor}</text>
+  <text x="90" y="300" font-family="Arial, sans-serif" font-size="46" font-weight="800" fill="#FFFFFF">Yeni bir Viral paylaşımı</text>
+  <foreignObject x="90" y="330" width="1020" height="150">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, sans-serif; font-size: 34px; line-height: 1.3; color: #D0D4E4;">${safeText}</div>
+  </foreignObject>
+  <text x="90" y="530" font-family="Arial, sans-serif" font-size="26" fill="#E50914">viral-new.onrender.com</text>
+</svg>`);
+  } catch (e) {
+    console.error('[GET /p/:id/card.svg] error:', e);
+    return res.status(500).send('Error');
+  }
+});
+
+// 🟢 Dış paylaşım / Open Graph preview
+app.get('/p/:id', async (req, res) => {
+  try {
+    const id = String(req.params.id ?? '').trim();
+
+    if (!id) {
+      return res.status(400).send('Post id required');
+    }
+
+    const numericId = Number(id);
+    const postWhere = Number.isFinite(numericId) && numericId > 0 ? { id: numericId } : { id };
+
+    const post = await prisma.post.findUnique({
+      where: postWhere as any,
+      include: {
+        user: { select: { id: true, fullName: true, handle: true, avatarUri: true } },
+      },
+    } as any);
+
+    if (!post) {
+      return res.status(404).send('Post not found');
+    }
+
+    const anyP: any = post as any;
+    const authorName =
+      (typeof anyP?.user?.fullName === 'string' && anyP.user.fullName.trim()) ||
+      (typeof anyP?.user?.handle === 'string' && anyP.user.handle.trim()) ||
+      (typeof anyP?.author === 'string' && anyP.author.trim()) ||
+      'Viral kullanıcısı';
+
+    const rawText =
+      (typeof anyP.note === 'string' && anyP.note.trim()) ||
+      (typeof anyP.praiseMessage === 'string' && anyP.praiseMessage.trim()) ||
+      (typeof anyP.taskTitle === 'string' && anyP.taskTitle.trim()) ||
+      (typeof anyP.description === 'string' && anyP.description.trim()) ||
+      (typeof anyP.title === 'string' && anyP.title.trim()) ||
+      'Viral Network’te yeni bir paylaşım';
+
+    const title = `${authorName} Viral’da bir kart paylaştı`;
+    const desc = rawText.length > 180 ? `${rawText.slice(0, 177)}...` : rawText;
+
+    const url = `${getPublicBaseUrl(req)}/p/${encodeURIComponent(id)}`;
+    const fallbackImage = `${getPublicBaseUrl(req)}/p/${encodeURIComponent(id)}/card.svg`;
+    const image = firstPublicImageFromPost(req, anyP) || fallbackImage;
+    const androidStoreUrl =
+      (process.env.APP_ANDROID_STORE_URL ?? 'https://play.google.com/store/apps/details?id=com.viral_new').toString();
+    const iosStoreUrl =
+      (process.env.APP_IOS_STORE_URL ?? 'https://apps.apple.com/tr/app/viral-network/id6761623655').toString();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
+    return res.send(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>${escapeHtml(title)}</title>
+  <meta name="description" content="${escapeHtml(desc)}" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Viral Network" />
+  <meta property="og:title" content="${escapeHtml(title)}" />
+  <meta property="og:description" content="${escapeHtml(desc)}" />
+  <meta property="og:url" content="${escapeHtml(url)}" />
+  ${image ? `<meta property="og:image" content="${escapeHtml(image)}" />` : ''}
+  ${image ? `<meta property="og:image:width" content="1200" />` : ''}
+  ${image ? `<meta property="og:image:height" content="630" />` : ''}
+
+  <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}" />
+  <meta name="twitter:title" content="${escapeHtml(title)}" />
+  <meta name="twitter:description" content="${escapeHtml(desc)}" />
+  ${image ? `<meta name="twitter:image" content="${escapeHtml(image)}" />` : ''}
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 24px; background: #0b0b12; color: #fff;">
+  <main style="max-width: 680px; margin: 0 auto;">
+    <h1 style="margin-bottom: 12px;">${escapeHtml(title)}</h1>
+    <p style="font-size: 18px; line-height: 1.5;">${escapeHtml(desc)}</p>
+    ${image ? `<img src="${escapeHtml(image)}" alt="Viral post" style="width: 100%; border-radius: 18px; margin: 18px 0;" />` : ''}
+    <p style="margin-top: 24px;">Viral Network uygulamasında gör ve paylaş.</p>
+    <p>
+      <a href="${escapeHtml(androidStoreUrl)}" style="color: #ff3b3b;">Android indir</a>
+      &nbsp;|&nbsp;
+      <a href="${escapeHtml(iosStoreUrl)}" style="color: #ff3b3b;">iOS indir</a>
+    </p>
+  </main>
+</body>
+</html>`);
+  } catch (e) {
+    console.error('[GET /p/:id] error:', e);
+    return res.status(500).send('Error');
+  }
+});
+
 
 // 🟢 Anonim login / kayıt
 app.post('/auth/anonymous', async (req, res) => {
@@ -987,6 +1294,7 @@ app.post('/auth/anonymous', async (req, res) => {
 app.post('/auth/register', async (req, res) => {
   try {
     const body = req.body ?? {};
+    const language = normalizeWelcomeLanguage(body.language ?? req.headers['accept-language']);
 
     const fullName = typeof body.fullName === 'string' && body.fullName.trim().length ? body.fullName.trim() : null;
 
@@ -1063,6 +1371,7 @@ app.post('/auth/register', async (req, res) => {
             where: { id: existing.id },
             data: {
               fullName,
+              language,
               email: emailNorm,
               phone: phoneNorm ?? null,
               passwordHash,
@@ -1071,6 +1380,7 @@ app.post('/auth/register', async (req, res) => {
           });
 
           const token = signToken(updated.id);
+          await deliverWelcomeExperience(updated, language);
 
           return res.json({ ok: true, token, user: toPublicUser(updated, req) });
         }
@@ -1082,7 +1392,7 @@ app.post('/auth/register', async (req, res) => {
     const user = await prisma.user.create({
       data: {
         deviceId: fallbackDeviceId,
-        language: null,
+        language,
         fullName,
         handle: null,
         bio: null,
@@ -1096,6 +1406,7 @@ app.post('/auth/register', async (req, res) => {
     });
 
     const token = signToken(user.id);
+    await deliverWelcomeExperience(user, language);
 
     return res.json({
       ok: true,
@@ -1855,10 +2166,10 @@ app.get('/users/search', async (req, res) => {
 
     const qRaw = typeof req.query.q === 'string' ? req.query.q.trim() : '';
     const limitRaw = typeof req.query.limit === 'string' ? req.query.limit : '';
-    let limit = 30;
+    let limit = 500;
     if (limitRaw) {
       const n = parseInt(limitRaw, 10);
-      if (!isNaN(n) && n > 0 && n <= 100) limit = n;
+      if (!isNaN(n) && n > 0) limit = 500;
     }
 
     const qHandle = qRaw.replace(/^@+/, '');
@@ -1876,11 +2187,19 @@ app.get('/users/search', async (req, res) => {
         }
       : {};
 
-    const users = await prisma.user.findMany({
+    const searchTake = qRaw ? limit : Math.min(500, Math.max(limit, 500));
+
+    const rawUsers = await prisma.user.findMany({
       where: meId ? { AND: [where, { NOT: { id: meId } }] } : where,
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take: searchTake,
     });
+
+    // ✅ Keşfet algoritması:
+    // Arama yapılırken sonuçları arama ilgisine göre sırada bırakıyoruz.
+    // Boş keşfet ekranında ise sadece en yeni 50 kişiyle sınırlı kalmasın diye
+    // son kullanıcı havuzunu karıştırıp farklı profillerin görünmesini sağlıyoruz.
+    const users = qRaw ? rawUsers : shuffleItems(rawUsers).slice(0, limit);
 
     let friendships: Set<string> = new Set();
     let outgoingPending: Set<string> = new Set();
@@ -2536,6 +2855,7 @@ app.post('/posts', async (req, res) => {
     return res.json({
       ok: true,
       post,
+      shareUrl: `${getPublicBaseUrl(req)}/p/${encodeURIComponent(String((post as any).id))}`,
     });
   } catch (err) {
     console.error('[POST /posts] error:', err);
@@ -2582,6 +2902,10 @@ app.get('/posts', async (req, res) => {
         ...p,
         shareTargets: shareTargetsParsed,
         imageUris: safeImages,
+        shareUrl:
+          (p as any).id !== undefined && (p as any).id !== null
+            ? `${getPublicBaseUrl(req)}/p/${encodeURIComponent(String((p as any).id))}`
+            : null,
       };
     });
 

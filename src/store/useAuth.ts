@@ -737,12 +737,15 @@ export const useAuth = create<AuthState>((set, get) => ({
         set({ deviceId });
       }
 
+      const preferredLanguage = await loadPreferredLanguage();
+
       const resp = await postRegister({
         fullName: newProfile.fullName,
         email: newProfile.email,
         phone: newProfile.phone || undefined,
         password,
         deviceId,
+        language: preferredLanguage,
       });
 
       const userResp = resp.user;
