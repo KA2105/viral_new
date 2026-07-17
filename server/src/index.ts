@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+﻿import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
@@ -7,7 +7,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'
 
-// ✅ EK: uploads + dosya upload için
+// âœ… EK: uploads + dosya upload iÃ§in
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
@@ -17,21 +17,21 @@ import nodemailer from 'nodemailer';
 const prisma = new PrismaClient();
 const app = express();
 
-// ✅ Video süre / yetki politikası
+// âœ… Video sÃ¼re / yetki politikasÄ±
 const NORMAL_VIDEO_LIMIT_SECONDS = 30;
 const PRO_VIDEO_LIMIT_SECONDS = 300; // 5 dakika
-const ADMIN_VIDEO_LIMIT_SECONDS = 24 * 60 * 60; // pratikte sınırsız
+const ADMIN_VIDEO_LIMIT_SECONDS = 24 * 60 * 60; // pratikte sÄ±nÄ±rsÄ±z
 
 
 console.log('[BOOT] src/index.ts loaded at', new Date().toISOString());
 
-// ✅ Render/Proxy ortamlarında proto/host doğru gelsin (x-forwarded-proto)
+// âœ… Render/Proxy ortamlarÄ±nda proto/host doÄŸru gelsin (x-forwarded-proto)
 app.set('trust proxy', 1);
 
-// ✅ KRİTİK: 304/ETag davranışını kapat (feed’in her zaman güncel JSON dönmesi için)
+// âœ… KRÄ°TÄ°K: 304/ETag davranÄ±ÅŸÄ±nÄ± kapat (feedâ€™in her zaman gÃ¼ncel JSON dÃ¶nmesi iÃ§in)
 app.set('etag', false);
 
-// ✅ Prisma bağlantısını erken doğrula + düzgün kapat
+// âœ… Prisma baÄŸlantÄ±sÄ±nÄ± erken doÄŸrula + dÃ¼zgÃ¼n kapat
 prisma
   .$connect()
   .then(() => console.log('[PRISMA] connected'))
@@ -52,18 +52,18 @@ const shutdown = async (signal: string) => {
 process.on('SIGINT', () => void shutdown('SIGINT'));
 process.on('SIGTERM', () => void shutdown('SIGTERM'));
 
-// Orijin kısıtlarını gevşek bırakıyoruz, ileride prod ortamında sıkıştırırız.
+// Orijin kÄ±sÄ±tlarÄ±nÄ± gevÅŸek bÄ±rakÄ±yoruz, ileride prod ortamÄ±nda sÄ±kÄ±ÅŸtÄ±rÄ±rÄ±z.
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// ✅ Request + Response logger (express.json'dan sonra koy)
+// âœ… Request + Response logger (express.json'dan sonra koy)
 app.use((req, res, next) => {
   const start = Date.now();
 
   // Request
   console.log(`[REQ] ${req.method} ${req.url}`);
 
-  // Response (status + süre)
+  // Response (status + sÃ¼re)
   res.on('finish', () => {
     const ms = Date.now() - start;
     console.log(`[RES] ${req.method} ${req.url} -> ${res.statusCode} (${ms}ms)`);
@@ -72,14 +72,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Root route: telefonda http://IP:4000/ açınca bunu göreceksin
+// âœ… Root route: telefonda http://IP:4000/ aÃ§Ä±nca bunu gÃ¶receksin
 app.get('/', (_req, res) => {
   res.json({ ok: true, name: 'viral-server', time: new Date().toISOString() });
 });
 
 // -------------------- JWT (Token) --------------------
-// ✅ Prod’da ENV’den ver: JWT_SECRET
-// Not: TS overload sapmasın diye tipe netlik veriyoruz.
+// âœ… Prodâ€™da ENVâ€™den ver: JWT_SECRET
+// Not: TS overload sapmasÄ±n diye tipe netlik veriyoruz.
 const JWT_SECRET: string = (process.env.JWT_SECRET ?? 'dev-secret-change-me').toString();
 const JWT_EXPIRES_IN: string = (process.env.JWT_EXPIRES_IN ?? '30d').toString();
 
@@ -92,7 +92,7 @@ function signToken(userId: number) {
   return jwt.sign({ sub: userId } as JwtPayload, JWT_SECRET, options);
 }
 
-// req içine authUserId ekleyelim
+// req iÃ§ine authUserId ekleyelim
 declare global {
   namespace Express {
     interface Request {
@@ -136,7 +136,7 @@ function authMiddleware(req: express.Request, res: express.Response, next: expre
   }
 }
 
-// ✅ Her istekte token varsa çöz
+// âœ… Her istekte token varsa Ã§Ã¶z
 app.use(authMiddleware);
 
 // -------------------- Helpers --------------------
@@ -178,13 +178,13 @@ const parseUserIdFromReq = (req: express.Request): number | null => {
 function requireUserId(req: express.Request, res: express.Response): number | null {
   let userId = parseUserIdFromReq(req);
 
-  // body.userId (bazı clientlar buradan gönderir)
+  // body.userId (bazÄ± clientlar buradan gÃ¶nderir)
   if (!userId && req.body?.userId !== undefined) {
     const parsed = Number(req.body.userId);
     if (Number.isFinite(parsed) && parsed > 0) userId = parsed;
   }
 
-  // ✅ Controlled fallback (ENV ile)
+  // âœ… Controlled fallback (ENV ile)
   const allowFallback =
     String(process.env.ALLOW_DEV_FALLBACK_USERID ?? '').toLowerCase() === 'true' ||
     String(process.env.ALLOW_DEV_FALLBACK_USERID ?? '') === '1';
@@ -193,7 +193,7 @@ function requireUserId(req: express.Request, res: express.Response): number | nu
     const fbRaw = process.env.DEV_FALLBACK_USERID ?? '1';
     const fb = Number(fbRaw);
     if (Number.isFinite(fb) && fb > 0) {
-      console.warn(`[requireUserId] ⚠️ Fallback userId=${fb} used (ALLOW_DEV_FALLBACK_USERID enabled)`);
+      console.warn(`[requireUserId] âš ï¸ Fallback userId=${fb} used (ALLOW_DEV_FALLBACK_USERID enabled)`);
       userId = fb;
     }
   }
@@ -293,7 +293,7 @@ function safeParseStringArray(v: any): string[] {
   return [];
 }
 
-// ✅ SÜRÜM 2: Övgü Paylaşımı payload normalizer
+// âœ… SÃœRÃœM 2: Ã–vgÃ¼ PaylaÅŸÄ±mÄ± payload normalizer
 function safeStringOrNull(v: any): string | null {
   if (typeof v !== 'string') return null;
   const s = v.trim();
@@ -374,7 +374,7 @@ function ensureUploadsDirs() {
 }
 ensureUploadsDirs();
 
-// ✅ Static yayın: /uploads/... artık tüm cihazlardan erişilebilir
+// âœ… Static yayÄ±n: /uploads/... artÄ±k tÃ¼m cihazlardan eriÅŸilebilir
 app.use('/uploads', express.static(UPLOADS_ROOT));
 
 function isLocalOnlyUri(uri: string): boolean {
@@ -400,7 +400,7 @@ function toAbsoluteIfPath(req: express.Request, maybePathOrUrl: any): string | n
   return s;
 }
 
-// ✅ Multer storage'lar
+// âœ… Multer storage'lar
 const videoStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, path.join(UPLOADS_ROOT, 'videos')),
   filename: (_req, file, cb) => {
@@ -441,12 +441,12 @@ const uploadAvatar = multer({
 const uploadImage = multer({
   storage: imageStorage,
   limits: {
-    fileSize: 100 * 1024 * 1024, // tek dosya üst limiti
-    files: 10,                   // array upload için max 10
+    fileSize: 100 * 1024 * 1024, // tek dosya Ã¼st limiti
+    files: 10,                   // array upload iÃ§in max 10
   },
 });
 
-// ✅ Video upload
+// âœ… Video upload
 app.post('/uploads/video', uploadVideo.single('file'), async (req, res) => {
   try {
     const f = (req as any).file as Express.Multer.File | undefined;
@@ -464,7 +464,7 @@ app.post('/uploads/video', uploadVideo.single('file'), async (req, res) => {
   }
 });
 
-// ✅ Avatar upload
+// âœ… Avatar upload
 app.post('/uploads/avatar', uploadAvatar.single('file'), async (req, res) => {
   try {
     const f = (req as any).file as Express.Multer.File | undefined;
@@ -482,7 +482,7 @@ app.post('/uploads/avatar', uploadAvatar.single('file'), async (req, res) => {
   }
 });
 
-// ✅ Alias endpointler
+// âœ… Alias endpointler
 app.post('/upload/video', uploadVideo.single('file'), async (req, res) => {
   try {
     const f = (req as any).file as Express.Multer.File | undefined;
@@ -513,7 +513,7 @@ app.post('/upload/avatar', uploadAvatar.single('file'), async (req, res) => {
   }
 });
 
-// ✅ Çoklu foto upload
+// âœ… Ã‡oklu foto upload
 app.post('/uploads/images', uploadImage.array('files', 10), async (req, res) => {
   try {
     const files = ((req as any).files || []) as Express.Multer.File[];
@@ -540,7 +540,7 @@ app.post('/uploads/images', uploadImage.array('files', 10), async (req, res) => 
   }
 });
 
-// ✅ Alias: /upload/images
+// âœ… Alias: /upload/images
 app.post('/upload/images', uploadImage.array('files', 10), async (req, res) => {
   try {
     const files = ((req as any).files || []) as Express.Multer.File[];
@@ -567,7 +567,7 @@ app.post('/upload/images', uploadImage.array('files', 10), async (req, res) => {
   }
 });
 
-// ✅ Tek foto upload
+// âœ… Tek foto upload
 app.post('/uploads/image', uploadImage.single('file'), async (req, res) => {
   try {
     const f = (req as any).file as Express.Multer.File | undefined;
@@ -595,7 +595,7 @@ app.post('/uploads/image', uploadImage.single('file'), async (req, res) => {
   }
 });
 
-// ✅ Alias: /upload/image
+// âœ… Alias: /upload/image
 app.post('/upload/image', uploadImage.single('file'), async (req, res) => {
   try {
     const f = (req as any).file as Express.Multer.File | undefined;
@@ -623,7 +623,7 @@ app.post('/upload/image', uploadImage.single('file'), async (req, res) => {
   }
 });
 
-// ✅ Client'e döndürdüğümüz user objesi tek yerde standardize olsun
+// âœ… Client'e dÃ¶ndÃ¼rdÃ¼ÄŸÃ¼mÃ¼z user objesi tek yerde standardize olsun
 function toPublicUser(u: any, req?: express.Request) {
   const rawAvatar = u.avatarUri;
   const avatarUriRaw = typeof rawAvatar === 'string' ? rawAvatar : null;
@@ -648,7 +648,7 @@ function toPublicUser(u: any, req?: express.Request) {
     phone: u.phone,
     isPhoneVerified: u.isPhoneVerified,
 
-    // ✅ PRO / ADMIN / CREATOR + video yetkileri
+    // âœ… PRO / ADMIN / CREATOR + video yetkileri
     role: u.role ?? 'user',
     accountStatus: u.accountStatus ?? 'active',
     isPro: !!u.isPro,
@@ -696,7 +696,7 @@ function p2002FieldFromMeta(err: Prisma.PrismaClientKnownRequestError): string {
   return 'unknown';
 }
 
-// ✅ Focus Ağı: kanonik arkadaş çifti üret (küçük id -> büyük id)
+// âœ… Focus AÄŸÄ±: kanonik arkadaÅŸ Ã§ifti Ã¼ret (kÃ¼Ã§Ã¼k id -> bÃ¼yÃ¼k id)
 function canonicalPair(a: number, b: number): { user1Id: number; user2Id: number } {
   const x = Number(a);
   const y = Number(b);
@@ -726,7 +726,7 @@ function displayNameForNotification(u: any, fallback?: string | null): string {
     (typeof u?.fullName === 'string' && u.fullName.trim()) ||
     (typeof u?.handle === 'string' && u.handle.trim()) ||
     (typeof fallback === 'string' && fallback.trim()) ||
-    'Bir kullanıcı';
+    'Bir kullanÄ±cÄ±';
 
   return name.replace(/^@+/, '').trim();
 }
@@ -776,11 +776,11 @@ function getAccountRestriction(u: any, action: 'post' | 'video') {
   const now = Date.now();
 
   if (policy.accountStatus === 'banned') {
-    return { ok: false, status: 403, error: 'account-banned', message: 'Hesabın engellenmiş durumda.' };
+    return { ok: false, status: 403, error: 'account-banned', message: 'HesabÄ±n engellenmiÅŸ durumda.' };
   }
 
   if (policy.accountStatus === 'suspended') {
-    return { ok: false, status: 403, error: 'account-suspended', message: 'Hesabın geçici olarak dondurulmuş durumda.' };
+    return { ok: false, status: 403, error: 'account-suspended', message: 'HesabÄ±n geÃ§ici olarak dondurulmuÅŸ durumda.' };
   }
 
   if (policy.accountStatus === 'limited') {
@@ -790,7 +790,7 @@ function getAccountRestriction(u: any, action: 'post' | 'video') {
         ok: false,
         status: 403,
         error: action === 'video' ? 'video-upload-blocked' : 'post-upload-blocked',
-        message: action === 'video' ? 'Video yükleme yetkin geçici olarak kısıtlandı.' : 'Paylaşım yapma yetkin geçici olarak kısıtlandı.',
+        message: action === 'video' ? 'Video yÃ¼kleme yetkin geÃ§ici olarak kÄ±sÄ±tlandÄ±.' : 'PaylaÅŸÄ±m yapma yetkin geÃ§ici olarak kÄ±sÄ±tlandÄ±.',
         blockedUntil: blockedUntil.toISOString(),
       };
     }
@@ -802,7 +802,7 @@ function getAccountRestriction(u: any, action: 'post' | 'video') {
       ok: false,
       status: 403,
       error: 'video-upload-blocked',
-      message: 'Video yükleme yetkin geçici olarak kısıtlandı.',
+      message: 'Video yÃ¼kleme yetkin geÃ§ici olarak kÄ±sÄ±tlandÄ±.',
       blockedUntil: videoBlockedUntil.toISOString(),
     };
   }
@@ -813,7 +813,7 @@ function getAccountRestriction(u: any, action: 'post' | 'video') {
       ok: false,
       status: 403,
       error: 'post-upload-blocked',
-      message: 'Paylaşım yapma yetkin geçici olarak kısıtlandı.',
+      message: 'PaylaÅŸÄ±m yapma yetkin geÃ§ici olarak kÄ±sÄ±tlandÄ±.',
       blockedUntil: postBlockedUntil.toISOString(),
     };
   }
@@ -877,20 +877,20 @@ async function sendResetPasswordEmail(to: string, code: string) {
     const info = await mailer.sendMail({
       from: smtpFrom,
       to,
-      subject: 'Viral doğrulama kodu',
+      subject: 'Viral doÄŸrulama kodu',
       text:
-        `Doğrulama kodun: ${code}\n\n` +
-        `Bu kod 15 dakika geçerlidir.`,
+        `DoÄŸrulama kodun: ${code}\n\n` +
+        `Bu kod 15 dakika geÃ§erlidir.`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-          <h2 style="margin-bottom: 8px;">Viral doğrulama kodu</h2>
-          <p>Şifreni sıfırlamak için aşağıdaki kodu kullan:</p>
+          <h2 style="margin-bottom: 8px;">Viral doÄŸrulama kodu</h2>
+          <p>Åifreni sÄ±fÄ±rlamak iÃ§in aÅŸaÄŸÄ±daki kodu kullan:</p>
 
           <div style="font-size: 32px; font-weight: 700; letter-spacing: 6px; padding: 14px 18px; background: #f5f5f5; border-radius: 10px; display: inline-block; margin: 12px 0;">
             ${code}
           </div>
 
-          <p style="margin-top: 16px;">Bu kod 15 dakika geçerlidir.</p>
+          <p style="margin-top: 16px;">Bu kod 15 dakika geÃ§erlidir.</p>
         </div>
       `,
     });
@@ -917,6 +917,130 @@ function escapeHtml(v: any): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+type WelcomeLanguage = 'tr' | 'en';
+
+function normalizeWelcomeLanguage(value: any): WelcomeLanguage {
+  const raw = String(value ?? '').trim().toLowerCase();
+  return raw.startsWith('en') ? 'en' : 'tr';
+}
+
+function welcomeCopy(fullName: string | null | undefined, language: WelcomeLanguage) {
+  const safeName = String(fullName ?? '').trim();
+  const firstName = safeName ? safeName.split(/\s+/)[0] : '';
+
+  if (language === 'en') {
+    return {
+      subject: 'Welcome to Viral',
+      notification: `Welcome to Viral${firstName ? `, ${firstName}` : ''}! Share your first post, create tasks and discover new people in the Focus Network.`,
+      heading: `Welcome to Viral${firstName ? `, ${firstName}` : ''}!`,
+      intro: 'Viral is a place where you can share what you create, follow your goals and connect with people who are focused on their own journey.',
+      items: [
+        'Share photos, videos and ideas.',
+        'Create tasks and turn your progress into a visible journey.',
+        'Discover new people through the Focus Network.',
+        'Join conversations with comments, likes and reposts.',
+      ],
+      closing: 'Your first post is the best way to begin. We are glad you are here.',
+      signature: 'The Viral Team',
+    };
+  }
+
+  return {
+    subject: "Viral'e hoÅŸ geldin",
+    notification: `Viral'e hoÅŸ geldin${firstName ? `, ${firstName}` : ''}! Ä°lk paylaÅŸÄ±mÄ±nÄ± yapabilir, gÃ¶revlerini oluÅŸturabilir ve Focus AÄŸÄ±'nda yeni insanlar keÅŸfedebilirsin.`,
+    heading: `Viral'e hoÅŸ geldin${firstName ? `, ${firstName}` : ''}!`,
+    intro: 'Viral; Ã¼rettiklerini paylaÅŸabileceÄŸin, hedeflerini takip edebileceÄŸin ve kendi yolculuÄŸuna odaklanan insanlarla baÄŸlantÄ± kurabileceÄŸin bir alan.',
+    items: [
+      'FotoÄŸraf, video ve fikirlerini paylaÅŸabilirsin.',
+      'GÃ¶revlerini oluÅŸturup ilerlemeni gÃ¶rÃ¼nÃ¼r bir yolculuÄŸa dÃ¶nÃ¼ÅŸtÃ¼rebilirsin.',
+      "Focus AÄŸÄ±'nda yeni insanlarÄ± keÅŸfedebilirsin.",
+      'Yorum, beÄŸeni ve yeniden paylaÅŸÄ±mlarla topluluÄŸa katÄ±labilirsin.',
+    ],
+    closing: 'BaÅŸlamak iÃ§in ilk paylaÅŸÄ±mÄ±nÄ± yapman yeterli. AramÄ±za katÄ±ldÄ±ÄŸÄ±n iÃ§in mutluyuz.',
+    signature: 'Viral Ekibi',
+  };
+}
+
+async function sendWelcomeEmail(to: string, fullName: string | null | undefined, language: WelcomeLanguage) {
+  if (!mailer) {
+    console.log('[WELCOME][MAIL SKIPPED] mailer disabled', { to, language });
+    return;
+  }
+
+  const copy = welcomeCopy(fullName, language);
+  const listHtml = copy.items.map(item => `<li style="margin: 8px 0;">${escapeHtml(item)}</li>`).join('');
+
+  const info = await mailer.sendMail({
+    from: smtpFrom,
+    to,
+    subject: copy.subject,
+    text: [
+      copy.heading,
+      '',
+      copy.intro,
+      '',
+      ...copy.items.map(item => `â€¢ ${item}`),
+      '',
+      copy.closing,
+      '',
+      copy.signature,
+    ].join('\n'),
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111; max-width: 620px; margin: 0 auto;">
+        <div style="background:#E50914; color:#fff; padding:18px 22px; border-radius:14px 14px 0 0;">
+          <div style="font-size:28px; font-weight:800; letter-spacing:.4px;">Viral</div>
+        </div>
+        <div style="border:1px solid #ececec; border-top:0; padding:24px 22px; border-radius:0 0 14px 14px;">
+          <h2 style="margin:0 0 12px; font-size:24px;">${escapeHtml(copy.heading)}</h2>
+          <p>${escapeHtml(copy.intro)}</p>
+          <ul style="padding-left:22px; margin:18px 0;">${listHtml}</ul>
+          <p>${escapeHtml(copy.closing)}</p>
+          <p style="margin-top:24px; color:#666;">${escapeHtml(copy.signature)}</p>
+        </div>
+      </div>
+    `,
+  });
+
+  console.log('[WELCOME][MAIL SENT]', {
+    to,
+    messageId: info.messageId,
+    accepted: info.accepted,
+    rejected: info.rejected,
+  });
+}
+
+async function createWelcomeNotification(userId: number, fullName: string | null | undefined, language: WelcomeLanguage) {
+  const copy = welcomeCopy(fullName, language);
+  const created = await (prisma as any).notification.create({
+    data: {
+      userId,
+      actorUserId: null,
+      postId: null,
+      type: 'welcome',
+      message: copy.notification,
+    },
+  });
+
+  console.log('[WELCOME][NOTIFICATION CREATED]', { userId, notificationId: created.id, language });
+}
+
+async function deliverWelcomeExperience(user: any, languageRaw: any) {
+  const language = normalizeWelcomeLanguage(languageRaw ?? user?.language);
+  const tasks: Promise<any>[] = [createWelcomeNotification(Number(user.id), user.fullName, language)];
+
+  if (user?.email) {
+    tasks.push(sendWelcomeEmail(String(user.email), user.fullName, language));
+  }
+
+  const results = await Promise.allSettled(tasks);
+  results.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      console.error(index === 0 ? '[WELCOME][NOTIFICATION ERROR]' : '[WELCOME][MAIL ERROR]', result.reason);
+    }
+  });
+}
+
 
 function firstPublicImageFromPost(req: express.Request, p: any): string | null {
   const imageUris = Array.isArray(p?.imageUris) ? p.imageUris : [];
@@ -955,7 +1079,7 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// 🔄 App version check
+// ğŸ”„ App version check
 app.get('/app/version', (_req, res) => {
   return res.json({
     ok: true,
@@ -965,7 +1089,7 @@ app.get('/app/version', (_req, res) => {
       String(process.env.APP_FORCE_UPDATE ?? 'false').toLowerCase() === 'true' ||
       String(process.env.APP_FORCE_UPDATE ?? '0') === '1',
     message:
-      (process.env.APP_UPDATE_MESSAGE ?? 'Yeni bir sürüm mevcut. Devam etmek için uygulamayı güncelle.').toString(),
+      (process.env.APP_UPDATE_MESSAGE ?? 'Yeni bir sÃ¼rÃ¼m mevcut. Devam etmek iÃ§in uygulamayÄ± gÃ¼ncelle.').toString(),
     androidStoreUrl:
       (process.env.APP_ANDROID_STORE_URL ?? 'https://play.google.com/store/apps/details?id=com.viral_new').toString(),
     iosStoreUrl:
@@ -974,7 +1098,7 @@ app.get('/app/version', (_req, res) => {
   });
 });
 
-// 🟢 Dış paylaşım için fallback Open Graph görseli
+// ğŸŸ¢ DÄ±ÅŸ paylaÅŸÄ±m iÃ§in fallback Open Graph gÃ¶rseli
 app.get('/p/:id/card.svg', async (req, res) => {
   try {
     const id = String(req.params.id ?? '').trim();
@@ -998,7 +1122,7 @@ app.get('/p/:id/card.svg', async (req, res) => {
     const rawText =
       (typeof anyP?.note === 'string' && anyP.note.trim()) ||
       (typeof anyP?.taskTitle === 'string' && anyP.taskTitle.trim()) ||
-      'Viral Network’te yeni bir paylaşım';
+      'Viral Networkâ€™te yeni bir paylaÅŸÄ±m';
 
     const safeAuthor = escapeHtml(authorName).slice(0, 80);
     const safeText = escapeHtml(rawText).slice(0, 160);
@@ -1013,7 +1137,7 @@ app.get('/p/:id/card.svg', async (req, res) => {
   <text x="140" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="800" fill="#FFFFFF">V</text>
   <text x="210" y="135" font-family="Arial, sans-serif" font-size="44" font-weight="800" fill="#FFFFFF">Viral Network</text>
   <text x="210" y="180" font-family="Arial, sans-serif" font-size="28" fill="#D0D4E4">${safeAuthor}</text>
-  <text x="90" y="300" font-family="Arial, sans-serif" font-size="46" font-weight="800" fill="#FFFFFF">Yeni bir Viral paylaşımı</text>
+  <text x="90" y="300" font-family="Arial, sans-serif" font-size="46" font-weight="800" fill="#FFFFFF">Yeni bir Viral paylaÅŸÄ±mÄ±</text>
   <foreignObject x="90" y="330" width="1020" height="150">
     <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, sans-serif; font-size: 34px; line-height: 1.3; color: #D0D4E4;">${safeText}</div>
   </foreignObject>
@@ -1025,7 +1149,7 @@ app.get('/p/:id/card.svg', async (req, res) => {
   }
 });
 
-// 🟢 Dış paylaşım / Open Graph preview
+// ğŸŸ¢ DÄ±ÅŸ paylaÅŸÄ±m / Open Graph preview
 app.get('/p/:id', async (req, res) => {
   try {
     const id = String(req.params.id ?? '').trim();
@@ -1053,7 +1177,7 @@ app.get('/p/:id', async (req, res) => {
       (typeof anyP?.user?.fullName === 'string' && anyP.user.fullName.trim()) ||
       (typeof anyP?.user?.handle === 'string' && anyP.user.handle.trim()) ||
       (typeof anyP?.author === 'string' && anyP.author.trim()) ||
-      'Viral kullanıcısı';
+      'Viral kullanÄ±cÄ±sÄ±';
 
     const rawText =
       (typeof anyP.note === 'string' && anyP.note.trim()) ||
@@ -1061,9 +1185,9 @@ app.get('/p/:id', async (req, res) => {
       (typeof anyP.taskTitle === 'string' && anyP.taskTitle.trim()) ||
       (typeof anyP.description === 'string' && anyP.description.trim()) ||
       (typeof anyP.title === 'string' && anyP.title.trim()) ||
-      'Viral Network’te yeni bir paylaşım';
+      'Viral Networkâ€™te yeni bir paylaÅŸÄ±m';
 
-    const title = `${authorName} Viral’da bir kart paylaştı`;
+    const title = `${authorName} Viralâ€™da bir kart paylaÅŸtÄ±`;
     const desc = rawText.length > 180 ? `${rawText.slice(0, 177)}...` : rawText;
 
     const url = `${getPublicBaseUrl(req)}/p/${encodeURIComponent(id)}`;
@@ -1105,7 +1229,7 @@ app.get('/p/:id', async (req, res) => {
     <h1 style="margin-bottom: 12px;">${escapeHtml(title)}</h1>
     <p style="font-size: 18px; line-height: 1.5;">${escapeHtml(desc)}</p>
     ${image ? `<img src="${escapeHtml(image)}" alt="Viral post" style="width: 100%; border-radius: 18px; margin: 18px 0;" />` : ''}
-    <p style="margin-top: 24px;">Viral Network uygulamasında gör ve paylaş.</p>
+    <p style="margin-top: 24px;">Viral Network uygulamasÄ±nda gÃ¶r ve paylaÅŸ.</p>
     <p>
       <a href="${escapeHtml(androidStoreUrl)}" style="color: #ff3b3b;">Android indir</a>
       &nbsp;|&nbsp;
@@ -1121,7 +1245,7 @@ app.get('/p/:id', async (req, res) => {
 });
 
 
-// 🟢 Anonim login / kayıt
+// ğŸŸ¢ Anonim login / kayÄ±t
 app.post('/auth/anonymous', async (req, res) => {
   try {
     const deviceIdRaw = req.body?.deviceId;
@@ -1166,10 +1290,11 @@ app.post('/auth/anonymous', async (req, res) => {
   }
 });
 
-// 🟢 REGISTER
+// ğŸŸ¢ REGISTER
 app.post('/auth/register', async (req, res) => {
   try {
     const body = req.body ?? {};
+    const language = normalizeWelcomeLanguage(body.language ?? req.headers['accept-language']);
 
     const fullName = typeof body.fullName === 'string' && body.fullName.trim().length ? body.fullName.trim() : null;
 
@@ -1213,7 +1338,7 @@ app.post('/auth/register', async (req, res) => {
         ok: false,
         error: 'email-taken',
         field: 'email',
-        message: 'Bu e-posta başka bir hesapta kayıtlı.',
+        message: 'Bu e-posta baÅŸka bir hesapta kayÄ±tlÄ±.',
       });
     }
 
@@ -1228,7 +1353,7 @@ app.post('/auth/register', async (req, res) => {
           ok: false,
           error: 'phone-taken',
           field: 'phone',
-          message: 'Bu telefon numarası başka bir hesapta kayıtlı.',
+          message: 'Bu telefon numarasÄ± baÅŸka bir hesapta kayÄ±tlÄ±.',
         });
       }
     }
@@ -1246,6 +1371,7 @@ app.post('/auth/register', async (req, res) => {
             where: { id: existing.id },
             data: {
               fullName,
+              language,
               email: emailNorm,
               phone: phoneNorm ?? null,
               passwordHash,
@@ -1254,6 +1380,7 @@ app.post('/auth/register', async (req, res) => {
           });
 
           const token = signToken(updated.id);
+          await deliverWelcomeExperience(updated, language);
 
           return res.json({ ok: true, token, user: toPublicUser(updated, req) });
         }
@@ -1265,7 +1392,7 @@ app.post('/auth/register', async (req, res) => {
     const user = await prisma.user.create({
       data: {
         deviceId: fallbackDeviceId,
-        language: null,
+        language,
         fullName,
         handle: null,
         bio: null,
@@ -1279,6 +1406,7 @@ app.post('/auth/register', async (req, res) => {
     });
 
     const token = signToken(user.id);
+    await deliverWelcomeExperience(user, language);
 
     return res.json({
       ok: true,
@@ -1305,15 +1433,15 @@ app.post('/auth/register', async (req, res) => {
         field,
         message:
           field === 'phone'
-            ? 'Bu telefon numarası başka bir hesapta kayıtlı.'
+            ? 'Bu telefon numarasÄ± baÅŸka bir hesapta kayÄ±tlÄ±.'
             : field === 'email'
-              ? 'Bu e-posta başka bir hesapta kayıtlı.'
+              ? 'Bu e-posta baÅŸka bir hesapta kayÄ±tlÄ±.'
               : field === 'handle'
-                ? 'Bu kullanıcı adı başka bir hesapta kayıtlı.'
+                ? 'Bu kullanÄ±cÄ± adÄ± baÅŸka bir hesapta kayÄ±tlÄ±.'
                 : field === 'deviceId'
-                  ? 'Bu cihaz kimliğiyle çakışma oldu. Tekrar dene.'
+                  ? 'Bu cihaz kimliÄŸiyle Ã§akÄ±ÅŸma oldu. Tekrar dene.'
                   : field === 'token'
-                    ? 'Token çakışması oldu. Tekrar dene.'
+                    ? 'Token Ã§akÄ±ÅŸmasÄ± oldu. Tekrar dene.'
                     : 'Unique constraint failed',
       });
     }
@@ -1326,7 +1454,7 @@ app.post('/auth/register', async (req, res) => {
   }
 });
 
-// 🟢 LOGIN
+// ğŸŸ¢ LOGIN
 app.post('/auth/login', async (req, res) => {
   try {
     const body = req.body ?? {};
@@ -1354,7 +1482,7 @@ app.post('/auth/login', async (req, res) => {
       return res.status(400).json({
         ok: false,
         error: 'invalid-identifier',
-        message: 'Lütfen e-posta, telefon numarası veya geçerli kullanıcı adı gir.',
+        message: 'LÃ¼tfen e-posta, telefon numarasÄ± veya geÃ§erli kullanÄ±cÄ± adÄ± gir.',
       });
     }
 
@@ -1366,7 +1494,7 @@ app.post('/auth/login', async (req, res) => {
       return res.status(404).json({
         ok: false,
         error: 'not-found',
-        message: 'Bu bilgilerle eşleşen bir hesap bulunamadı.',
+        message: 'Bu bilgilerle eÅŸleÅŸen bir hesap bulunamadÄ±.',
       });
     }
 
@@ -1375,7 +1503,7 @@ app.post('/auth/login', async (req, res) => {
       return res.status(400).json({
         ok: false,
         error: 'no-password',
-        message: 'Bu hesapta şifre tanımlı değil. Lütfen yeniden kayıt ol.',
+        message: 'Bu hesapta ÅŸifre tanÄ±mlÄ± deÄŸil. LÃ¼tfen yeniden kayÄ±t ol.',
       });
     }
 
@@ -1384,7 +1512,7 @@ app.post('/auth/login', async (req, res) => {
       return res.status(401).json({
         ok: false,
         error: 'wrong-password',
-        message: 'Şifre hatalı.',
+        message: 'Åifre hatalÄ±.',
       });
     }
 
@@ -1404,7 +1532,7 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-// 🟢 FORGOT PASSWORD (6 haneli kod mantığı: email aktif, telefon şimdilik simülasyon/sonra aktif)
+// ğŸŸ¢ FORGOT PASSWORD (6 haneli kod mantÄ±ÄŸÄ±: email aktif, telefon ÅŸimdilik simÃ¼lasyon/sonra aktif)
 app.post('/auth/forgot-password', async (req, res) => {
   try {
     const body = req.body ?? {};
@@ -1421,12 +1549,12 @@ app.post('/auth/forgot-password', async (req, res) => {
     const emailNorm = normalizeEmail(identifierRaw);
     const phoneNorm = normalizeTrPhone(identifierRaw);
 
-    // Şimdilik destek: email gerçek akış, telefon "yakında"
+    // Åimdilik destek: email gerÃ§ek akÄ±ÅŸ, telefon "yakÄ±nda"
     if (!emailNorm && !phoneNorm) {
       return res.status(400).json({
         ok: false,
         error: 'invalid-identifier',
-        message: 'Geçerli bir e-posta adresi veya telefon numarası gir.',
+        message: 'GeÃ§erli bir e-posta adresi veya telefon numarasÄ± gir.',
       });
     }
 
@@ -1455,15 +1583,15 @@ app.post('/auth/forgot-password', async (req, res) => {
       });
     }
 
-    // Güvenlik: kullanıcı olmasa bile aynı cevap
+    // GÃ¼venlik: kullanÄ±cÄ± olmasa bile aynÄ± cevap
     if (!user) {
       return res.json({
         ok: true,
-        message: 'Hesap varsa doğrulama kodu gönderildi.',
+        message: 'Hesap varsa doÄŸrulama kodu gÃ¶nderildi.',
       });
     }
 
-    // Eski kullanılmamış reset kayıtlarını temizle
+    // Eski kullanÄ±lmamÄ±ÅŸ reset kayÄ±tlarÄ±nÄ± temizle
     await prisma.passwordResetToken.deleteMany({
       where: {
         userId: user.id,
@@ -1505,8 +1633,8 @@ app.post('/auth/forgot-password', async (req, res) => {
       ok: true,
       message:
         channel === 'phone'
-          ? 'Telefon için doğrulama kodu desteği yakında aktif olacak.'
-          : 'Hesap varsa doğrulama kodu gönderildi.',
+          ? 'Telefon iÃ§in doÄŸrulama kodu desteÄŸi yakÄ±nda aktif olacak.'
+          : 'Hesap varsa doÄŸrulama kodu gÃ¶nderildi.',
     });
   } catch (err) {
     console.error('[POST /auth/forgot-password] error:', err);
@@ -1517,7 +1645,7 @@ app.post('/auth/forgot-password', async (req, res) => {
   }
 });
 
-// 🟢 RESET PASSWORD (6 haneli kod ile)
+// ğŸŸ¢ RESET PASSWORD (6 haneli kod ile)
 app.post('/auth/reset-password', async (req, res) => {
   try {
     const body = req.body ?? {};
@@ -1537,7 +1665,7 @@ app.post('/auth/reset-password', async (req, res) => {
       return res.status(400).json({
         ok: false,
         error: 'invalid-code-format',
-        message: 'Doğrulama kodu 6 haneli olmalıdır.',
+        message: 'DoÄŸrulama kodu 6 haneli olmalÄ±dÄ±r.',
       });
     }
 
@@ -1556,7 +1684,7 @@ app.post('/auth/reset-password', async (req, res) => {
       return res.status(400).json({
         ok: false,
         error: 'invalid-identifier',
-        message: 'Geçerli bir e-posta adresi veya telefon numarası gir.',
+        message: 'GeÃ§erli bir e-posta adresi veya telefon numarasÄ± gir.',
       });
     }
 
@@ -1571,7 +1699,7 @@ app.post('/auth/reset-password', async (req, res) => {
       return res.status(400).json({
         ok: false,
         error: 'invalid-code',
-        message: 'Kod geçersiz veya süresi dolmuş.',
+        message: 'Kod geÃ§ersiz veya sÃ¼resi dolmuÅŸ.',
       });
     }
 
@@ -1589,7 +1717,7 @@ app.post('/auth/reset-password', async (req, res) => {
       return res.status(400).json({
         ok: false,
         error: 'invalid-code',
-        message: 'Kod geçersiz veya süresi dolmuş.',
+        message: 'Kod geÃ§ersiz veya sÃ¼resi dolmuÅŸ.',
       });
     }
 
@@ -1597,7 +1725,7 @@ app.post('/auth/reset-password', async (req, res) => {
       return res.status(400).json({
         ok: false,
         error: 'code-used',
-        message: 'Bu doğrulama kodu daha önce kullanılmış.',
+        message: 'Bu doÄŸrulama kodu daha Ã¶nce kullanÄ±lmÄ±ÅŸ.',
       });
     }
 
@@ -1605,7 +1733,7 @@ app.post('/auth/reset-password', async (req, res) => {
       return res.status(400).json({
         ok: false,
         error: 'code-expired',
-        message: 'Doğrulama kodunun süresi dolmuş.',
+        message: 'DoÄŸrulama kodunun sÃ¼resi dolmuÅŸ.',
       });
     }
 
@@ -1634,7 +1762,7 @@ app.post('/auth/reset-password', async (req, res) => {
 
     return res.json({
       ok: true,
-      message: 'Şifren başarıyla güncellendi.',
+      message: 'Åifren baÅŸarÄ±yla gÃ¼ncellendi.',
     });
   } catch (err) {
     console.error('[POST /auth/reset-password] error:', err);
@@ -1645,7 +1773,7 @@ app.post('/auth/reset-password', async (req, res) => {
   }
 });
 
-// 🟢 ME: Profil oku
+// ğŸŸ¢ ME: Profil oku
 app.get('/me', async (req, res) => {
   try {
     const userId = parseUserIdFromReq(req);
@@ -1684,7 +1812,7 @@ app.get('/me', async (req, res) => {
 });
 
 
-// 🟢 ME: Video yetki/policy oku
+// ğŸŸ¢ ME: Video yetki/policy oku
 app.get('/me/video-policy', async (req, res) => {
   try {
     const userId = parseUserIdFromReq(req);
@@ -1712,7 +1840,7 @@ app.get('/me/video-policy', async (req, res) => {
   }
 });
 
-// 🟢 ME: Profil güncelle
+// ğŸŸ¢ ME: Profil gÃ¼ncelle
 app.put('/me', async (req, res) => {
   try {
     const userId = parseUserIdFromReq(req);
@@ -1815,7 +1943,7 @@ app.put('/me', async (req, res) => {
           ok: false,
           error: 'email-taken',
           field: 'email',
-          message: 'Bu e-posta başka bir hesapta kayıtlı.',
+          message: 'Bu e-posta baÅŸka bir hesapta kayÄ±tlÄ±.',
         });
       }
     }
@@ -1830,7 +1958,7 @@ app.put('/me', async (req, res) => {
           ok: false,
           error: 'phone-taken',
           field: 'phone',
-          message: 'Bu telefon numarası başka bir hesapta kayıtlı.',
+          message: 'Bu telefon numarasÄ± baÅŸka bir hesapta kayÄ±tlÄ±.',
         });
       }
     }
@@ -1845,7 +1973,7 @@ app.put('/me', async (req, res) => {
           ok: false,
           error: 'handle-taken',
           field: 'handle',
-          message: 'Bu kullanıcı adı başka bir hesapta kayıtlı.',
+          message: 'Bu kullanÄ±cÄ± adÄ± baÅŸka bir hesapta kayÄ±tlÄ±.',
         });
       }
     }
@@ -1901,13 +2029,13 @@ app.put('/me', async (req, res) => {
         field,
         message:
           field === 'phone'
-            ? 'Bu telefon numarası başka bir hesapta kayıtlı.'
+            ? 'Bu telefon numarasÄ± baÅŸka bir hesapta kayÄ±tlÄ±.'
             : field === 'email'
-              ? 'Bu e-posta başka bir hesapta kayıtlı.'
+              ? 'Bu e-posta baÅŸka bir hesapta kayÄ±tlÄ±.'
               : field === 'handle'
-                ? 'Bu kullanıcı adı başka bir hesapta kayıtlı.'
+                ? 'Bu kullanÄ±cÄ± adÄ± baÅŸka bir hesapta kayÄ±tlÄ±.'
                 : field === 'deviceId'
-                  ? 'Bu cihaz kimliğiyle çakışma oldu. Tekrar dene.'
+                  ? 'Bu cihaz kimliÄŸiyle Ã§akÄ±ÅŸma oldu. Tekrar dene.'
                   : 'Unique constraint failed',
       });
     }
@@ -1920,7 +2048,7 @@ app.put('/me', async (req, res) => {
   }
 });
 
-// 🟢 ME: Hesap sil
+// ğŸŸ¢ ME: Hesap sil
 app.delete('/me', async (req, res) => {
   try {
     const userId = parseUserIdFromReq(req);
@@ -2028,10 +2156,10 @@ app.delete('/me', async (req, res) => {
 });
 
 
-// -------------------- Focus Ağı (Friend) API --------------------
-// (BURASI DEĞİŞMEDİ - aynen bıraktım)
+// -------------------- Focus AÄŸÄ± (Friend) API --------------------
+// (BURASI DEÄÄ°ÅMEDÄ° - aynen bÄ±raktÄ±m)
 
-// ✅ Kullanıcı ara (Focus Ağı keşfet): q = ad / handle / email / phone
+// âœ… KullanÄ±cÄ± ara (Focus AÄŸÄ± keÅŸfet): q = ad / handle / email / phone
 app.get('/users/search', async (req, res) => {
   try {
     const meId = parseUserIdFromReq(req);
@@ -2067,10 +2195,10 @@ app.get('/users/search', async (req, res) => {
       take: searchTake,
     });
 
-    // ✅ Keşfet algoritması:
-    // Arama yapılırken sonuçları arama ilgisine göre sırada bırakıyoruz.
-    // Boş keşfet ekranında ise sadece en yeni 50 kişiyle sınırlı kalmasın diye
-    // son kullanıcı havuzunu karıştırıp farklı profillerin görünmesini sağlıyoruz.
+    // âœ… KeÅŸfet algoritmasÄ±:
+    // Arama yapÄ±lÄ±rken sonuÃ§larÄ± arama ilgisine gÃ¶re sÄ±rada bÄ±rakÄ±yoruz.
+    // BoÅŸ keÅŸfet ekranÄ±nda ise sadece en yeni 50 kiÅŸiyle sÄ±nÄ±rlÄ± kalmasÄ±n diye
+    // son kullanÄ±cÄ± havuzunu karÄ±ÅŸtÄ±rÄ±p farklÄ± profillerin gÃ¶rÃ¼nmesini saÄŸlÄ±yoruz.
     const users = qRaw ? rawUsers : shuffleItems(rawUsers).slice(0, limit);
 
     let friendships: Set<string> = new Set();
@@ -2121,7 +2249,7 @@ app.get('/users/search', async (req, res) => {
   }
 });
 
-// ✅ Arkadaşlar listesi
+// âœ… ArkadaÅŸlar listesi
 app.get('/friends/list', async (req, res) => {
   try {
     const meId = parseUserIdFromReq(req);
@@ -2153,7 +2281,7 @@ app.get('/friends/list', async (req, res) => {
   }
 });
 
-// ✅ Bana gelen (pending) istekler
+// âœ… Bana gelen (pending) istekler
 app.get('/friends/requests', async (req, res) => {
   try {
     const meId = parseUserIdFromReq(req);
@@ -2191,7 +2319,7 @@ app.get('/friends/requests', async (req, res) => {
   }
 });
 
-// ✅ İstek gönder (zorla arkadaş yapmaz!)
+// âœ… Ä°stek gÃ¶nder (zorla arkadaÅŸ yapmaz!)
 app.post('/friends/request', async (req, res) => {
   try {
     const meId = parseUserIdFromReq(req);
@@ -2256,7 +2384,7 @@ app.post('/friends/request', async (req, res) => {
   }
 });
 
-// ✅ İstek kabul
+// âœ… Ä°stek kabul
 app.post('/friends/accept', async (req, res) => {
   try {
     const meId = parseUserIdFromReq(req);
@@ -2307,7 +2435,7 @@ app.post('/friends/accept', async (req, res) => {
   }
 });
 
-// ✅ İstek reddet
+// âœ… Ä°stek reddet
 app.post('/friends/decline', async (req, res) => {
   try {
     const meId = parseUserIdFromReq(req);
@@ -2343,7 +2471,7 @@ app.post('/friends/decline', async (req, res) => {
   }
 });
 
-// (Opsiyonel) ✅ Arkadaşlıktan çıkar
+// (Opsiyonel) âœ… ArkadaÅŸlÄ±ktan Ã§Ä±kar
 app.post('/friends/remove', async (req, res) => {
   try {
     const meId = parseUserIdFromReq(req);
@@ -2408,7 +2536,7 @@ app.get('/notifications', async (req, res) => {
 });
 
 
-// ✅ Manuel bildirim oluşturma (client fallback / test için)
+// âœ… Manuel bildirim oluÅŸturma (client fallback / test iÃ§in)
 app.post('/notifications', async (req, res) => {
   try {
     const body = req.body ?? {};
@@ -2483,7 +2611,7 @@ app.post('/notifications/read', async (req, res) => {
 
 // -------------------- Posts / Feed --------------------
 
-// 🟢 Kart oluşturma – UploadScreen'den gelen /posts isteği
+// ğŸŸ¢ Kart oluÅŸturma â€“ UploadScreen'den gelen /posts isteÄŸi
 app.post('/posts', async (req, res) => {
   try {
     const {
@@ -2616,7 +2744,7 @@ app.post('/posts', async (req, res) => {
           return res.status(403).json({
             ok: false,
             error: 'video-duration-limit-exceeded',
-            message: `Bu hesap için video üst sınırı ${policy.maxVideoSeconds} saniye.`,
+            message: `Bu hesap iÃ§in video Ã¼st sÄ±nÄ±rÄ± ${policy.maxVideoSeconds} saniye.`,
             maxVideoSeconds: policy.maxVideoSeconds,
             durationSeconds,
           });
@@ -2639,7 +2767,7 @@ app.post('/posts', async (req, res) => {
       } as any,
     });
 
-    // 🔔 Övgü etiket bildirimi
+    // ğŸ”” Ã–vgÃ¼ etiket bildirimi
     if ((praisePayload as any)?.isPraisePost) {
       try {
         const taggedId = safeIntOrNull((praisePayload as any)?.praiseTaggedUserId);
@@ -2701,7 +2829,7 @@ app.post('/posts', async (req, res) => {
             : null;
 
           const actorName = displayNameForNotification(actorUser, author);
-          const message = `${actorName}, senden Övgü ile bahsetti.`;
+          const message = `${actorName}, senden Ã–vgÃ¼ ile bahsetti.`;
 
           await (prisma as any).notification.create({
             data: {
@@ -2738,7 +2866,7 @@ app.post('/posts', async (req, res) => {
   }
 }); 
 
-// 🟢 Kart listesi – akış için basit endpoint
+// ğŸŸ¢ Kart listesi â€“ akÄ±ÅŸ iÃ§in basit endpoint
 app.get('/posts', async (req, res) => {
   try {
     const limitRaw = req.query.limit;
@@ -2907,7 +3035,7 @@ try {
   }
 } catch {}
 
-// ---------------- merge (KRİTİK) ----------------
+// ---------------- merge (KRÄ°TÄ°K) ----------------
 return (posts || []).map(p => {
   const pid = Number((p as any)?.id);
   const safePid = Number.isFinite(pid) ? pid : NaN;
@@ -2915,7 +3043,7 @@ return (posts || []).map(p => {
   const metaLikes = Number.isFinite(safePid) ? likeCountByPost.get(safePid) : undefined;
   const metaComments = Number.isFinite(safePid) ? commentCountByPost.get(safePid) : undefined;
 
-  // ✅ LIKE: meta varsa onu bas, yoksa post üstündeki kalsın
+  // âœ… LIKE: meta varsa onu bas, yoksa post Ã¼stÃ¼ndeki kalsÄ±n
   const nextLikes =
     typeof metaLikes === 'number' && Number.isFinite(metaLikes)
       ? metaLikes
@@ -2923,9 +3051,9 @@ return (posts || []).map(p => {
         ? (p as any).likes
         : 0;
 
-  // ✅ COMMENT: EN STABİL KURAL
-  // - metaComments (Comment tablosundan sayım) varsa HER ZAMAN onu kullan
-  // - meta yoksa post.commentCount'a düş
+  // âœ… COMMENT: EN STABÄ°L KURAL
+  // - metaComments (Comment tablosundan sayÄ±m) varsa HER ZAMAN onu kullan
+  // - meta yoksa post.commentCount'a dÃ¼ÅŸ
   // - ikisi de yoksa 0
   const postCommentCount =
     typeof (p as any)?.commentCount === 'number' && Number.isFinite((p as any).commentCount)
@@ -2945,7 +3073,7 @@ return (posts || []).map(p => {
     ...p,
     likes: nextLikes,
 
-    // ✅ 3 isimle birden dön (RN’de farklı yerler farklı isim okuyabiliyor)
+    // âœ… 3 isimle birden dÃ¶n (RNâ€™de farklÄ± yerler farklÄ± isim okuyabiliyor)
     commentCount: nextCommentCount,
     commentsCount: nextCommentCount,
     comments: nextCommentCount,
@@ -2955,10 +3083,10 @@ return (posts || []).map(p => {
 });
 }
 
-// ✅ RN geriye dönük uyum: likes alanını da likeCount ile uyumlu tut
-// (bu blok sende zaten var, dokunmadım)
+// âœ… RN geriye dÃ¶nÃ¼k uyum: likes alanÄ±nÄ± da likeCount ile uyumlu tut
+// (bu blok sende zaten var, dokunmadÄ±m)
 
-// ✅ Like toggle
+// âœ… Like toggle
 app.post('/posts/:id/like', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -2977,8 +3105,8 @@ app.post('/posts/:id/like', async (req, res) => {
       return res.status(501).json({ ok: false, error: 'like-model-not-ready' });
     }
 
-    // ✅ SÜRÜM 2 FIX: Like artık toggle değil, idempotent çalışır.
-    // Aynı kullanıcı tekrar basarsa kayıt silinmez; beğenenler listesi kalıcı kalır.
+    // âœ… SÃœRÃœM 2 FIX: Like artÄ±k toggle deÄŸil, idempotent Ã§alÄ±ÅŸÄ±r.
+    // AynÄ± kullanÄ±cÄ± tekrar basarsa kayÄ±t silinmez; beÄŸenenler listesi kalÄ±cÄ± kalÄ±r.
     try {
       await anyPrisma.like.create({ data: { postId, userId } });
     } catch (e: any) {
@@ -2994,7 +3122,7 @@ app.post('/posts/:id/like', async (req, res) => {
   }
 });
 
-// ✅ Idempotent like
+// âœ… Idempotent like
 app.post('/feed/:id/like', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -3028,7 +3156,7 @@ app.post('/feed/:id/like', async (req, res) => {
   }
 });
 
-// ✅ Beğenenler listesi
+// âœ… BeÄŸenenler listesi
 const handleListPostLikes = async (req: express.Request, res: express.Response) => {
   try {
     const postId = Number(req.params.id);
@@ -3060,7 +3188,7 @@ const handleListPostLikes = async (req: express.Request, res: express.Response) 
         publicUser?.fullName ||
         publicUser?.displayName ||
         (publicUser?.handle ? `@${String(publicUser.handle).replace(/^@/, '')}` : null) ||
-        'Kullanıcı';
+        'KullanÄ±cÄ±';
 
       return {
         id: String(publicUser?.id ?? row?.userId ?? row?.id),
@@ -3085,7 +3213,7 @@ const handleListPostLikes = async (req: express.Request, res: express.Response) 
 app.get('/posts/:id/likes', handleListPostLikes);
 app.get('/feed/:id/likes', handleListPostLikes);
 
-// ✅ Comment create
+// âœ… Comment create
 const handleCreateComment = async (req: any, res: any) => {
   try {
     const userId = requireUserId(req, res);
@@ -3121,8 +3249,8 @@ const handleCreateComment = async (req: any, res: any) => {
       },
     });
 
-    // ✅ FEED 304 kırmak için: Post’u “değişti” saydır
-    // commentCount kolonu olmasa bile updatedAt güncellenirse /feed ETag değişir.
+    // âœ… FEED 304 kÄ±rmak iÃ§in: Postâ€™u â€œdeÄŸiÅŸtiâ€ saydÄ±r
+    // commentCount kolonu olmasa bile updatedAt gÃ¼ncellenirse /feed ETag deÄŸiÅŸir.
     try {
       await prisma.post.update({
         where: { id: postId },
@@ -3130,9 +3258,9 @@ const handleCreateComment = async (req: any, res: any) => {
       });
     } catch {}
 
-    // ✅ (2. adım) Post.commentCount artırmayı dene (kolon yoksa sessizce geç)
-    // NOT: Şemada kolon yoksa Prisma "Unknown argument commentCount" verir.
-    // Bu durumda asıl kaynak: Comment tablosundan sayım.
+    // âœ… (2. adÄ±m) Post.commentCount artÄ±rmayÄ± dene (kolon yoksa sessizce geÃ§)
+    // NOT: Åemada kolon yoksa Prisma "Unknown argument commentCount" verir.
+    // Bu durumda asÄ±l kaynak: Comment tablosundan sayÄ±m.
     let commentCount: number | null = null;
 
     try {
@@ -3147,10 +3275,10 @@ const handleCreateComment = async (req: any, res: any) => {
       const n = updated?.commentCount;
       if (typeof n === 'number' && Number.isFinite(n)) commentCount = n;
     } catch {
-      // sessiz geç
+      // sessiz geÃ§
     }
 
-    // ✅ Kolon yoksa bile sayarak döndür (EN STABİL)
+    // âœ… Kolon yoksa bile sayarak dÃ¶ndÃ¼r (EN STABÄ°L)
     if (commentCount === null) {
       try {
         const cnt = await anyPrisma.comment.count({ where: { postId } });
@@ -3162,7 +3290,7 @@ const handleCreateComment = async (req: any, res: any) => {
 
     const cc = commentCount ?? undefined;
 
-    // ✅ 3 isimle birden dön (client farklı isim okuyabiliyor)
+    // âœ… 3 isimle birden dÃ¶n (client farklÄ± isim okuyabiliyor)
     return res.json({
       ok: true,
       comment,
@@ -3178,10 +3306,10 @@ const handleCreateComment = async (req: any, res: any) => {
 
 app.post('/posts/:id/comment', handleCreateComment);
 
-// ✅ Alias: client önce /feed/:id/comment deniyor, 404 olmasın
+// âœ… Alias: client Ã¶nce /feed/:id/comment deniyor, 404 olmasÄ±n
 app.post('/feed/:id/comment', handleCreateComment);
 
-// ✅ Comment list
+// âœ… Comment list
 app.get('/posts/:id/comments', async (req, res) => {
   try {
     const postId = Number(req.params.id);
@@ -3234,7 +3362,7 @@ app.get('/posts/:id/comments', async (req, res) => {
   }
 });
 
-// ✅ repost / reshare
+// âœ… repost / reshare
 app.post('/feed/:id/repost', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -3299,7 +3427,7 @@ app.post('/feed/:id/reshare', async (req, res) => {
   }
 });
 
-// ✅ archive
+// âœ… archive
 app.patch('/feed/:id/archive', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -3324,7 +3452,7 @@ app.patch('/feed/:id/archive', async (req, res) => {
   }
 });
 
-// ✅ shared / share
+// âœ… shared / share
 app.post('/feed/:id/shared', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -3391,7 +3519,7 @@ app.post('/feed/:id/share', async (req, res) => {
   }
 });
 
-// ✅ PATCH /feed/:id fallback2
+// âœ… PATCH /feed/:id fallback2
 app.patch('/feed/:id', async (req, res) => {
   try {
     const userId = requireUserId(req, res);
@@ -3437,17 +3565,17 @@ app.patch('/feed/:id', async (req, res) => {
   }
 });
 
-// ✅ FEED: client tarafındaki FeedScreen’in esas kullandığı endpoint
+// âœ… FEED: client tarafÄ±ndaki FeedScreenâ€™in esas kullandÄ±ÄŸÄ± endpoint
 app.get('/feed', async (req, res) => {
-  // ✅ Cache/ETag yüzünden 304 dönüp client’ın JSON alamaması problemini kır
+  // âœ… Cache/ETag yÃ¼zÃ¼nden 304 dÃ¶nÃ¼p clientâ€™Ä±n JSON alamamasÄ± problemini kÄ±r
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
 
-  // ✅ Ek garanti: proxy/CDN tarzı arakatmanlar 304 üretmesin
+  // âœ… Ek garanti: proxy/CDN tarzÄ± arakatmanlar 304 Ã¼retmesin
   res.setHeader('Surrogate-Control', 'no-store');
 
-  // ✅ Last-Modified her request değişsin (ara katman “değişmedi” demesin)
+  // âœ… Last-Modified her request deÄŸiÅŸsin (ara katman â€œdeÄŸiÅŸmediâ€ demesin)
   res.setHeader('Last-Modified', new Date().toUTCString());
 
   try {
@@ -3519,7 +3647,7 @@ app.get('/feed', async (req, res) => {
   };
 }); 
 
-    // ✅ NEW: /feed cevabına commentCount ekle (kolon olmasa bile Comment tablosundan say)
+    // âœ… NEW: /feed cevabÄ±na commentCount ekle (kolon olmasa bile Comment tablosundan say)
     let normalizedWithCounts = normalized;
 
     try {
@@ -3548,7 +3676,7 @@ app.get('/feed', async (req, res) => {
             }
           }
         } catch {
-          // groupBy yoksa geç
+          // groupBy yoksa geÃ§
         }
 
         // 2) groupBy yoksa fallback: tek tek say
@@ -3567,7 +3695,7 @@ app.get('/feed', async (req, res) => {
           const pid = Number((pp as any)?.id);
           const cc = Number.isFinite(pid) && pid > 0 ? (counts[pid] ?? 0) : 0;
 
-          // ✅ 3 isimle birden koy
+          // âœ… 3 isimle birden koy
           return { ...pp, commentCount: cc, commentsCount: cc, comments: cc };
         });
       }
@@ -3575,10 +3703,10 @@ app.get('/feed', async (req, res) => {
       console.log('[GET /feed] commentCount attach skipped:', e);
     }
 
-    // ✅ DEĞİŞTİ: normalized yerine normalizedWithCounts
+    // âœ… DEÄÄ°ÅTÄ°: normalized yerine normalizedWithCounts
     const enriched = await attachLikeCommentMetaToFeedPosts(normalizedWithCounts, req);
 
-    // ✅ Like meta uyumu (senin eski “KRİTİK FIX” davranışını koru)
+    // âœ… Like meta uyumu (senin eski â€œKRÄ°TÄ°K FIXâ€ davranÄ±ÅŸÄ±nÄ± koru)
     const final = (enriched || []).map((p: any) => {
       const likeFixed =
         typeof p.likeCount === 'number' && Number.isFinite(p.likeCount)
@@ -3600,7 +3728,7 @@ app.get('/feed', async (req, res) => {
         ...p,
         likes: likeFixed,
 
-        // ✅ 3 isimle birden dön
+        // âœ… 3 isimle birden dÃ¶n
         commentCount: cc,
         commentsCount: cc,
         comments: cc,
@@ -3614,7 +3742,7 @@ app.get('/feed', async (req, res) => {
   }
 });
 
-// ✅ FEED: Tek post sil (SADECE sahibi silebilir) — KRİTİK
+// âœ… FEED: Tek post sil (SADECE sahibi silebilir) â€” KRÄ°TÄ°K
 app.delete('/feed/:id', async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -3627,11 +3755,11 @@ app.delete('/feed/:id', async (req, res) => {
       });
     }
 
-    // ✅ JWT / x-user-id / query / body hepsini destekle
+    // âœ… JWT / x-user-id / query / body hepsini destekle
     const requesterUserId = requireUserId(req, res);
     if (!requesterUserId) return;
 
-    // ✅ Mevcut şemaya göre sadece userId kontrolü
+    // âœ… Mevcut ÅŸemaya gÃ¶re sadece userId kontrolÃ¼
     const post = await prisma.post.findUnique({
       where: { id },
       select: {
@@ -3670,9 +3798,10 @@ app.delete('/feed/:id', async (req, res) => {
   }
 });
 
-// Varsayılan port 4000
+// VarsayÄ±lan port 4000
 const PORT = Number(process.env.PORT || 4000);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`[API] Listening on http://0.0.0.0:${PORT}`);
 });
+

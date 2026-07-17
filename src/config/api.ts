@@ -332,6 +332,7 @@ export type AuthRegisterPayload = {
   phone?: string | null;
   password: string;
   deviceId?: string | null; // (server destekli; istersen yollayabilirsin)
+  language?: string | null;
 };
 
 export type AuthLoginPayload = {
@@ -403,6 +404,7 @@ export async function postRegister(payload: AuthRegisterPayload): Promise<{ user
       phone: payload.phone,
       password: payload.password,
       deviceId: payload.deviceId ?? undefined, // server destekli
+      language: payload.language ?? undefined,
     }),
     timeoutMs: 20000,
   });
