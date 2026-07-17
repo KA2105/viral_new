@@ -947,17 +947,17 @@ function welcomeCopy(fullName: string | null | undefined, language: WelcomeLangu
   }
 
   return {
-    subject: "Viral'e hoÅŸ geldin",
-    notification: `Viral'e hoÅŸ geldin${firstName ? `, ${firstName}` : ''}! Ä°lk paylaÅŸÄ±mÄ±nÄ± yapabilir, gÃ¶revlerini oluÅŸturabilir ve Focus AÄŸÄ±'nda yeni insanlar keÅŸfedebilirsin.`,
-    heading: `Viral'e hoÅŸ geldin${firstName ? `, ${firstName}` : ''}!`,
-    intro: 'Viral; Ã¼rettiklerini paylaÅŸabileceÄŸin, hedeflerini takip edebileceÄŸin ve kendi yolculuÄŸuna odaklanan insanlarla baÄŸlantÄ± kurabileceÄŸin bir alan.',
+    subject: "Viral'e hoş geldin",
+    notification: `Viral'e hoş geldin${firstName ? `, ${firstName}` : ''}! İlk paylaşımını yapabilir, görevlerini oluşturabilir ve Focus Ağı'nda yeni insanlar keşfedebilirsin.`,
+    heading: `Viral'e hoş geldin${firstName ? `, ${firstName}` : ''}!`,
+    intro: 'Viral; ürettiklerini paylaşabileceğin, hedeflerini takip edebileceğin ve kendi yolculuğuna odaklanan insanlarla bağlantı kurabileceğin bir alan.',
     items: [
-      'FotoÄŸraf, video ve fikirlerini paylaÅŸabilirsin.',
-      'GÃ¶revlerini oluÅŸturup ilerlemeni gÃ¶rÃ¼nÃ¼r bir yolculuÄŸa dÃ¶nÃ¼ÅŸtÃ¼rebilirsin.',
-      "Focus AÄŸÄ±'nda yeni insanlarÄ± keÅŸfedebilirsin.",
-      'Yorum, beÄŸeni ve yeniden paylaÅŸÄ±mlarla topluluÄŸa katÄ±labilirsin.',
+      'Fotoğraf, video ve fikirlerini paylaşabilirsin.',
+      'Görevlerini oluşturup ilerlemeni görünür bir yolculuğa dönüştürebilirsin.',
+      "Focus Ağı'nda yeni insanları keşfedebilirsin.",
+      'Yorum, beğeni ve yeniden paylaşımlarla topluluğa katılabilirsin.',
     ],
-    closing: 'BaÅŸlamak iÃ§in ilk paylaÅŸÄ±mÄ±nÄ± yapman yeterli. AramÄ±za katÄ±ldÄ±ÄŸÄ±n iÃ§in mutluyuz.',
+    closing: 'Başlamak için ilk paylaşımını yapman yeterli. Aramıza katıldığın için mutluyuz.',
     signature: 'Viral Ekibi',
   };
 }
@@ -980,7 +980,7 @@ async function sendWelcomeEmail(to: string, fullName: string | null | undefined,
       '',
       copy.intro,
       '',
-      ...copy.items.map(item => `â€¢ ${item}`),
+      ...copy.items.map(item => `• ${item}`),
       '',
       copy.closing,
       '',
