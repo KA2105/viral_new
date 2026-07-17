@@ -1,7 +1,7 @@
 {
   "common": {
     "appName": "Viral",
-    "ok": "好",
+    "ok": "OK",
     "cancel": "取消",
     "close": "关闭",
     "continue": "继续",
@@ -9,149 +9,149 @@
     "show": "显示",
     "save": "保存",
     "saving": "正在保存...",
-    "loading": "加载中...",
+    "loading": "正在加载...",
     "warning": "警告",
     "error": "错误",
     "success": "成功"
   },
   "onboarding": {
     "language": {
-      "title": "选择语言",
-      "subtitle": "选择你的语言以继续",
-      "hint": "你可以稍后在个人资料页面更改语言。"
+      "title": "Select Language",
+      "subtitle": "Choose your language to continue",
+      "hint": "You can change language later from Profile screen."
     },
     "buttons": {
-      "skip": "跳过",
-      "next": "下一步",
-      "start": "开始"
+      "skip": "Skip",
+      "next": "Next",
+      "start": "Start"
     }
   },
   "profile": {
     "title": "个人资料",
-    "languageButton": "语言",
-    "languageHint": "选择应用语言",
-    "defaultUser": "用户",
-    "fullNameLabel": "姓名",
-    "fullNamePlaceholder": "姓名",
-    "handleLabel": "用户名",
-    "handlePlaceholder": "@用户",
-    "bioLabel": "简介（bio）",
-    "bioPlaceholder": "简单介绍一下自己…",
-    "websiteLabel": "链接（可选）",
+    "languageButton": "Language",
+    "languageHint": "Choose app language",
+    "defaultUser": "User",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "Full name",
+    "handleLabel": "Username",
+    "handlePlaceholder": "@user",
+    "bioLabel": "About (bio)",
+    "bioPlaceholder": "Briefly introduce yourself...",
+    "websiteLabel": "Link (optional)",
     "websitePlaceholder": "https://",
-    "emailLabel": "电子邮件",
+    "emailLabel": "E-mail",
     "emailPlaceholder": "example@mail.com",
-    "phoneLabel": "电话",
+    "phoneLabel": "Phone",
     "phonePlaceholder": "5x xx xx xx",
-    "phoneHint": "不需要在前面加 0。国家区号在左侧。",
-    "passwordLabel": "密码",
-    "passwordPlaceholder": "你的密码",
-    "passwordConfirmLabel": "密码（再次）",
-    "passwordConfirmPlaceholder": "再次输入密码",
-    "passwordHint": "密码至少 8 个字符，并包含大小写字母、数字和符号。",
+    "phoneHint": "No need to add a leading 0. Country code is on the left.",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Your password",
+    "passwordConfirmLabel": "Password (again)",
+    "passwordConfirmPlaceholder": "Type the password again",
+    "passwordHint": "Password must be at least 8 characters, and include upper/lowercase letters, numbers and symbols.",
     "logout": "退出登录",
-    "loadingProfile": "正在加载个人资料...",
+    "loadingProfile": "Loading profile...",
     "alert": {
-      "warning": "警告",
-      "error": "错误",
-      "success": "成功",
-      "passwordRequired": "密码和确认密码为必填项。",
-      "passwordMismatch": "密码和确认密码必须一致。",
-      "saveFailed": "个人资料更新失败。",
-      "saveSuccess": "个人资料已更新。",
+      "warning": "Warning",
+      "error": "Error",
+      "success": "Success",
+      "passwordRequired": "Password and confirmation are required.",
+      "passwordMismatch": "Password and confirmation must match.",
+      "saveFailed": "Profile could not be updated.",
+      "saveSuccess": "Your profile information has been updated.",
       "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
     },
     "verify": {
-      "sectionTitle": "手机号验证",
-      "statusVerified": "手机号已验证",
-      "statusNotVerified": "手机号未验证",
-      "codeSentTitle": "验证码已发送",
-      "codeSentDev": "模拟（开发）：验证码 {{code}}",
-      "codeSentText": "验证码已发送到你的手机（模拟）。",
-      "enterCode": "请输入验证码。",
-      "verifyFailed": "验证码验证失败。",
-      "verifySuccess": "手机号已成功验证。",
-      "sendCodeButton": "发送验证码（模拟）",
-      "codePlaceholder": "验证码",
-      "confirmButton": "验证验证码"
+      "sectionTitle": "Phone verification",
+      "statusVerified": "Phone verified",
+      "statusNotVerified": "Phone not verified",
+      "codeSentTitle": "Verification code sent",
+      "codeSentDev": "Simulation (dev): Code {{code}}",
+      "codeSentText": "A verification code was sent to your phone (simulation).",
+      "enterCode": "Please enter the verification code.",
+      "verifyFailed": "Code could not be verified.",
+      "verifySuccess": "Your phone number has been verified.",
+      "sendCodeButton": "Send code (simulation)",
+      "codePlaceholder": "Verification code",
+      "confirmButton": "Verify code"
     },
     "personalSection": {
-      "title": "个人信息",
-      "hide": "隐藏",
-      "showEdit": "显示 / 编辑"
+      "title": "Personal information",
+      "hide": "Hide",
+      "showEdit": "Show / Edit"
     },
     "avatar": {
-      "label": "头像",
-      "readError": "无法读取所选图片。",
-      "pickError": "选择头像时出现问题，请重试。",
-      "change": "更换头像",
-      "choose": "选择头像"
+      "label": "Profile photo",
+      "readError": "Selected image could not be read.",
+      "pickError": "There was a problem selecting profile photo. Please try again.",
+      "change": "Change photo",
+      "choose": "Choose photo"
     },
     "onboarding": {
-      "restartTitle": "重新开始引导",
-      "restartMessage": "你将重新开始简短的新手引导。是否继续？",
-      "restartConfirm": "是的，开始",
-      "readyTitle": "准备好了 🎉",
-      "readyMessage": "引导稍后会重新打开。结束后你会回到应用。",
-      "restartButton": "重新开始引导"
+      "restartTitle": "Restart intro tour",
+      "restartMessage": "You are about to restart the short intro tour. Continue?",
+      "restartConfirm": "Yes, start",
+      "readyTitle": "Ready 🎉",
+      "readyMessage": "The onboarding will open again in a moment. At the end of the tour, you’ll return to the app.",
+      "restartButton": "Restart onboarding"
     },
     "invite": {
-      "button": "邀请我的朋友",
-      "title": "在 Viral 上找到我",
-      "usernameLabel": "用户名",
-      "profileLinkLabel": "个人主页链接",
-      "appLinkLabel": "Viral 应用链接",
-      "platformQuestion": "你想在哪个平台分享？",
-      "defaultUsername": "Viral 用户",
-      "shareLine1": "来 Viral 找我吧！👋",
-      "shareUsername": "用户名：{{username}}",
-      "shareProfile": "主页：{{link}}",
-      "shareApp": "应用链接：{{link}}",
-      "shareVia": "（我正在通过 {{platform}} 分享这条消息）"
+      "button": "Invite my friends",
+      "title": "Find me on Viral",
+      "usernameLabel": "Username",
+      "profileLinkLabel": "Profile link",
+      "appLinkLabel": "Viral app link",
+      "platformQuestion": "Which platform do you want to share on?",
+      "defaultUsername": "Viral user",
+      "shareLine1": "Find me on Viral! 👋",
+      "shareUsername": "Username: {{username}}",
+      "shareProfile": "Profile: {{link}}",
+      "shareApp": "App link: {{link}}",
+      "shareVia": "(I’m sharing this message via {{platform}})"
     },
     "accounts": {
-      "sectionTitle": "账号连接",
-      "toggleButton": "连接 / 移除账号",
-      "summary": "{{count}} 个已连接账号",
-      "connected": "已连接",
-      "connect": "连接",
-      "account": "账号",
-      "connectedFlash": "你的 {{label}} 账号已连接到 Viral。",
-      "disconnectedFlash": "你的 {{label}} 账号已从 Viral 移除。",
-      "manage": "管理你的账号",
-      "bind": "连接你的账号",
-      "hintConnected": "你可以从 Viral 移除此账号或更新连接。",
-      "hintDisconnected": "要将此账号连接到 Viral，请输入个人主页或页面的链接。",
+      "sectionTitle": "Account connections",
+      "toggleButton": "Connect / remove account",
+      "summary": "{{count}} connected account(s)",
+      "connected": "Connected",
+      "connect": "Connect",
+      "account": "Account",
+      "connectedFlash": "Your {{label}} account has been connected to Viral.",
+      "disconnectedFlash": "Your {{label}} account has been removed from Viral.",
+      "manage": "manage your account",
+      "bind": "connect your account",
+      "hintConnected": "You can remove this account from Viral or update its connection.",
+      "hintDisconnected": "To connect this account to Viral, enter the profile or page URL.",
       "linkPlaceholder": "https://...",
-      "removeButton": "移除账号",
+      "removeButton": "Remove account",
       "enterLink": "First enter the link of the account you want to connect."
     },
     "feedStats": {
-      "sectionTitle": "动态统计",
-      "totalCards": "卡片总数",
-      "visibleCards": "可见卡片",
-      "totalLikes": "总点赞数",
-      "videoCards": "带视频的卡片"
+      "sectionTitle": "Feed statistics",
+      "totalCards": "Total cards",
+      "visibleCards": "Visible cards",
+      "totalLikes": "Total likes",
+      "videoCards": "Cards with video"
     },
     "activities": {
-      "sectionTitle": "近期活动",
-      "empty": "目前还没有以你名字发布的卡片。当你向动态添加任务卡片或视频时，在这里可以看到它们的摘要。",
-      "badgeTaskCard": "任务卡片",
-      "badgeVideo": "视频",
-      "noSharePlanned": "暂无计划分享"
+      "sectionTitle": "Recent activities",
+      "empty": "There is no card associated with your name yet. When you add task cards or videos to the feed, you’ll see their summaries here.",
+      "badgeTaskCard": "Task card",
+      "badgeVideo": "Video",
+      "noSharePlanned": "No planned share"
     },
     "taskStats": {
-      "sectionTitle": "任务统计",
-      "totalTasks": "任务总数",
-      "completed": "已完成"
+      "sectionTitle": "Task statistics",
+      "totalTasks": "Total tasks",
+      "completed": "Completed"
     },
     "account": {
-      "sectionTitle": "账户",
-      "instagramLogs": "查看 Instagram 分享记录"
+      "sectionTitle": "Account",
+      "instagramLogs": "View Instagram share logs"
     },
     "section": {
-      "hide": "隐藏",
-      "show": "显示"
+      "hide": "Hide",
+      "show": "Show"
     },
     "delete": {
       "title": "Delete Account",
@@ -169,462 +169,509 @@
     "screenTitleTask": "创建任务卡片",
     "screenTitleFree": "创建分享卡片",
     "mode": {
-      "task": "任务分享",
-      "free": "自由分享",
-      "taskDescription": "你可以选择一个已完成的任务，以卡片形式分享。",
-      "freeDescription": "你正在不选择任务的情况下创建一个自由分享卡片。",
-      "toggleHideTasks": "隐藏",
-      "toggleShowTasks": "显示列表",
-      "noCompletedTasksInline": "你目前还没有已完成的任务。请先在“任务”页面完成一个任务。",
-      "noCompletedTasksTitle": "未找到任务",
-      "noCompletedTasksBody": "目前还没有已完成的任务。若要切换到任务模式，请先完成一个任务。"
+      "task": "任务",
+      "free": "自由",
+      "taskDescription": "你可以选择一个已完成的任务并作为卡片分享。",
+      "freeDescription": "你正在创建一个不选择任务的自由分享卡片。",
+      "toggleHideTasks": "Hide",
+      "toggleShowTasks": "Show list",
+      "noCompletedTasksInline": "你还没有已完成的任务。请先在任务页面完成一个任务。",
+      "noCompletedTasksTitle": "No tasks found",
+      "noCompletedTasksBody": "There are no completed tasks at the moment. To switch to task mode, complete a task first."
     },
     "fields": {
-      "cardTitleLabel": "卡片标题",
-      "cardTitlePlaceholder": "写一个标题（可选）",
-      "cardDescriptionLabel": "卡片说明",
-      "cardDescriptionPlaceholder": "任务说明或自由分享内容…（可选）"
+      "cardTitleLabel": "Card title",
+      "cardTitlePlaceholder": "Write a title (optional)",
+      "cardDescriptionLabel": "卡片描述",
+      "cardDescriptionPlaceholder": "任务描述或自由分享文字...（可选）"
     },
     "video": {
       "label": "视频（可选）",
-      "hint": "免费版中视频最长 30 秒。当前应用最多支持 3 分钟视频。",
+      "hint": "In the free version videos can be up to 30 seconds. The app currently supports videos up to 3 minutes.",
       "pick": "选择视频",
-      "change": "更换视频",
+      "change": "Change video",
       "notSelected": "尚未选择视频",
-      "selectedFallback": "已选择视频",
-      "tooLongTitle": "视频过长",
-      "tooLongBody": "目前只支持最长 3 分钟的视频。请剪短视频后重试。",
-      "overFreeLimitTitle": "视频超过 30 秒",
-      "overFreeLimitBody": "在免费版中，你要发送的视频必须短于 30 秒。更长视频将来可以通过 Pro 版本支持。",
-      "overFreeLimitCancel": "取消",
-      "overFreeLimitPro": "我对 Pro 感兴趣",
+      "selectedFallback": "Video selected",
+      "tooLongTitle": "Video is too long",
+      "tooLongBody": "Currently only videos up to 3 minutes are supported. Please shorten your video and try again.",
+      "overFreeLimitTitle": "Video is longer than 30 seconds",
+      "overFreeLimitBody": "In the free version, the video you want to send must be shorter than 30 seconds. You’ll be able to explore the Pro option for longer videos.",
+      "overFreeLimitCancel": "Cancel",
+      "overFreeLimitPro": "I’m curious about Pro",
       "proInfoTitle": "Viral Pro",
-      "proInfoBody": "你目前处于 Pro 功能的规划阶段。随着接近上线，你会进一步规划 Pro 和长视频支持。🚀",
-      "pickErrorTitle": "无法选择视频",
-      "pickErrorBody": "选择视频时发生错误，请重试。"
+      "proInfoBody": "You are currently at the planning stage of Pro features. As you get closer to launch, you’ll detail Pro and long-video support. 🚀",
+      "pickErrorTitle": "Video could not be selected",
+      "pickErrorBody": "An error occurred while selecting video. Please try again.",
+      "uploadFailedTitle": "Video could not be uploaded",
+      "uploadFailedBody": "Video could not be uploaded to the server. Check your internet/server."
     },
     "share": {
       "plannedLabel": "计划分享",
-      "freePostTip": "你也可以不绑定任务直接分享。自由分享视频、瞬间以及任何内容，它们会以独立卡片的形式出现在动态中。",
-      "platformNotConnectedTitle": "{{platform}} 账号未连接",
-      "platformNotConnectedBody": "若要在 {{platform}} 分享，你必须先将 {{platform}} 账号连接到 Viral。",
-      "platformNotConnectedCancel": "暂不连接账号",
-      "platformNotConnectedConnect": "将我的 {{platform}} 账号连接到 Viral",
-      "goProfileTitle": "前往个人资料页面",
-      "goProfileBody": "前往“个人资料”标签，在“账号连接”部分中连接你的 {{platform}} 账号。"
+      "freePostTip": "You can also share without a task. Freely share your videos, moments and anything you like; they’ll appear as independent cards in the feed.",
+      "platformNotConnectedTitle": "{{platform}} account not connected",
+      "platformNotConnectedBody": "To share on {{platform}}, you must connect your {{platform}} account to Viral.",
+      "platformNotConnectedCancel": "Do not connect my account",
+      "platformNotConnectedConnect": "Connect my {{platform}} account to Viral",
+      "goProfileTitle": "Go to profile screen",
+      "goProfileBody": "Go to the “Profile” tab and connect your {{platform}} account from the “Account connections” section."
     },
     "preview": {
       "label": "预览",
-      "taskPrefix": "已完成任务：",
-      "freePrefix": "分享已准备：",
-      "freeBadge": "自由分享卡片",
-      "taskBadge": "任务卡片",
-      "contentLabelTask": "内容",
-      "contentLabelFree": "分享内容",
-      "plannedLabel": "计划分享：",
-      "videoLabel": "📹 视频：{{label}}",
-      "videoFallback": "已选择视频",
-      "noTaskSelected": "尚未选择任务"
+      "taskPrefix": "Completed task: ",
+      "freePrefix": "Share ready: ",
+      "freeBadge": "Free share card",
+      "taskBadge": "Task card",
+      "contentLabelTask": "Content",
+      "contentLabelFree": "Share content",
+      "plannedLabel": "Planned share:",
+      "videoLabel": "📹 Video: {{label}}",
+      "videoFallback": "selected video",
+      "noTaskSelected": "No task selected"
     },
     "submit": {
-      "creating": "正在创建…",
+      "creating": "正在创建...",
       "task": "创建任务卡片",
       "free": "创建卡片"
     },
     "alerts": {
       "missingContentTitle": "警告",
-      "missingContentBody": "在创建卡片前，请选择任务或添加标题 / 说明 / 视频。",
+      "missingContentBody": "Select a task or add a title / description / video before creating the card.",
       "successTitle": "成功",
-      "successTaskBody": "任务卡片已分享到动态。",
-      "successFreeBody": "你的自由分享卡片已添加到动态。"
+      "successTaskBody": "Task card has been shared in the feed.",
+      "successFreeBody": "Your free share card has been added to the feed."
+    },
+    "praise": {
+      "tab": "赞美",
+      "screenTitle": "分享赞美",
+      "description": "给朋友写一句简短的赞美，并作为特别卡片分享。",
+      "friendLabel": "朋友",
+      "friendPlaceholder": "朋友姓名或用户名",
+      "friendFallback": "你的朋友",
+      "categoryLabel": "类别",
+      "messageLabel": "短消息",
+      "messagePlaceholder": "例如：你的能量今天鼓舞了所有人。",
+      "submit": "分享赞美",
+      "feedTitle": "给 @{{friend}} 的赞美",
+      "previewTitle": "给 @{{friend}} 的赞美",
+      "badge": "赞美卡片",
+      "previewMessageLabel": "赞美消息",
+      "previewEmptyMessage": "你的赞美消息会显示在这里。",
+      "previewFriendHint": "将标记 @{{friend}}",
+      "categoryFallback": "赞美",
+      "successTitle": "赞美已分享",
+      "successBody": "你的赞美卡片已添加到动态。",
+      "missingFriendTitle": "未选择朋友",
+      "missingFriendBody": "请为赞美分享填写朋友姓名。",
+      "missingMessageTitle": "缺少消息",
+      "missingMessageBody": "写一句简短的赞美消息。",
+      "categories": {
+        "kindness": "善良",
+        "success": "成功",
+        "support": "支持",
+        "energy": "能量",
+        "creativity": "创造力",
+        "leadership": "领导力"
+      }
+    },
+    "images": {
+      "pickErrorTitle": "无法选择照片",
+      "pickErrorBody": "选择照片时发生错误。",
+      "uploadFailedTitle": "照片无法上传",
+      "uploadFailedBody": "照片无法上传到服务器。请检查网络/服务器。"
     }
   },
   "tasks": {
     "screenTitle": "任务",
-    "statsLine": "进行中：{{active}} · 已完成：{{completed}}",
+    "statsLine": "Active: {{active}} · Completed: {{completed}}",
     "todayCard": {
-      "label": "今日任务",
-      "doneButton": "已完成"
+      "label": "Today’s task",
+      "doneButton": "Completed"
     },
     "levelCard": {
-      "label": "等级",
-      "streak": "🔥 连续天数：{{count}} 天",
-      "completedToday": "🎯 今日完成：{{count}}",
-      "longestStreak": "🏅 最长连续：{{count}} 天"
+      "label": "Level",
+      "streak": "🔥 Streak: {{count}} day(s)",
+      "completedToday": "🎯 Completed today: {{count}}",
+      "longestStreak": "🏅 Longest streak: {{count}} day(s)"
     },
     "modes": {
-      "givenTitle": "请求任务",
-      "selfTitle": "添加任务",
-      "givenDescription": "请求一个惊喜任务，让 Viral 为你选择。",
-      "selfDescription": "你可以在此页面为自己添加任务。"
+      "givenTitle": "Request a task",
+      "selfTitle": "Add task",
+      "givenDescription": "Request a surprise task; Viral chooses one for you.",
+      "selfDescription": "You can add tasks for yourself on this page."
     },
     "self": {
-      "inputPlaceholder": "例如：专注 20 分钟",
-      "scheduleQuestion": "你打算什么时候完成这个任务？",
-      "repeatQuestion": "这个任务是否重复？",
-      "reminderLabel": "提醒",
-      "reminderOn": "开",
-      "reminderOff": "关",
-      "addButton": "添加",
-      "backToFeedButton": "← 动态"
+      "inputPlaceholder": "e.g. 20 min focus",
+      "scheduleQuestion": "When will you do this task?",
+      "repeatQuestion": "Will this task repeat?",
+      "reminderLabel": "Reminder",
+      "reminderOn": "On",
+      "reminderOff": "Off",
+      "addButton": "Add",
+      "backToFeedButton": "← Feed"
     },
     "scheduleOptions": {
-      "today": "今天",
-      "tomorrow": "明天",
-      "thisWeek": "本周"
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This week"
     },
     "repeatOptions": {
-      "none": "一次性",
-      "daily": "每天",
-      "weekly": "每周"
+      "none": "One-time",
+      "daily": "Daily",
+      "weekly": "Weekly"
     },
     "categories": {
-      "general": "通用",
-      "school": "学习",
-      "work": "工作",
-      "health": "健康",
-      "family": "家庭",
-      "social": "社交"
+      "general": "General",
+      "school": "School",
+      "work": "Work",
+      "health": "Health",
+      "family": "Family",
+      "social": "Social"
     },
     "priorities": {
-      "low": "低",
-      "medium": "中",
-      "high": "高"
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
     },
     "templates": {
       "focus-25min": {
-        "title": "专注 25 分钟",
-        "description": "将手机静音，25 分钟内只专注于一件事。"
+        "title": "Focus for 25 minutes",
+        "description": "Silence your phone and focus on a single task for 25 minutes."
       },
       "focus-deep-clean": {
-        "title": "桌面 / 工作区小整理",
-        "description": "整理桌面上不需要的物品，来一次 10 分钟的“重新开始”。"
+        "title": "Mini desk / workspace clean-up",
+        "description": "Collect unnecessary items on your desk; create a 10-minute “fresh start” effect."
       },
       "focus-inbox-zero": {
-        "title": "清理收件箱",
-        "description": "今天至少删除或归档 5 封不必要的邮件。"
+        "title": "Lighten your inbox",
+        "description": "Delete or archive at least 5 unnecessary emails today."
       },
       "focus-no-scroll-20min": {
-        "title": "20 分钟“不刷屏”规则",
-        "description": "连续 20 分钟不刷任何社交媒体动态。"
+        "title": "20-minute “no scroll” rule",
+        "description": "Spend 20 minutes without scrolling any social media feed."
       },
       "health-steps-6000": {
-        "title": "今天走满 6000 步",
-        "description": "计划几次外出散步，总步数达到至少 6000 步。"
+        "title": "Take 6000 steps today",
+        "description": "Plan short walks outside; reach at least 6000 steps in total."
       },
       "health-water-6": {
-        "title": "至少喝 6 杯水",
-        "description": "把喝水分散到一天中，并进行记录。"
+        "title": "Drink at least 6 glasses of water",
+        "description": "Spread your water intake throughout the day and track it."
       },
       "health-stretch-10": {
-        "title": "10 分钟拉伸休息",
-        "description": "做一些针对颈部、肩膀和下背部的简单拉伸。"
+        "title": "10-minute stretch break",
+        "description": "Do simple stretch exercises for your neck, shoulders and lower back."
       },
       "health-walk-sunset": {
-        "title": "傍晚小散步",
-        "description": "在日落前后进行 15 分钟的户外散步。"
+        "title": "Evening mini walk",
+        "description": "Take a 15-minute fresh-air walk around sunset."
       },
       "work-priority-task": {
-        "title": "完成最重要的一件事",
-        "description": "选出今天最重要的任务，把它拆分成小步骤并完成。"
+        "title": "Finish your most important task",
+        "description": "Choose today’s most important task, break it into smaller steps and complete it."
       },
       "work-no-meeting-30": {
-        "title": "30 分钟无会议时间块",
-        "description": "在日程中划出 30 分钟安静专注时间，并避免安排会议。"
+        "title": "30-minute meeting-free block",
+        "description": "Create a 30-minute silent focus block in your calendar and avoid scheduling meetings in it."
       },
       "work-feedback-ask": {
-        "title": "请求反馈",
-        "description": "请同事就你完成的一项工作给出简短反馈。"
+        "title": "Ask for feedback",
+        "description": "Ask a teammate for brief feedback on a piece of work you did."
       },
       "work-small-win-share": {
-        "title": "记录今天的小胜利",
-        "description": "用一句话写下今天让你最开心的一项工作或进展。"
+        "title": "Note today’s small win",
+        "description": "Write down in one sentence the work / progress that made you happiest today."
       },
       "school-25min-study": {
-        "title": "25 分钟学习 / 复习",
-        "description": "只专注于一门科目，在不看手机的情况下学习 25 分钟。"
+        "title": "25 minutes of study / review",
+        "description": "Focus on only one subject; study 25 minutes without touching your phone."
       },
       "school-question-solve": {
-        "title": "至少做 10 道题",
-        "description": "从你选择的科目中，今天至少完成 10 道新题。"
+        "title": "Solve at least 10 questions",
+        "description": "Solve at least 10 new questions today from a subject you choose."
       },
       "school-notes-clean": {
-        "title": "整理笔记",
-        "description": "整理笔记本 / 电子笔记中的一个主题，并为其添加小标题。"
+        "title": "Organize your notes",
+        "description": "Clean up one topic in your notebook / digital notes and add headings."
       },
       "school-share-tip": {
-        "title": "给朋友分享一个学习技巧",
-        "description": "把你正在使用的学习方法（如番茄钟、彩色笔记等）分享给朋友。"
+        "title": "Send a study tip to a friend",
+        "description": "Share a study technique you use (Pomodoro, colorful notes, etc.) with a friend."
       },
       "family-call-parent": {
-        "title": "和家人短聊一下",
-        "description": "与父母或家人进行至少 5 分钟真诚的对话。"
+        "title": "Short chat with family",
+        "description": "Have at least a 5-minute sincere conversation with a parent or family member."
       },
       "family-eat-together": {
-        "title": "一起吃饭",
-        "description": "和家人一起在同一张桌子上无手机吃一顿饭。"
+        "title": "Eat together",
+        "description": "Have a meal with your family at the same table without phones."
       },
       "family-thank-message": {
-        "title": "发送感谢信息",
-        "description": "给一位家人写一条类似“有你真好”的简短感谢。"
+        "title": "Send a thank-you message",
+        "description": "Write a short “I’m glad you’re here” message to someone from your family."
       },
       "social-message-friend": {
-        "title": "给朋友发消息",
-        "description": "给一位很久没联系的人发条“最近怎么样？”的消息。"
+        "title": "Send a message to a friend",
+        "description": "Ask “How are you?” to someone you haven’t spoken to for a long time."
       },
       "social-comment-support": {
-        "title": "留下支持性的评论",
-        "description": "在朋友的分享下写一条真诚、鼓励的评论。"
+        "title": "Leave a supportive comment",
+        "description": "Write a sincere, supportive comment on a friend’s post."
       },
       "social-share-win": {
-        "title": "分享今天的“小胜利”",
-        "description": "准备把今天让你开心的一个瞬间保存成卡片。"
+        "title": "Share today’s “small win”",
+        "description": "Get ready to save a moment that made you happy today as a card."
       },
       "social-new-connection": {
-        "title": "建立一个新联系",
-        "description": "给一个你关注已久但从未私聊过的人发一条简短问候。"
+        "title": "Create a new connection",
+        "description": "Send a short hello message to someone you’ve followed for a long time but never written to."
       },
       "social-phone-free-coffee": {
-        "title": "无手机咖啡 / 茶歇",
-        "description": "和朋友或自己独处，进行 15 分钟不看手机的咖啡 / 茶歇。"
+        "title": "Phone-free coffee / tea break",
+        "description": "Spend a 15-minute coffee break with a friend or alone without your phone."
       },
       "viral-plan-card": {
-        "title": "策划一张 Viral 卡片",
-        "description": "想一个你今天想分享的瞬间、笔记或目标，并写下卡片标题。"
+        "title": "Plan a Viral card",
+        "description": "Think of a card idea for a moment, note or goal you want to share today and write its title."
       },
       "viral-gratitude-3": {
-        "title": "为 3 件事心怀感恩",
-        "description": "写下今天让你感恩的 3 件事（简短笔记），如果愿意可以把它们做成卡片。"
+        "title": "Be grateful for 3 things",
+        "description": "Write down 3 things you are grateful for today as short notes; you can turn them into a card if you like."
       },
       "viral-before-after": {
-        "title": "想一个前后对比照片点子",
-        "description": "找到一个可以做“前后对比”的内容，例如桌面整理、屏幕清理或散步路线。"
+        "title": "Find a before / after photo idea",
+        "description": "Find something you can show “before–after”, such as desk organization, screen clean-up or a walking route."
       }
     },
     "meta": {
-      "createdAt": "创建时间",
-      "completedAt": "完成时间",
-      "originGiven": "系统给你的任务",
-      "originSelf": "你给自己的任务",
-      "priorityPrefix": "优先级：{{priority}}",
-      "timePrefix": "时间：{{when}}",
-      "repeatPrefix": "重复：{{repeat}}"
+      "createdAt": "Created",
+      "completedAt": "Completed",
+      "originGiven": "Task given to you",
+      "originSelf": "Task to yourself",
+      "priorityPrefix": "Priority: {{priority}}",
+      "timePrefix": "Time: {{when}}",
+      "repeatPrefix": "Repeat: {{repeat}}"
     },
     "request": {
-      "areaTitle": "以惊喜形式获取今日任务。",
-      "areaSubtitle": "点击按钮，让 Viral 为你选择一个准备好的任务。",
-      "buttonIdle": "给我今日任务",
-      "buttonHasTask": "今日任务已就绪 👇",
-      "cardTitlePrefix": "今日任务：",
-      "doButton": "完成 ✓",
-      "changeButton": "更换",
-      "changeUsedLabel": "你今天的更换次数已用完"
+      "areaTitle": "Get today’s task as a surprise.",
+      "areaSubtitle": "Press the button and Viral chooses a ready task for you.",
+      "buttonIdle": "Give me today’s task",
+      "buttonHasTask": "Today’s task is ready 👇",
+      "cardTitlePrefix": "Today’s task: ",
+      "doButton": "Done ✓",
+      "changeButton": "Change",
+      "changeUsedLabel": "You’ve used your change for today"
     },
     "requestAlerts": {
-      "noMoreChangesTitle": "今天的更换次数已用完",
-      "noMoreChangesBody": "你每天最多可以更换一次任务。明天可以获取新任务。🙌",
-      "alreadyChangedBody": "你今天已经更换过一次任务了。"
+      "noMoreChangesTitle": "Your limit for today is reached",
+      "noMoreChangesBody": "You can change the ready task at most once per day. You can get a new task tomorrow. 🙌",
+      "alreadyChangedBody": "You have already changed today’s task once."
     },
     "completeRequested": {
-      "alertTitle": "恭喜 🎉",
-      "alertBody": "你已完成今日任务！\n\n等级：{{level}}\n今日完成：{{completedToday}}\n连续天数：{{streak}} 天",
-      "ok": "确定",
-      "createCard": "创建卡片"
+      "alertTitle": "Congratulations 🎉",
+      "alertBody": "You completed today’s task!\n\nLevel: {{level}}\nCompleted today: {{completedToday}}\nStreak: {{streak}} day(s)",
+      "ok": "OK",
+      "createCard": "Create card"
     },
     "sections": {
-      "activeTitle": "进行中的任务",
-      "activeEmpty": "目前没有进行中的任务。你可以添加新任务。",
-      "completedTitle": "已完成的任务",
-      "completedEmpty": "还没有完成的任务。",
-      "completedToggleShow": "显示",
-      "completedToggleHide": "隐藏",
-      "completedClear": "清除",
-      "completedReactivate": "重新激活",
-      "completedCreateCard": "创建卡片",
-      "completedShowMore": "显示最近 3 个任务 – 查看全部",
-      "completedShowLess": "正在查看全部 – 只显示最近 3 个"
+      "activeTitle": "Active tasks",
+      "activeEmpty": "There are no active tasks at the moment. You can add a new task.",
+      "completedTitle": "Completed tasks",
+      "completedEmpty": "No tasks have been completed yet.",
+      "completedToggleShow": "Show",
+      "completedToggleHide": "Hide",
+      "completedClear": "Clear",
+      "completedReactivate": "Activate again",
+      "completedCreateCard": "Create card",
+      "completedShowMore": "Showing last 3 tasks – View all",
+      "completedShowLess": "You’re viewing all – Show only last 3"
     },
     "buttons": {
-      "edit": "编辑",
-      "delete": "删除"
+      "edit": "Edit",
+      "delete": "Delete"
     },
     "alerts": {
-      "clearCompletedTitle": "清除已完成任务",
-      "clearCompletedBody": "所有已完成任务将被删除。进行中的任务不会受影响。\n\n确定吗？",
-      "clearCancel": "取消",
-      "clearConfirm": "是的，删除",
-      "deleteTaskTitle": "删除任务",
-      "deleteTaskBody": "你是只想从“任务”页面删除这个任务，还是也要删除动态中由此任务生成的卡片？",
-      "deleteCancel": "取消",
-      "deleteOnlyTask": "仅从任务列表中删除",
-      "deleteTaskAndCards": "删除任务及其卡片"
+      "clearCompletedTitle": "Clear completed tasks",
+      "clearCompletedBody": "All completed tasks will be deleted. Active tasks will remain.\n\nAre you sure?",
+      "clearCancel": "Cancel",
+      "clearConfirm": "Yes, delete",
+      "deleteTaskTitle": "Delete task",
+      "deleteTaskBody": "Do you want to remove this task only from the Tasks screen, or also delete the cards created from this task in the Feed?",
+      "deleteCancel": "Cancel",
+      "deleteOnlyTask": "Delete only from task list",
+      "deleteTaskAndCards": "Delete task and its cards"
     },
     "edit": {
-      "title": "编辑任务",
-      "placeholder": "任务标题",
-      "cancel": "取消",
-      "save": "保存"
+      "title": "Edit task",
+      "placeholder": "Task title",
+      "cancel": "Cancel",
+      "save": "Save"
     },
     "completeModal": {
-      "title": "任务已完成 🎉",
-      "text": "如果你愿意，可以将此任务以卡片形式分享到动态。",
-      "later": "稍后",
-      "createCard": "创建卡片"
+      "title": "Task completed 🎉",
+      "text": "If you want, you can share this task as a card in the Feed.",
+      "later": "Later",
+      "createCard": "Create card"
     },
-    "completeCardPrefix": "任务已完成：",
+    "completeCardPrefix": "Task completed: ",
     "pro": {
-      "title": "给朋友分配任务（Pro）",
-      "body": "即将推出：你可以给好友列表中的人分配任务并向他们发送通知。此功能将面向 Viral Pro 用户开放。",
-      "button": "我对 Pro 感兴趣",
+      "title": "Assign a task to a friend (Pro)",
+      "body": "Coming soon: you’ll be able to assign tasks to people from your friends list and send them notifications. This feature will be for Viral Pro users.",
+      "button": "I’m curious about Pro",
       "alertTitle": "Viral Pro",
-      "alertBody": "你目前处于 Pro 功能的规划阶段。应用接近上线时，你会进一步明确详情。🚀"
+      "alertBody": "You are in the planning phase for Pro features. As the app gets closer to launch, you’ll clarify the details. 🚀"
     }
   },
   "sharePanel": {
-    "title": "分享",
-    "shareTitle": "分享",
-    "infoText": "你可以使用已连接的账户进行分享。",
-    "shareBody": "你可以使用已连接的账户进行分享。",
-    "noAccounts": "尚未连接任何账户。",
-    "connectButton": "连接账户",
-    "cancel": "取消",
-    "shareAll": "在所有账户分享",
-    "shareAllButton": "在所有账户分享",
-    "connectFallbackTitle": "连接账户",
-    "connectFallbackBody": "请在个人资料中连接账户。",
-    "infoTitle": "关于分享",
-    "infoBody": "分享为模拟。",
-    "shareAllTitle": "全部分享",
-    "shareAllBody": "模拟分享。"
+    "title": "Share",
+    "shareTitle": "Share",
+    "infoText": "You can share on external platforms using your connected accounts. Platforms may open their own share screens.",
+    "shareBody": "You can share on external platforms using your connected accounts.",
+    "noAccounts": "You haven't connected any accounts yet.\nPlease connect accounts before sharing.",
+    "connectButton": "Connect Accounts",
+    "cancel": "Cancel",
+    "shareAll": "Share on all accounts",
+    "shareAllButton": "Share on all accounts",
+    "connectFallbackTitle": "Connect your accounts",
+    "connectFallbackBody": "You can add external accounts from the \"Connect Accounts\" section in your profile.",
+    "infoTitle": "About external sharing",
+    "infoBody": "You see a summary below to share cards created on Viral to your connected accounts. In this version, sharing is informational; you must open the relevant app for actual sharing.",
+    "shareAllTitle": "Share on all accounts",
+    "shareAllBody": "We assume you shared on your connected accounts. Sharing is simulated in this version."
   },
   "share": {
     "requireAccounts": {
-      "title": "连接你的账号",
-      "desc": "要在外部平台分享，你必须先连接账号。",
-      "desc2": "你可以在个人资料页面的“连接我的账号”部分添加外部账号。",
-      "connectButton": "连接我的账号",
-      "cancelButton": "取消",
-      "okButton": "确定"
+      "title": "Connect your accounts",
+      "desc": "To share on external platforms, you must connect your accounts first.",
+      "desc2": "You can add your external accounts from the \"Connect my accounts\" section on your profile screen.",
+      "connectButton": "Connect my accounts",
+      "cancelButton": "Cancel",
+      "okButton": "OK"
     }
   },
   "nav": {
     "feed": "动态",
-    "upload": "发布",
+    "upload": "上传",
     "tasks": "任务",
     "profile": "个人资料",
     "logout": "退出登录"
   },
   "feed": {
     "guestName": "访客",
-    "headerTitle": "动态",
+    "headerTitle": "Feed",
     "headerSub": "你好，{{name}} 👋",
-    "headerTagline": "你的任务、视频和分享——都会汇聚在这里。",
+    "headerTagline": "Your tasks, videos and shares — all meet here.",
     "focusNetwork": {
-      "button": "前往 Focus 网络"
+      "button": "Go to Focus Network"
     },
     "filters": {
-      "all": "全部",
-      "mine": "我的",
-      "tasks": "任务卡片",
-      "video": "视频",
-      "external": "外部活动"
+      "all": "All",
+      "mine": "Mine",
+      "tasks": "Task cards",
+      "video": "Video",
+      "external": "External activity"
     },
-    "refreshBanner": "动态已刷新。",
+    "refreshBanner": "Feed refreshed.",
     "empty": {
-      "loading": "正在加载动态…",
-      "noPosts": "尚无任何分享。",
-      "cta": "创建你的第一条任务 / 视频"
+      "loading": "Loading feed...",
+      "noPosts": "There are no shares yet.",
+      "cta": "Create your first task / video"
     },
     "post": {
-      "genericTitle": "分享",
-      "genericName": "帖子"
+      "genericTitle": "Share",
+      "genericName": "Post",
+      "readMore": "... 查看更多",
+      "showLess": "收起"
     },
     "badges": {
-      "taskCard": "任务卡片"
+      "taskCard": "Task card"
     },
     "external": {
-      "badge": "外部分享"
+      "badge": "External share"
     },
     "labels": {
-      "descriptionPrefix": "说明："
+      "descriptionPrefix": "Description:"
+    },
+    "text": {
+      "showMore": "... See more",
+      "showLess": "Show less"
     },
     "share": {
-      "planned": "计划分享：{{targets}}",
-      "last": "上次分享：{{date}}（{{targets}}）",
-      "alsoSharedOn": "同时分享至：",
-      "defaultText": "Viral 分享",
-      "shareText": "{{platform}} 的分享文本：\n{{text}}",
-      "simulationTitle": "分享（模拟）",
-      "simulationMessage": "我们认为已在 {{platform}} 上完成了一次分享。",
-      "errorTitle": "分享",
-      "errorMessage": "分享已取消或发生错误。",
-      "choose": "选择分享",
-      "previewTitle": "分享预览",
-      "previewFallback": "分享文本",
-      "simulateButton": "分享（模拟）",
-      "plannedShort": "已计划",
-      "noAccountsTitle": "请先连接你的账号",
-      "noAccountsBody": "要在外部平台分享，你需要先连接账号。",
-      "goProfileTitle": "连接你的账号",
-      "goProfileBody": "在“个人资料”页面的“连接我的账号”部分添加外部账号。"
+      "planned": "Scheduled sharing: {{targets}}",
+      "last": "Last share: {{date}} ({{targets}})",
+      "alsoSharedOn": "Also shared on:",
+      "defaultText": "Viral post",
+      "shareText": "Share text for {{platform}}:\n{{text}}",
+      "simulationTitle": "Share (simulation)",
+      "simulationMessage": "We assume that a share was made on {{platform}}.",
+      "errorTitle": "Share",
+      "errorMessage": "Sharing was cancelled or an error occurred.",
+      "choose": "Choose share",
+      "previewTitle": "Share preview",
+      "previewFallback": "Share text",
+      "simulateButton": "Share (simulation)",
+      "plannedShort": "Planned",
+      "noAccountsTitle": "Connect your accounts first",
+      "noAccountsBody": "To share on external platforms, you need to connect your accounts first.",
+      "goProfileTitle": "Connect your accounts",
+      "goProfileBody": "On the Profile screen, use the “Connect my accounts” section to add your external accounts."
     },
     "video": {
-      "info": "📹 此卡片包含一个计划中的视频。",
-      "watch": "观看视频",
-      "sheetTitlePrefix": "带视频的卡片："
+      "info": "📹 A video is planned with this card.",
+      "watch": "Watch video",
+      "sheetTitlePrefix": "Card with video:"
     },
     "comments": {
-      "offLabel": "评论已关闭",
-      "cta": "写评论",
-      "count": "{{count}} 条评论",
-      "title": "评论",
-      "toggleOpen": "打开评论",
-      "toggleClose": "关闭评论",
-      "empty": "还没有评论，来写第一条吧 🙂",
-      "disabledTitle": "评论已关闭",
-      "disabledMessage": "此帖子已关闭评论。",
-      "disabledInfo": "此帖子已关闭评论。你只能查看已有评论。",
-      "placeholder": "写一条评论…",
-      "replyPlaceholder": "回复 {{author}}…",
-      "replyingTo": "你正在回复：{{author}}",
-      "send": "发送",
-      "actionsTitle": "评论操作",
-      "deleteQuestion": "删除这条评论？",
-      "delete": "删除评论",
-      "reply": "回复"
+      "offLabel": "Comments turned off",
+      "cta": "Write a comment",
+      "count": "{{count}} comment(s)",
+      "title": "Comments",
+      "toggleOpen": "Open comments",
+      "toggleClose": "Close comments",
+      "empty": "No comments yet. Be the first one 🙂",
+      "disabledTitle": "Comments turned off",
+      "disabledMessage": "Comments are turned off for this post.",
+      "disabledInfo": "Comments are turned off for this post. You can only view existing comments.",
+      "placeholder": "Write a comment...",
+      "replyPlaceholder": "Reply to {{author}}...",
+      "replyingTo": "You’re replying to: {{author}}",
+      "send": "Send",
+      "actionsTitle": "Comment actions",
+      "deleteQuestion": "Delete this comment?",
+      "delete": "Delete comment",
+      "reply": "Reply"
     },
     "notifications": {
-      "title": "通知",
-      "markAll": "全部标记为已读",
-      "empty": "你还没有任何通知。当你发表评论或调整设置时，通知会显示在这里。",
-      "commentsToggle": "你已{{state}}帖子“{{title}}”的评论。",
-      "stateClosed": "关闭",
-      "stateOpened": "开启",
-      "close": "关闭",
-      "addedComment": "你给“{{title}}”这条帖子添加了一条评论。",
+      "title": "Notifications",
+      "markAll": "Mark all as read",
+      "empty": "You don’t have any notifications yet. As you comment and play with settings, your notifications will appear here.",
+      "commentsToggle": "You {{state}} comments for the post titled “{{title}}”.",
+      "stateClosed": "turned off",
+      "stateOpened": "turned on",
+      "close": "Close",
+      "addedComment": "You added a comment to the post titled “{{title}}”.",
       "reported": "You reported the post “{{title}}”.",
       "blocked": "You blocked {{author}}."
     },
     "freeVideo": {
-      "title": "视频",
-      "message": "你想如何处理这个视频？",
-      "delete": "删除视频"
+      "title": "Video",
+      "message": "What do you want to do with this video?",
+      "delete": "Delete video"
     },
     "postActions": {
-      "title": "帖子操作",
-      "message": "你想对这条帖子做什么？",
-      "archive": "归档卡片",
-      "delete": "删除卡片",
-      "noPermission": "这张卡不属于你，你无法删除。",
+      "title": "Post actions",
+      "message": "What would you like to do with this post?",
+      "archive": "Archive card",
+      "delete": "Delete card",
+      "noPermission": "This card isn't yours. You can't delete it.",
       "report": "Report",
       "blockUser": "Block User"
     },
     "time": {
-      "justNow": "刚刚",
-      "minutesAgo": "{{count}} 分钟前",
-      "hoursAgo": "{{count}} 小时前",
-      "yesterday": "昨天",
-      "daysAgo": "{{count}} 天前"
+      "justNow": "just now",
+      "minutesAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} h ago",
+      "yesterday": "yesterday",
+      "daysAgo": "{{count}} day(s) ago"
     },
     "report": {
       "successTitle": "Report received",
@@ -654,136 +701,136 @@
   },
   "auth": {
     "switch": {
-      "title": "切换用户",
-      "body": "将清空输入内容。登录需要邮箱/手机号 + 密码。"
+      "title": "Switch user",
+      "body": "Fields will be cleared. Email/phone + password are required to sign in."
     },
     "welcome": {
-      "title": "欢迎 👋",
-      "subtitle": "真实用户注册表单。"
+      "title": "Welcome 👋",
+      "subtitle": "Registration form for real users."
     },
     "login": {
-      "title": "登录",
-      "subtitle": "使用邮箱/手机号和密码登录。",
-      "identifierPlaceholder": "邮箱或手机号",
-      "passwordPlaceholder": "你的密码",
-      "loginButton": "登录",
-      "loading": "登录中...",
-      "forgotPassword": "忘记密码？",
-      "newHere": "新用户？创建账号",
-      "haveAccount": "已有账号？登录",
-      "switchUser": "切换用户",
-      "backToLogin": "← 返回登录页面"
+      "title": "Sign in",
+      "subtitle": "Sign in with your email/phone and password.",
+      "identifierPlaceholder": "Email or Phone",
+      "passwordPlaceholder": "Your password",
+      "loginButton": "Sign in",
+      "loading": "Signing in...",
+      "forgotPassword": "Forgot password?",
+      "newHere": "New here? Create an account",
+      "haveAccount": "Already have an account? Sign in",
+      "switchUser": "Switch user",
+      "backToLogin": "← Back to login"
     },
     "register": {
-      "subtitle": "真实用户注册表单。",
-      "fullNameLabel": "姓名",
-      "fullNamePlaceholder": "姓名",
-      "emailLabel": "邮箱",
+      "subtitle": "Registration form for real users.",
+      "fullNameLabel": "Full name",
+      "fullNamePlaceholder": "Full name",
+      "emailLabel": "Email",
       "emailPlaceholder": "example@mail.com",
-      "phoneLabel": "手机号",
+      "phoneLabel": "Phone",
       "phonePlaceholder": "5xx xxx xx xx",
-      "passwordLabel": "密码",
-      "passwordPlaceholder": "你的密码",
-      "passwordConfirmLabel": "确认密码",
-      "passwordConfirmPlaceholder": "再次输入密码",
-      "passwordHint": "密码至少 8 位，并包含大小写字母、数字和符号。",
-      "submit": "创建账号",
-      "haveAccount": "已有账号？登录",
-      "cta": "已有账号？登录"
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Your password",
+      "passwordConfirmLabel": "Password (confirm)",
+      "passwordConfirmPlaceholder": "Confirm password",
+      "passwordHint": "Password must be at least 8 characters and include upper/lowercase letters, a number, and a symbol.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account? Sign in",
+      "cta": "Already have an account? Sign in"
     },
     "forgot": {
-      "title": "忘记密码",
-      "subtitle": "你可以使用已注册的邮箱或手机号接收验证码。",
-      "email": "邮箱",
-      "phone": "手机号",
-      "channelEmail": "邮箱",
-      "channelPhone": "手机号",
-      "emailPlaceholder": "你注册的邮箱",
-      "sendCode": "发送验证码",
-      "verifyTitle": "验证验证码",
-      "verifySubtitle": "输入验证码和新密码。",
-      "codePlaceholder": "验证码",
-      "newPasswordPlaceholder": "新密码",
-      "newPasswordConfirmPlaceholder": "新密码（确认）",
-      "updateButton": "更新密码",
-      "backToLogin": "← 返回登录"
+      "title": "Forgot password",
+      "subtitle": "You can receive a verification code using your registered email address or phone number.",
+      "email": "Email",
+      "phone": "Phone",
+      "channelEmail": "Email",
+      "channelPhone": "Phone",
+      "emailPlaceholder": "Your registered email address",
+      "sendCode": "Send verification code",
+      "verifyTitle": "Verify code",
+      "verifySubtitle": "Enter the verification code and your new password.",
+      "codePlaceholder": "Verification code",
+      "newPasswordPlaceholder": "New password",
+      "newPasswordConfirmPlaceholder": "New password (confirm)",
+      "updateButton": "Update password",
+      "backToLogin": "← Back to login"
     }
   },
   "focusNetwork": {
-    "title": "专注网络",
-    "subtitle": "在这里，你只会看到你选择的人发布的内容。",
+    "title": "Focus Network",
+    "subtitle": "Here you only see posts from people you selected.",
     "tabs": {
-      "network": "我的网络",
-      "discover": "发现",
-      "requests": "请求"
+      "network": "My Network",
+      "discover": "Discover",
+      "requests": "Requests"
     },
     "search": {
-      "networkPlaceholder": "在你的网络中搜索（@用户、姓名）...",
-      "discoverPlaceholder": "发现：@handle / 姓名 / 邮箱 / 电话...",
-      "requestsPlaceholder": "搜索请求..."
+      "networkPlaceholder": "Search your network (@user, name)...",
+      "discoverPlaceholder": "Discover: @handle / name / email / phone...",
+      "requestsPlaceholder": "Search requests..."
     },
     "sections": {
-      "network": "我的网络",
-      "discover": "发现",
-      "incomingRequests": "收到的请求"
+      "network": "My Network",
+      "discover": "Discover",
+      "incomingRequests": "Incoming requests"
     },
     "count": {
-      "people": "{{count}} 人",
-      "requests": "{{count}} 个请求"
+      "people": "{{count}} people",
+      "requests": "{{count}} requests"
     },
     "summary": {
-      "inNetwork": "在专注网络中。",
-      "alreadyInNetwork": "已经在你的网络中。",
-      "incomingRequest": "已向你发送请求。",
-      "outgoingPending": "请求已发送（等待中）。",
-      "discoverFallback": "从发现列表中添加。",
-      "requestPending": "好友请求等待中。"
+      "inNetwork": "In focus network.",
+      "alreadyInNetwork": "Already in your network.",
+      "incomingRequest": "Sent you a request.",
+      "outgoingPending": "Request sent (pending).",
+      "discoverFallback": "Add from the discover list.",
+      "requestPending": "Friend request is pending."
     },
     "actions": {
-      "detail": "详情",
-      "accept": "接受",
-      "decline": "拒绝",
-      "sendRequest": "发送请求",
-      "addPerson": "添加联系人",
-      "removeFromNetwork": "从网络中移除",
-      "inMyNetwork": "在我的网络中",
-      "pending": "等待中",
-      "requestExists": "已有请求"
+      "detail": "Details",
+      "accept": "Accept",
+      "decline": "Decline",
+      "sendRequest": "Send request",
+      "addPerson": "Add person",
+      "removeFromNetwork": "Remove from network",
+      "inMyNetwork": "In my network",
+      "pending": "Pending",
+      "requestExists": "Request exists"
     },
     "banner": {
-      "newRequestTitle": "新的连接请求",
-      "newRequestBody": "有 {{count}} 个新请求。点击查看。"
+      "newRequestTitle": "New connection request",
+      "newRequestBody": "{{count}} new requests. Tap to view."
     },
     "empty": {
-      "noSearchMatch": "未找到匹配的人。",
-      "noResults": "当前没有结果。",
-      "noPendingRequests": "没有待处理请求。"
+      "noSearchMatch": "No matching person found.",
+      "noResults": "No results right now.",
+      "noPendingRequests": "No pending requests."
     },
     "note": {
-      "backendDiscover": "注意：发现列表来自后端。如果没有连接，结果可能不会更新。"
+      "backendDiscover": "Note: The discover list comes from the backend. If there is no connection, results may not update."
     },
     "detail": {
-      "rule1": "• 好友系统：发送请求 → 对方接受。",
-      "rule2": "• 没有强制连接。一切都通过确认进行。",
-      "rule3": "• 如果没有连接，操作可能会失败。"
+      "rule1": "• Friendship system: send request → other side accepts.",
+      "rule2": "• No forced connection. Everything proceeds with approval.",
+      "rule3": "• If there is no connection, actions may fail."
     },
     "alerts": {
-      "loginRequiredTitle": "需要登录",
-      "loginRequiredBody": "此操作需要用户会话。",
-      "alreadyInNetworkTitle": "已经在你的网络中",
-      "alreadyInNetworkBody": "此人已经在你的专注网络中。",
-      "pendingTitle": "等待中",
-      "pendingBody": "你已经向此人发送过请求。请等待对方接受。",
-      "requestExistsTitle": "已有请求",
-      "requestExistsBody": "此人已经向你发送了请求。你可以在“请求”标签中接受。",
-      "actionFailedWithConnection": "操作失败。（连接问题？）",
-      "declineFailed": "拒绝失败。",
-      "requestSendFailed": "无法发送请求。（连接问题？）",
-      "acceptFailed": "无法接受。（连接问题？）"
+      "loginRequiredTitle": "Login required",
+      "loginRequiredBody": "A user session is required for this action.",
+      "alreadyInNetworkTitle": "Already in your network",
+      "alreadyInNetworkBody": "This person is already in your Focus Network.",
+      "pendingTitle": "Pending",
+      "pendingBody": "You already sent a request to this person. Wait for them to accept it.",
+      "requestExistsTitle": "Request exists",
+      "requestExistsBody": "This person has already sent you a request. You can accept it from the “Requests” tab.",
+      "actionFailedWithConnection": "Action failed. (Connection?)",
+      "declineFailed": "Decline action failed.",
+      "requestSendFailed": "Request could not be sent. (Connection?)",
+      "acceptFailed": "Could not accept. (Connection?)"
     },
     "net": {
-      "invalidBaseUrl": "API_BASE_URL 看起来无效。",
-      "onlineFetchError": "专注网络在线获取错误"
+      "invalidBaseUrl": "API_BASE_URL seems invalid.",
+      "onlineFetchError": "Focus Network online fetch error"
     }
   }
 }

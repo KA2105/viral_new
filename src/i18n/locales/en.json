@@ -169,8 +169,8 @@
     "screenTitleTask": "Create task card",
     "screenTitleFree": "Create share card",
     "mode": {
-      "task": "Task share",
-      "free": "Free share",
+      "task": "Task",
+      "free": "Free",
       "taskDescription": "You can select one of the tasks you completed and share it as a card.",
       "freeDescription": "You are currently creating a free share card without choosing a task.",
       "toggleHideTasks": "Hide",
@@ -201,7 +201,9 @@
       "proInfoTitle": "Viral Pro",
       "proInfoBody": "You are currently at the planning stage of Pro features. As you get closer to launch, you’ll detail Pro and long-video support. 🚀",
       "pickErrorTitle": "Video could not be selected",
-      "pickErrorBody": "An error occurred while selecting video. Please try again."
+      "pickErrorBody": "An error occurred while selecting video. Please try again.",
+      "uploadFailedTitle": "Video could not be uploaded",
+      "uploadFailedBody": "Video could not be uploaded to the server. Check your internet/server."
     },
     "share": {
       "plannedLabel": "Planned share",
@@ -237,6 +239,45 @@
       "successTitle": "Success",
       "successTaskBody": "Task card has been shared in the feed.",
       "successFreeBody": "Your free share card has been added to the feed."
+    },
+    "praise": {
+      "tab": "Praise",
+      "screenTitle": "Praise Share",
+      "description": "Write a short praise message for a friend and share it as a special card.",
+      "friendLabel": "Friend",
+      "friendPlaceholder": "Friend name or username",
+      "friendFallback": "your friend",
+      "categoryLabel": "Category",
+      "messageLabel": "Short message",
+      "messagePlaceholder": "Example: Your energy lifted everyone today.",
+      "submit": "Share Praise",
+      "feedTitle": "Praise for @{{friend}}",
+      "previewTitle": "Praise for @{{friend}}",
+      "badge": "Praise Card",
+      "previewMessageLabel": "Praise message",
+      "previewEmptyMessage": "Your praise message will appear here.",
+      "previewFriendHint": "@{{friend}} will be tagged",
+      "categoryFallback": "Praise",
+      "successTitle": "Praise shared",
+      "successBody": "Your praise card has been added to the feed.",
+      "missingFriendTitle": "No friend selected",
+      "missingFriendBody": "Write a friend name for the praise share.",
+      "missingMessageTitle": "Message missing",
+      "missingMessageBody": "Write a short praise message.",
+      "categories": {
+        "kindness": "Kindness",
+        "success": "Success",
+        "support": "Support",
+        "energy": "Energy",
+        "creativity": "Creativity",
+        "leadership": "Leadership"
+      }
+    },
+    "images": {
+      "pickErrorTitle": "Photos could not be selected",
+      "pickErrorBody": "An error occurred while selecting photos.",
+      "uploadFailedTitle": "Photos could not be uploaded",
+      "uploadFailedBody": "Photos could not be uploaded to the server. Check your internet/server."
     }
   },
   "tasks": {
@@ -537,7 +578,9 @@
     },
     "post": {
       "genericTitle": "Share",
-      "genericName": "Post"
+      "genericName": "Post",
+      "readMore": "... See more",
+      "showLess": "Show less"
     },
     "badges": {
       "taskCard": "Task card"
@@ -547,6 +590,10 @@
     },
     "labels": {
       "descriptionPrefix": "Description:"
+    },
+    "text": {
+      "showMore": "... See more",
+      "showLess": "Show less"
     },
     "share": {
       "planned": "Scheduled sharing: {{targets}}",

@@ -132,6 +132,84 @@ function resolveAvatarUri(u: any): string | null {
   return s;
 }
 
+function sortFocusProfilesByName(items: FocusProfile[]): FocusProfile[] {
+  const arr = Array.isArray(items) ? [...items] : [];
+  return arr.sort((a, b) => {
+    const an = String(a?.name || a?.handle || '').trim();
+    const bn = String(b?.name || b?.handle || '').trim();
+    return an.localeCompare(bn, 'tr', { sensitivity: 'base' });
+  });
+}
+
+function sortFocusProfilesByNewest(items: FocusProfile[]): FocusProfile[] {
+  const arr = Array.isArray(items) ? [...items] : [];
+  return arr.sort((a: any, b: any) => {
+    const at = Date.parse(String(a?.createdAt ?? a?.updatedAt ?? ''));
+    const bt = Date.parse(String(b?.createdAt ?? b?.updatedAt ?? ''));
+    const av = Number.isFinite(at) ? at : 0;
+    const bv = Number.isFinite(bt) ? bt : 0;
+    if (bv !== av) return bv - av;
+
+    const aid = Number(a?.id ?? 0);
+    const bid = Number(b?.id ?? 0);
+    if (Number.isFinite(aid) && Number.isFinite(bid) && bid !== aid) return bid - aid;
+
+    return 0;
+  });
+}
+
+
+function getFocusUserKey(user: any): string {
+  const candidates = [
+    user?.id,
+    user?.userId,
+    user?.deviceId,
+    user?.email,
+    user?.phone,
+    user?.handle,
+    user?.displayName,
+    user?.fullName,
+  ];
+
+  for (const c of candidates) {
+    if (c == null) continue;
+    const v = String(c).trim().toLowerCase();
+    if (v) return v;
+  }
+
+  return '';
+}
+
+function mergeFocusUsersByKey(...lists: any[][]): any[] {
+  const map = new Map<string, any>();
+
+  lists.forEach(list => {
+    if (!Array.isArray(list)) return;
+
+    list.forEach(user => {
+      if (!user || typeof user !== 'object') return;
+      const key = getFocusUserKey(user);
+      if (!key) return;
+
+      const existing = map.get(key);
+      const existingRel = existing?.relationship != null ? String(existing.relationship) : '';
+      const incomingRel = user?.relationship != null ? String(user.relationship) : '';
+      const relationship =
+        existingRel === 'friend' || incomingRel === 'friend'
+          ? 'friend'
+          : existingRel === 'incoming' || incomingRel === 'incoming'
+          ? 'incoming'
+          : existingRel === 'outgoing' || incomingRel === 'outgoing'
+          ? 'outgoing'
+          : incomingRel || existingRel || 'none';
+
+      map.set(key, { ...(existing || {}), ...user, relationship });
+    });
+  });
+
+  return Array.from(map.values());
+}
+
 const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
@@ -157,6 +235,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
   const [selectedProfile, setSelectedProfile] = useState<FocusProfile | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
+  const [avatarViewerUri, setAvatarViewerUri] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<TabKey>('network');
 
@@ -176,6 +255,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
   const [manualDiscover, setManualDiscover] = useState<any[] | null>(null);
   const [manualIncoming, setManualIncoming] = useState<any[] | null>(null);
   const [netHint, setNetHint] = useState<string>('');
+  const [focusLoading, setFocusLoading] = useState(true);
 
   const seenKey = useMemo(() => {
     if (!userId) return `${FOCUS_NETWORK_SEEN_REQUESTS_KEY}:guest`;
@@ -241,17 +321,19 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
         if (!base || !/^https?:\/\//i.test(base)) {
           setNetHint(t('focusNetwork.net.invalidBaseUrl', 'API_BASE_URL geçersiz görünüyor.'));
+          setFocusLoading(false);
           return;
         }
 
-        setNetHint(`API: ${base}`);
+        setNetHint('');
+        setFocusLoading(true);
 
         const uid = userId ?? undefined;
 
         const discoverUrl =
           uid != null
-            ? `${base}/users/search?limit=30&userId=${encodeURIComponent(String(uid))}`
-            : `${base}/users/search?limit=30`;
+            ? `${base}/users/search?limit=5000&userId=${encodeURIComponent(String(uid))}`
+            : `${base}/users/search?limit=5000`;
 
         const friendsUrl = uid != null ? `${base}/friends/list?userId=${encodeURIComponent(String(uid))}` : null;
 
@@ -276,6 +358,8 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         setNetHint(
           `${t('focusNetwork.net.onlineFetchError', 'Focus Ağı online fetch hata')}: ${e?.message || String(e)}`,
         );
+      } finally {
+        setFocusLoading(false);
       }
     };
 
@@ -299,6 +383,26 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
     const q = search.trim();
     const tmr = setTimeout(() => {
       searchUsers({ userId: userId ?? undefined, q });
+
+      const runManualSearch = async () => {
+        try {
+          const base = String(API_BASE_URL || '').replace(/\/+$/, '');
+          if (!base || !/^https?:\/\//i.test(base)) return;
+
+          const params = new URLSearchParams();
+          params.set('limit', '5000');
+          if (userId != null) params.set('userId', String(userId));
+          if (q) params.set('q', q);
+
+          const data = await fetchJson<any>(`${base}/users/search?${params.toString()}`);
+          const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+          setManualDiscover(items);
+        } catch (e) {
+          console.warn('[FocusNetwork] manual discover search failed:', e);
+        }
+      };
+
+      runManualSearch();
     }, 250);
 
     return () => clearTimeout(tmr);
@@ -358,15 +462,15 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
   // ✅ UI listelerine FocusProfile mapping
   const myNetworkProfiles: FocusProfile[] = useMemo(() => {
     const sourceFriends =
-      hydrated && !hydrateError && Array.isArray(friends)
-        ? friends
-        : Array.isArray(manualFriends)
+      Array.isArray(manualFriends)
         ? manualFriends
+        : hydrated && !hydrateError && Array.isArray(friends)
+        ? friends
         : null;
 
-    if (!sourceFriends) return INITIAL_MY_NETWORK;
+    if (!sourceFriends) return focusLoading ? [] : sortFocusProfilesByName(INITIAL_MY_NETWORK);
 
-    return sourceFriends.map((u: any) => {
+    return sortFocusProfilesByName(sourceFriends.map((u: any) => {
       const handle = u?.handle ? `@${String(u.handle).replace(/^@+/, '')}` : '@viral_user';
       const name = u?.fullName || u?.displayName || 'Viral user';
       const avatarUri = resolveAvatarUri(u);
@@ -377,20 +481,30 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         summary: u?.bio ? String(u.bio) : t('focusNetwork.summary.inNetwork', 'Focus ağında.'),
         avatarUri,
       };
-    });
-  }, [friends, hydrated, hydrateError, manualFriends, t]);
+    }));
+  }, [friends, hydrated, hydrateError, manualFriends, focusLoading, t]);
 
   const discoverProfiles: FocusProfile[] = useMemo(() => {
-    const sourceDiscover =
-      hydrated && !hydrateError && Array.isArray(discover)
-        ? discover
-        : Array.isArray(manualDiscover)
-        ? manualDiscover
-        : null;
+    const storeDiscover = hydrated && !hydrateError && Array.isArray(discover) ? discover : [];
+    const storeFriends = hydrated && !hydrateError && Array.isArray(friends) ? friends : [];
+    const manualDiscoverList = Array.isArray(manualDiscover) ? manualDiscover : [];
+    const manualFriendsList = Array.isArray(manualFriends) ? manualFriends : [];
+    const friendMarkedManual = manualFriendsList.map((u: any) => ({ ...u, relationship: 'friend' }));
+    const friendMarkedStore = storeFriends.map((u: any) => ({ ...u, relationship: 'friend' }));
 
-    if (!sourceDiscover) return INITIAL_SUGGESTIONS;
+    // ✅ Keşfet, Viral'deki tüm kullanıcıları göstermeli.
+    // Backend /users/search eksik veya limitli dönerse bile “Ağım”daki kişiler keşfetten düşmesin.
+    // ✅ Ağım'dan gelen kişiler burada kesin olarak relationship='friend' işaretlenir.
+    const sourceDiscover = mergeFocusUsersByKey(
+      manualDiscoverList,
+      storeDiscover,
+      friendMarkedManual,
+      friendMarkedStore,
+    );
 
-    return sourceDiscover.map((u: any) => {
+    if (sourceDiscover.length === 0) return focusLoading ? [] : INITIAL_SUGGESTIONS;
+
+    return sortFocusProfilesByNewest(sourceDiscover.map((u: any) => {
       const handle = u?.handle ? `@${String(u.handle).replace(/^@+/, '')}` : '@viral_user';
       const name = u?.fullName || u?.displayName || 'Viral user';
 
@@ -415,9 +529,11 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         summary,
         relationship: rel,
         avatarUri,
-      };
-    });
-  }, [discover, hydrated, hydrateError, manualDiscover, t]);
+        createdAt: u?.createdAt,
+        updatedAt: u?.updatedAt,
+      } as any;
+    }));
+  }, [discover, friends, hydrated, hydrateError, manualDiscover, manualFriends, focusLoading, t]);
 
   const incomingProfiles: FocusProfile[] = useMemo(() => {
     const srcIncoming =
@@ -429,7 +545,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
     if (!srcIncoming) return [];
 
-    return srcIncoming
+    return sortFocusProfilesByName(srcIncoming
       .filter((r: any) => r?.fromUser || r?.from)
       .map((r: any) => {
         const u = r.fromUser || r.from;
@@ -443,22 +559,22 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
           summary: t('focusNetwork.summary.requestPending', 'Arkadaşlık isteği bekliyor.'),
           avatarUri,
         };
-      });
+      }));
   }, [incomingRequests, hydrated, hydrateError, manualIncoming, t]);
 
   const filteredMyNetwork = useMemo(() => {
-    if (!normalizedQuery) return myNetworkProfiles;
-    return myNetworkProfiles.filter(p => (p.name + ' ' + p.handle).toLowerCase().includes(normalizedQuery));
+    if (!normalizedQuery) return sortFocusProfilesByName(myNetworkProfiles);
+    return sortFocusProfilesByName(myNetworkProfiles.filter(p => (p.name + ' ' + p.handle).toLowerCase().includes(normalizedQuery)));
   }, [myNetworkProfiles, normalizedQuery]);
 
   const filteredDiscover = useMemo(() => {
     if (!normalizedQuery) return discoverProfiles;
-    return discoverProfiles.filter(p => (p.name + ' ' + p.handle).toLowerCase().includes(normalizedQuery));
+    return sortFocusProfilesByNewest(discoverProfiles.filter(p => (p.name + ' ' + p.handle).toLowerCase().includes(normalizedQuery)));
   }, [discoverProfiles, normalizedQuery]);
 
   const filteredIncoming = useMemo(() => {
-    if (!normalizedQuery) return incomingProfiles;
-    return incomingProfiles.filter(p => (p.name + ' ' + p.handle).toLowerCase().includes(normalizedQuery));
+    if (!normalizedQuery) return sortFocusProfilesByName(incomingProfiles);
+    return sortFocusProfilesByName(incomingProfiles.filter(p => (p.name + ' ' + p.handle).toLowerCase().includes(normalizedQuery)));
   }, [incomingProfiles, normalizedQuery]);
 
   const handleBack = () => {
@@ -603,6 +719,16 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
     }
   };
 
+  const openAvatarViewer = (uri?: string | null) => {
+    const cleanUri = uri != null ? String(uri).trim() : '';
+    if (!cleanUri) return;
+    setAvatarViewerUri(cleanUri);
+  };
+
+  const closeAvatarViewer = () => {
+    setAvatarViewerUri(null);
+  };
+
   // ✅ KAYMA FIX: Image'ı container içine “sıkıştırma” yok.
   // Image doğrudan width/height + borderRadius ile çizilir (feed gibi).
   const renderAvatar = (profile: FocusProfile, size: 'small' | 'large') => {
@@ -611,7 +737,11 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
     if (size === 'large') {
       if (hasImage) {
-        return <Image source={{ uri: String(profile.avatarUri) }} style={styles.avatarImgLarge} />;
+        return (
+          <Pressable onPress={() => openAvatarViewer(profile.avatarUri)}>
+            <Image source={{ uri: String(profile.avatarUri) }} style={styles.avatarImgLarge} />
+          </Pressable>
+        );
       }
       return (
         <View style={[styles.avatarCircleLarge, { backgroundColor: viralRed }]}>
@@ -621,7 +751,11 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
     }
 
     if (hasImage) {
-      return <Image source={{ uri: String(profile.avatarUri) }} style={styles.avatarImg} />;
+      return (
+        <Pressable onPress={() => openAvatarViewer(profile.avatarUri)}>
+          <Image source={{ uri: String(profile.avatarUri) }} style={styles.avatarImg} />
+        </Pressable>
+      );
     }
     return (
       <View style={[styles.avatarCircle, { backgroundColor: viralRed }]}>
@@ -817,7 +951,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         </View>
       </View>
 
-      {!!netHint && (
+      {false && !!netHint && (
         <View style={{ paddingHorizontal: 16, paddingBottom: 4 }}>
           <Text style={{ fontSize: 10, color: '#999' }}>{netHint}</Text>
         </View>
@@ -945,20 +1079,24 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
             {filteredDiscover.length === 0 ? (
               <Text style={styles.emptyText}>
-                {t('focusNetwork.empty.noResults', 'Şu anda sonuç yok.')}
+                {focusLoading
+                  ? t('focusNetwork.loading', 'Yükleniyor...')
+                  : t('focusNetwork.empty.noResults', 'Şu anda sonuç yok.')}
               </Text>
             ) : (
               filteredDiscover.map(profile => renderProfileRow(profile, { inNetwork: false, showQuickAdd: true }))
             )}
 
-            <View style={{ marginTop: 10 }}>
-              <Text style={{ fontSize: 11, color: '#999' }}>
-                {t(
-                  'focusNetwork.note.backendDiscover',
-                  'Not: Keşfet listesi backend’den gelir. Bağlantı yoksa sonuçlar güncellenmeyebilir.',
-                )}
-              </Text>
-            </View>
+            {false && (
+              <View style={{ marginTop: 10 }}>
+                <Text style={{ fontSize: 11, color: '#999' }}>
+                  {t(
+                    'focusNetwork.note.backendDiscover',
+                    'Not: Keşfet listesi backend’den gelir. Bağlantı yoksa sonuçlar güncellenmeyebilir.',
+                  )}
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
@@ -986,6 +1124,17 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
           </View>
         )}
       </ScrollView>
+
+      <Modal visible={!!avatarViewerUri} transparent animationType="fade" onRequestClose={closeAvatarViewer}>
+        <Pressable style={styles.avatarViewerBackdrop} onPress={closeAvatarViewer}>
+          {avatarViewerUri ? (
+            <Image source={{ uri: avatarViewerUri }} style={styles.avatarViewerImage} resizeMode="contain" />
+          ) : null}
+          <Pressable style={styles.avatarViewerClose} onPress={closeAvatarViewer}>
+            <Text style={styles.avatarViewerCloseText}>✕</Text>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {selectedProfile && (
         <Modal visible={detailVisible} transparent animationType="slide" onRequestClose={closeDetail}>
@@ -1209,4 +1358,32 @@ const styles = StyleSheet.create({
   detailPrimaryBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: '#E50914' },
   detailPrimaryBtnPressed: { backgroundColor: '#c10710' },
   detailPrimaryText: { fontSize: 12, fontWeight: '700', color: '#fff' },
+
+  avatarViewerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  avatarViewerImage: {
+    width: '100%',
+    height: '82%',
+  },
+  avatarViewerClose: {
+    position: 'absolute',
+    top: 48,
+    right: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.16)',
+  },
+  avatarViewerCloseText: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '800',
+  },
 });

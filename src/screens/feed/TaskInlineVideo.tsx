@@ -60,6 +60,8 @@ export default function TaskInlineVideo({
               style={{ width: '100%', height: '100%' }}
               controls
               resizeMode="contain"
+              fullscreenAutorotate={true}
+              fullscreenOrientation="all"
               paused={isPaused}
               repeat={false}
               playInBackground={false}

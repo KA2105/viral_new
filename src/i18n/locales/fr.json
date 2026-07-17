@@ -16,142 +16,142 @@
   },
   "onboarding": {
     "language": {
-      "title": "Choisir la langue",
-      "subtitle": "Choisis ta langue pour continuer",
-      "hint": "Tu peux changer la langue plus tard dans le profil."
+      "title": "Select Language",
+      "subtitle": "Choose your language to continue",
+      "hint": "You can change language later from Profile screen."
     },
     "buttons": {
-      "skip": "Passer",
-      "next": "Suivant",
-      "start": "Commencer"
+      "skip": "Skip",
+      "next": "Next",
+      "start": "Start"
     }
   },
   "profile": {
     "title": "Profil",
-    "languageButton": "Langue",
-    "languageHint": "Choisir la langue de l’application",
-    "defaultUser": "Utilisateur",
-    "fullNameLabel": "Nom complet",
-    "fullNamePlaceholder": "Nom complet",
-    "handleLabel": "Nom d’utilisateur",
-    "handlePlaceholder": "@utilisateur",
-    "bioLabel": "À propos (bio)",
-    "bioPlaceholder": "Présente-toi brièvement...",
-    "websiteLabel": "Lien (optionnel)",
+    "languageButton": "Language",
+    "languageHint": "Choose app language",
+    "defaultUser": "User",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "Full name",
+    "handleLabel": "Username",
+    "handlePlaceholder": "@user",
+    "bioLabel": "About (bio)",
+    "bioPlaceholder": "Briefly introduce yourself...",
+    "websiteLabel": "Link (optional)",
     "websitePlaceholder": "https://",
     "emailLabel": "E-mail",
-    "emailPlaceholder": "exemple@mail.com",
-    "phoneLabel": "Téléphone",
+    "emailPlaceholder": "example@mail.com",
+    "phoneLabel": "Phone",
     "phonePlaceholder": "5x xx xx xx",
-    "phoneHint": "Inutile d’ajouter un 0 au début. L’indicatif se trouve à gauche.",
-    "passwordLabel": "Mot de passe",
-    "passwordPlaceholder": "Ton mot de passe",
-    "passwordConfirmLabel": "Mot de passe (encore)",
-    "passwordConfirmPlaceholder": "Retape le mot de passe",
-    "passwordHint": "Le mot de passe doit contenir au moins 8 caractères, avec majuscules/minuscules, chiffres et symboles.",
+    "phoneHint": "No need to add a leading 0. Country code is on the left.",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Your password",
+    "passwordConfirmLabel": "Password (again)",
+    "passwordConfirmPlaceholder": "Type the password again",
+    "passwordHint": "Password must be at least 8 characters, and include upper/lowercase letters, numbers and symbols.",
     "logout": "Se déconnecter",
-    "loadingProfile": "Chargement du profil...",
+    "loadingProfile": "Loading profile...",
     "alert": {
-      "warning": "Avertissement",
-      "error": "Erreur",
-      "success": "Succès",
-      "passwordRequired": "Le mot de passe et sa confirmation sont obligatoires.",
-      "passwordMismatch": "Le mot de passe et sa confirmation doivent correspondre.",
-      "saveFailed": "Le profil n’a pas pu être mis à jour.",
-      "saveSuccess": "Les informations de ton profil ont été mises à jour.",
+      "warning": "Warning",
+      "error": "Error",
+      "success": "Success",
+      "passwordRequired": "Password and confirmation are required.",
+      "passwordMismatch": "Password and confirmation must match.",
+      "saveFailed": "Profile could not be updated.",
+      "saveSuccess": "Your profile information has been updated.",
       "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
     },
     "verify": {
-      "sectionTitle": "Vérification du téléphone",
-      "statusVerified": "Téléphone vérifié",
-      "statusNotVerified": "Téléphone non vérifié",
-      "codeSentTitle": "Code de vérification envoyé",
-      "codeSentDev": "Simulation (dev) : Code {{code}}",
-      "codeSentText": "Un code de vérification a été envoyé sur ton téléphone (simulation).",
-      "enterCode": "Saisis le code de vérification.",
-      "verifyFailed": "Le code n’a pas pu être vérifié.",
-      "verifySuccess": "Ton numéro de téléphone a été vérifié.",
-      "sendCodeButton": "Envoyer le code (simulation)",
-      "codePlaceholder": "Code de vérification",
-      "confirmButton": "Vérifier le code"
+      "sectionTitle": "Phone verification",
+      "statusVerified": "Phone verified",
+      "statusNotVerified": "Phone not verified",
+      "codeSentTitle": "Verification code sent",
+      "codeSentDev": "Simulation (dev): Code {{code}}",
+      "codeSentText": "A verification code was sent to your phone (simulation).",
+      "enterCode": "Please enter the verification code.",
+      "verifyFailed": "Code could not be verified.",
+      "verifySuccess": "Your phone number has been verified.",
+      "sendCodeButton": "Send code (simulation)",
+      "codePlaceholder": "Verification code",
+      "confirmButton": "Verify code"
     },
     "personalSection": {
-      "title": "Informations personnelles",
-      "hide": "Masquer",
-      "showEdit": "Afficher / Modifier"
+      "title": "Personal information",
+      "hide": "Hide",
+      "showEdit": "Show / Edit"
     },
     "avatar": {
-      "label": "Photo de profil",
-      "readError": "L’image sélectionnée n’a pas pu être lue.",
-      "pickError": "Un problème est survenu lors du choix de la photo de profil. Réessaie.",
-      "change": "Changer la photo",
-      "choose": "Choisir une photo"
+      "label": "Profile photo",
+      "readError": "Selected image could not be read.",
+      "pickError": "There was a problem selecting profile photo. Please try again.",
+      "change": "Change photo",
+      "choose": "Choose photo"
     },
     "onboarding": {
-      "restartTitle": "Relancer le tour d’intro",
-      "restartMessage": "Tu es sur le point de relancer le court tour d’introduction. Continuer ?",
-      "restartConfirm": "Oui, lancer",
-      "readyTitle": "Prêt 🎉",
-      "readyMessage": "L’onboarding va se rouvrir dans un instant. À la fin du tour, tu reviendras dans l’appli.",
-      "restartButton": "Relancer l’onboarding"
+      "restartTitle": "Restart intro tour",
+      "restartMessage": "You are about to restart the short intro tour. Continue?",
+      "restartConfirm": "Yes, start",
+      "readyTitle": "Ready 🎉",
+      "readyMessage": "The onboarding will open again in a moment. At the end of the tour, you’ll return to the app.",
+      "restartButton": "Restart onboarding"
     },
     "invite": {
-      "button": "Inviter mes amis",
-      "title": "Retrouve-moi sur Viral",
-      "usernameLabel": "Nom d’utilisateur",
-      "profileLinkLabel": "Lien du profil",
-      "appLinkLabel": "Lien de l’appli Viral",
-      "platformQuestion": "Sur quelle plateforme veux-tu partager ?",
-      "defaultUsername": "Utilisateur Viral",
-      "shareLine1": "Retrouve-moi sur Viral ! 👋",
-      "shareUsername": "Nom d’utilisateur : {{username}}",
-      "shareProfile": "Profil : {{link}}",
-      "shareApp": "Lien de l’appli : {{link}}",
-      "shareVia": "(Je partage ce message via {{platform}})"
+      "button": "Invite my friends",
+      "title": "Find me on Viral",
+      "usernameLabel": "Username",
+      "profileLinkLabel": "Profile link",
+      "appLinkLabel": "Viral app link",
+      "platformQuestion": "Which platform do you want to share on?",
+      "defaultUsername": "Viral user",
+      "shareLine1": "Find me on Viral! 👋",
+      "shareUsername": "Username: {{username}}",
+      "shareProfile": "Profile: {{link}}",
+      "shareApp": "App link: {{link}}",
+      "shareVia": "(I’m sharing this message via {{platform}})"
     },
     "accounts": {
-      "sectionTitle": "Connexions de comptes",
-      "toggleButton": "Connecter / retirer un compte",
-      "summary": "{{count}} compte(s) connecté(s)",
-      "connected": "Connecté",
-      "connect": "Connecter",
-      "account": "Compte",
-      "connectedFlash": "Ton compte {{label}} a été connecté à Viral.",
-      "disconnectedFlash": "Ton compte {{label}} a été retiré de Viral.",
-      "manage": "gérer ton compte",
-      "bind": "connecter ton compte",
-      "hintConnected": "Tu peux retirer ce compte de Viral ou mettre à jour sa connexion.",
-      "hintDisconnected": "Pour connecter ce compte à Viral, saisis l’URL du profil ou de la page.",
+      "sectionTitle": "Account connections",
+      "toggleButton": "Connect / remove account",
+      "summary": "{{count}} connected account(s)",
+      "connected": "Connected",
+      "connect": "Connect",
+      "account": "Account",
+      "connectedFlash": "Your {{label}} account has been connected to Viral.",
+      "disconnectedFlash": "Your {{label}} account has been removed from Viral.",
+      "manage": "manage your account",
+      "bind": "connect your account",
+      "hintConnected": "You can remove this account from Viral or update its connection.",
+      "hintDisconnected": "To connect this account to Viral, enter the profile or page URL.",
       "linkPlaceholder": "https://...",
-      "removeButton": "Retirer le compte",
+      "removeButton": "Remove account",
       "enterLink": "First enter the link of the account you want to connect."
     },
     "feedStats": {
-      "sectionTitle": "Statistiques du fil",
-      "totalCards": "Cartes totales",
-      "visibleCards": "Cartes visibles",
-      "totalLikes": "Total des mentions J’aime",
-      "videoCards": "Cartes avec vidéo"
+      "sectionTitle": "Feed statistics",
+      "totalCards": "Total cards",
+      "visibleCards": "Visible cards",
+      "totalLikes": "Total likes",
+      "videoCards": "Cards with video"
     },
     "activities": {
-      "sectionTitle": "Activités récentes",
-      "empty": "Aucune carte n’est encore associée à ton nom. Quand tu ajouteras des cartes de tâches ou des vidéos au fil, leurs résumés apparaîtront ici.",
-      "badgeTaskCard": "Carte de tâche",
-      "badgeVideo": "Vidéo",
-      "noSharePlanned": "Aucun partage planifié"
+      "sectionTitle": "Recent activities",
+      "empty": "There is no card associated with your name yet. When you add task cards or videos to the feed, you’ll see their summaries here.",
+      "badgeTaskCard": "Task card",
+      "badgeVideo": "Video",
+      "noSharePlanned": "No planned share"
     },
     "taskStats": {
-      "sectionTitle": "Statistiques des tâches",
-      "totalTasks": "Nombre total de tâches",
-      "completed": "Terminées"
+      "sectionTitle": "Task statistics",
+      "totalTasks": "Total tasks",
+      "completed": "Completed"
     },
     "account": {
-      "sectionTitle": "Compte",
-      "instagramLogs": "Voir les journaux de partage Instagram"
+      "sectionTitle": "Account",
+      "instagramLogs": "View Instagram share logs"
     },
     "section": {
-      "hide": "Masquer",
-      "show": "Afficher"
+      "hide": "Hide",
+      "show": "Show"
     },
     "delete": {
       "title": "Delete Account",
@@ -169,462 +169,509 @@
     "screenTitleTask": "Créer une carte de tâche",
     "screenTitleFree": "Créer une carte de partage",
     "mode": {
-      "task": "Partage de tâche",
-      "free": "Partage libre",
-      "taskDescription": "Tu peux choisir l’une de tes tâches terminées et la partager sous forme de carte.",
-      "freeDescription": "Tu crées actuellement une carte de partage libre sans choisir de tâche.",
-      "toggleHideTasks": "Masquer",
-      "toggleShowTasks": "Afficher la liste",
-      "noCompletedTasksInline": "Tu n’as pas encore de tâche terminée. Termine d’abord une tâche dans l’écran Tâches.",
-      "noCompletedTasksTitle": "Aucune tâche trouvée",
-      "noCompletedTasksBody": "Il n’y a actuellement aucune tâche terminée. Pour passer en mode tâche, termine d’abord une tâche."
+      "task": "Tâche",
+      "free": "Libre",
+      "taskDescription": "Tu peux choisir une tâche terminée et la partager sous forme de carte.",
+      "freeDescription": "Tu crées une carte de partage libre sans choisir de tâche.",
+      "toggleHideTasks": "Hide",
+      "toggleShowTasks": "Show list",
+      "noCompletedTasksInline": "Tu n’as pas encore de tâche terminée. Termine d’abord une tâche depuis l’écran Tâches.",
+      "noCompletedTasksTitle": "No tasks found",
+      "noCompletedTasksBody": "There are no completed tasks at the moment. To switch to task mode, complete a task first."
     },
     "fields": {
-      "cardTitleLabel": "Titre de la carte",
-      "cardTitlePlaceholder": "Écris un titre (optionnel)",
+      "cardTitleLabel": "Card title",
+      "cardTitlePlaceholder": "Write a title (optional)",
       "cardDescriptionLabel": "Description de la carte",
-      "cardDescriptionPlaceholder": "Description de la tâche ou texte de partage libre... (optionnel)"
+      "cardDescriptionPlaceholder": "Description de tâche ou texte libre... (optionnel)"
     },
     "video": {
       "label": "Vidéo (optionnel)",
-      "hint": "Dans la version gratuite, les vidéos peuvent durer jusqu’à 30 secondes. L’appli prend actuellement en charge des vidéos jusqu’à 3 minutes.",
+      "hint": "In the free version videos can be up to 30 seconds. The app currently supports videos up to 3 minutes.",
       "pick": "Choisir une vidéo",
-      "change": "Changer de vidéo",
-      "notSelected": "Aucune vidéo sélectionnée pour le moment",
-      "selectedFallback": "Vidéo sélectionnée",
-      "tooLongTitle": "Vidéo trop longue",
-      "tooLongBody": "Pour l’instant seules les vidéos jusqu’à 3 minutes sont prises en charge. Raccourcis ta vidéo puis réessaie.",
-      "overFreeLimitTitle": "Vidéo de plus de 30 secondes",
-      "overFreeLimitBody": "Dans la version gratuite, la vidéo doit durer moins de 30 secondes. Tu pourras découvrir l’option Pro pour les vidéos plus longues.",
-      "overFreeLimitCancel": "Annuler",
-      "overFreeLimitPro": "Je suis curieux(se) de la version Pro",
+      "change": "Change video",
+      "notSelected": "Aucune vidéo sélectionnée",
+      "selectedFallback": "Video selected",
+      "tooLongTitle": "Video is too long",
+      "tooLongBody": "Currently only videos up to 3 minutes are supported. Please shorten your video and try again.",
+      "overFreeLimitTitle": "Video is longer than 30 seconds",
+      "overFreeLimitBody": "In the free version, the video you want to send must be shorter than 30 seconds. You’ll be able to explore the Pro option for longer videos.",
+      "overFreeLimitCancel": "Cancel",
+      "overFreeLimitPro": "I’m curious about Pro",
       "proInfoTitle": "Viral Pro",
-      "proInfoBody": "Tu es actuellement en phase de planification des fonctionnalités Pro. À l’approche du lancement, tu détailleras la version Pro et le support des longues vidéos. 🚀",
-      "pickErrorTitle": "La vidéo n’a pas pu être sélectionnée",
-      "pickErrorBody": "Une erreur s’est produite lors de la sélection de la vidéo. Réessaie."
+      "proInfoBody": "You are currently at the planning stage of Pro features. As you get closer to launch, you’ll detail Pro and long-video support. 🚀",
+      "pickErrorTitle": "Video could not be selected",
+      "pickErrorBody": "An error occurred while selecting video. Please try again.",
+      "uploadFailedTitle": "Video could not be uploaded",
+      "uploadFailedBody": "Video could not be uploaded to the server. Check your internet/server."
     },
     "share": {
       "plannedLabel": "Partage planifié",
-      "freePostTip": "Tu peux aussi partager sans tâche. Partage librement tes vidéos, moments et tout ce que tu veux ; ils apparaîtront comme des cartes indépendantes dans le fil.",
-      "platformNotConnectedTitle": "Compte {{platform}} non connecté",
-      "platformNotConnectedBody": "Pour partager sur {{platform}}, tu dois connecter ton compte {{platform}} à Viral.",
-      "platformNotConnectedCancel": "Ne pas connecter mon compte",
-      "platformNotConnectedConnect": "Connecter mon compte {{platform}} à Viral",
-      "goProfileTitle": "Aller à l’écran Profil",
-      "goProfileBody": "Va dans l’onglet « Profil » et connecte ton compte {{platform}} depuis la section « Connexions de comptes »."
+      "freePostTip": "You can also share without a task. Freely share your videos, moments and anything you like; they’ll appear as independent cards in the feed.",
+      "platformNotConnectedTitle": "{{platform}} account not connected",
+      "platformNotConnectedBody": "To share on {{platform}}, you must connect your {{platform}} account to Viral.",
+      "platformNotConnectedCancel": "Do not connect my account",
+      "platformNotConnectedConnect": "Connect my {{platform}} account to Viral",
+      "goProfileTitle": "Go to profile screen",
+      "goProfileBody": "Go to the “Profile” tab and connect your {{platform}} account from the “Account connections” section."
     },
     "preview": {
       "label": "Aperçu",
-      "taskPrefix": "Tâche terminée : ",
-      "freePrefix": "Partage prêt : ",
-      "freeBadge": "Carte de partage libre",
-      "taskBadge": "Carte de tâche",
-      "contentLabelTask": "Contenu",
-      "contentLabelFree": "Contenu du partage",
-      "plannedLabel": "Partage planifié :",
-      "videoLabel": "📹 Vidéo : {{label}}",
-      "videoFallback": "vidéo sélectionnée",
-      "noTaskSelected": "Aucune tâche sélectionnée"
+      "taskPrefix": "Completed task: ",
+      "freePrefix": "Share ready: ",
+      "freeBadge": "Free share card",
+      "taskBadge": "Task card",
+      "contentLabelTask": "Content",
+      "contentLabelFree": "Share content",
+      "plannedLabel": "Planned share:",
+      "videoLabel": "📹 Video: {{label}}",
+      "videoFallback": "selected video",
+      "noTaskSelected": "No task selected"
     },
     "submit": {
-      "creating": "Création en cours...",
+      "creating": "Création...",
       "task": "Créer une carte de tâche",
       "free": "Créer la carte"
     },
     "alerts": {
       "missingContentTitle": "Avertissement",
-      "missingContentBody": "Choisis une tâche ou ajoute un titre / une description / une vidéo avant de créer la carte.",
+      "missingContentBody": "Select a task or add a title / description / video before creating the card.",
       "successTitle": "Succès",
-      "successTaskBody": "La carte de tâche a été partagée dans le fil.",
-      "successFreeBody": "Ta carte de partage libre a été ajoutée au fil."
+      "successTaskBody": "Task card has been shared in the feed.",
+      "successFreeBody": "Your free share card has been added to the feed."
+    },
+    "praise": {
+      "tab": "Éloge",
+      "screenTitle": "Partager un éloge",
+      "description": "Écris un court message d’éloge pour un ami et partage-le comme carte spéciale.",
+      "friendLabel": "Ami",
+      "friendPlaceholder": "Nom ou pseudo de l’ami",
+      "friendFallback": "ton ami",
+      "categoryLabel": "Catégorie",
+      "messageLabel": "Court message",
+      "messagePlaceholder": "Exemple : Ton énergie a motivé tout le monde aujourd’hui.",
+      "submit": "Partager l’éloge",
+      "feedTitle": "Éloge pour @{{friend}}",
+      "previewTitle": "Éloge pour @{{friend}}",
+      "badge": "Carte d’éloge",
+      "previewMessageLabel": "Message d’éloge",
+      "previewEmptyMessage": "Ton message d’éloge apparaîtra ici.",
+      "previewFriendHint": "@{{friend}} sera identifié",
+      "categoryFallback": "Éloge",
+      "successTitle": "Éloge partagé",
+      "successBody": "Ta carte d’éloge a été ajoutée au fil.",
+      "missingFriendTitle": "Aucun ami sélectionné",
+      "missingFriendBody": "Écris le nom d’un ami pour partager un éloge.",
+      "missingMessageTitle": "Message manquant",
+      "missingMessageBody": "Écris un court message d’éloge.",
+      "categories": {
+        "kindness": "Gentillesse",
+        "success": "Succès",
+        "support": "Soutien",
+        "energy": "Énergie",
+        "creativity": "Créativité",
+        "leadership": "Leadership"
+      }
+    },
+    "images": {
+      "pickErrorTitle": "Les photos n’ont pas pu être sélectionnées",
+      "pickErrorBody": "Une erreur est survenue lors de la sélection des photos.",
+      "uploadFailedTitle": "Les photos n’ont pas pu être envoyées",
+      "uploadFailedBody": "Les photos n’ont pas pu être envoyées au serveur. Vérifie Internet/serveur."
     }
   },
   "tasks": {
     "screenTitle": "Tâches",
-    "statsLine": "Actives : {{active}} · Terminées : {{completed}}",
+    "statsLine": "Active: {{active}} · Completed: {{completed}}",
     "todayCard": {
-      "label": "Tâche du jour",
-      "doneButton": "Terminée"
+      "label": "Today’s task",
+      "doneButton": "Completed"
     },
     "levelCard": {
-      "label": "Niveau",
-      "streak": "🔥 Série : {{count}} jour(s)",
-      "completedToday": "🎯 Terminées aujourd’hui : {{count}}",
-      "longestStreak": "🏅 Plus longue série : {{count}} jour(s)"
+      "label": "Level",
+      "streak": "🔥 Streak: {{count}} day(s)",
+      "completedToday": "🎯 Completed today: {{count}}",
+      "longestStreak": "🏅 Longest streak: {{count}} day(s)"
     },
     "modes": {
-      "givenTitle": "Demander une tâche",
-      "selfTitle": "Ajouter une tâche",
-      "givenDescription": "Demande une tâche surprise ; Viral en choisira une pour toi.",
-      "selfDescription": "Sur cette page, tu peux ajouter tes propres tâches."
+      "givenTitle": "Request a task",
+      "selfTitle": "Add task",
+      "givenDescription": "Request a surprise task; Viral chooses one for you.",
+      "selfDescription": "You can add tasks for yourself on this page."
     },
     "self": {
-      "inputPlaceholder": "ex. 20 min de focus",
-      "scheduleQuestion": "Quand feras-tu cette tâche ?",
-      "repeatQuestion": "Cette tâche se répétera-t-elle ?",
-      "reminderLabel": "Rappel",
-      "reminderOn": "Activé",
-      "reminderOff": "Désactivé",
-      "addButton": "Ajouter",
-      "backToFeedButton": "← Fil"
+      "inputPlaceholder": "e.g. 20 min focus",
+      "scheduleQuestion": "When will you do this task?",
+      "repeatQuestion": "Will this task repeat?",
+      "reminderLabel": "Reminder",
+      "reminderOn": "On",
+      "reminderOff": "Off",
+      "addButton": "Add",
+      "backToFeedButton": "← Feed"
     },
     "scheduleOptions": {
-      "today": "Aujourd’hui",
-      "tomorrow": "Demain",
-      "thisWeek": "Cette semaine"
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This week"
     },
     "repeatOptions": {
-      "none": "Unique",
-      "daily": "Quotidien",
-      "weekly": "Hebdomadaire"
+      "none": "One-time",
+      "daily": "Daily",
+      "weekly": "Weekly"
     },
     "categories": {
-      "general": "Général",
-      "school": "École",
-      "work": "Travail",
-      "health": "Santé",
-      "family": "Famille",
+      "general": "General",
+      "school": "School",
+      "work": "Work",
+      "health": "Health",
+      "family": "Family",
       "social": "Social"
     },
     "priorities": {
-      "low": "Faible",
-      "medium": "Moyenne",
-      "high": "Élevée"
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
     },
     "templates": {
       "focus-25min": {
-        "title": "Se concentrer pendant 25 minutes",
-        "description": "Mets ton téléphone en silencieux et concentre-toi sur une seule tâche pendant 25 minutes."
+        "title": "Focus for 25 minutes",
+        "description": "Silence your phone and focus on a single task for 25 minutes."
       },
       "focus-deep-clean": {
-        "title": "Mini rangement de l’espace de travail",
-        "description": "Range les objets inutiles sur ton bureau pour créer un effet « nouveau départ » de 10 minutes."
+        "title": "Mini desk / workspace clean-up",
+        "description": "Collect unnecessary items on your desk; create a 10-minute “fresh start” effect."
       },
       "focus-inbox-zero": {
-        "title": "Alléger ta boîte mail",
-        "description": "Supprime ou archive au moins 5 e-mails inutiles aujourd’hui."
+        "title": "Lighten your inbox",
+        "description": "Delete or archive at least 5 unnecessary emails today."
       },
       "focus-no-scroll-20min": {
-        "title": "Règle des 20 minutes sans scroll",
-        "description": "Passe 20 minutes sans faire défiler aucun fil de réseau social."
+        "title": "20-minute “no scroll” rule",
+        "description": "Spend 20 minutes without scrolling any social media feed."
       },
       "health-steps-6000": {
-        "title": "Faire 6000 pas dans la journée",
-        "description": "Planifie de courtes marches pour atteindre au moins 6000 pas au total."
+        "title": "Take 6000 steps today",
+        "description": "Plan short walks outside; reach at least 6000 steps in total."
       },
       "health-water-6": {
-        "title": "Boire au moins 6 verres d’eau",
-        "description": "Répartis ta consommation d’eau tout au long de la journée et suis-la."
+        "title": "Drink at least 6 glasses of water",
+        "description": "Spread your water intake throughout the day and track it."
       },
       "health-stretch-10": {
-        "title": "Pause d’étirements de 10 minutes",
-        "description": "Fais de simples étirements pour la nuque, les épaules et le bas du dos."
+        "title": "10-minute stretch break",
+        "description": "Do simple stretch exercises for your neck, shoulders and lower back."
       },
       "health-walk-sunset": {
-        "title": "Petite marche en soirée",
-        "description": "Fais une marche de 15 minutes au moment du coucher du soleil."
+        "title": "Evening mini walk",
+        "description": "Take a 15-minute fresh-air walk around sunset."
       },
       "work-priority-task": {
-        "title": "Terminer ta tâche la plus importante",
-        "description": "Choisis la tâche la plus importante de la journée, découpe-la en étapes et termine-la."
+        "title": "Finish your most important task",
+        "description": "Choose today’s most important task, break it into smaller steps and complete it."
       },
       "work-no-meeting-30": {
-        "title": "Plage de 30 minutes sans réunions",
-        "description": "Réserve un créneau de 30 minutes de travail concentré sans aucune réunion."
+        "title": "30-minute meeting-free block",
+        "description": "Create a 30-minute silent focus block in your calendar and avoid scheduling meetings in it."
       },
       "work-feedback-ask": {
-        "title": "Demander un feedback",
-        "description": "Demande un bref retour à un collègue sur un travail que tu as réalisé."
+        "title": "Ask for feedback",
+        "description": "Ask a teammate for brief feedback on a piece of work you did."
       },
       "work-small-win-share": {
-        "title": "Noter ta petite victoire du jour",
-        "description": "Écris en une phrase le travail ou le progrès qui t’a le plus rendu heureux(se) aujourd’hui."
+        "title": "Note today’s small win",
+        "description": "Write down in one sentence the work / progress that made you happiest today."
       },
       "school-25min-study": {
-        "title": "25 minutes d’étude / de révision",
-        "description": "Concentre-toi sur une seule matière ; étudie 25 minutes sans toucher à ton téléphone."
+        "title": "25 minutes of study / review",
+        "description": "Focus on only one subject; study 25 minutes without touching your phone."
       },
       "school-question-solve": {
-        "title": "Résoudre au moins 10 questions",
-        "description": "Résous au moins 10 nouvelles questions aujourd’hui dans la matière de ton choix."
+        "title": "Solve at least 10 questions",
+        "description": "Solve at least 10 new questions today from a subject you choose."
       },
       "school-notes-clean": {
-        "title": "Organiser tes notes",
-        "description": "Nettoie un chapitre dans tes notes (papier ou numérique) et ajoute des titres."
+        "title": "Organize your notes",
+        "description": "Clean up one topic in your notebook / digital notes and add headings."
       },
       "school-share-tip": {
-        "title": "Envoyer un conseil d’étude à un ami",
-        "description": "Partage avec un ami une technique de travail que tu utilises (Pomodoro, notes colorées, etc.)."
+        "title": "Send a study tip to a friend",
+        "description": "Share a study technique you use (Pomodoro, colorful notes, etc.) with a friend."
       },
       "family-call-parent": {
-        "title": "Discussion avec la famille",
-        "description": "Aie une conversation sincère d’au moins 5 minutes avec un membre de ta famille."
+        "title": "Short chat with family",
+        "description": "Have at least a 5-minute sincere conversation with a parent or family member."
       },
       "family-eat-together": {
-        "title": "Repas en famille",
-        "description": "Prends un repas à la même table avec ta famille, sans téléphone."
+        "title": "Eat together",
+        "description": "Have a meal with your family at the same table without phones."
       },
       "family-thank-message": {
-        "title": "Envoyer un message de remerciement",
-        "description": "Écris un court message de type « je suis content(e) que tu sois là » à quelqu’un de ta famille."
+        "title": "Send a thank-you message",
+        "description": "Write a short “I’m glad you’re here” message to someone from your family."
       },
       "social-message-friend": {
-        "title": "Envoyer un message à un ami",
-        "description": "Demande « Comment vas-tu ? » à quelqu’un à qui tu n’as pas parlé depuis longtemps."
+        "title": "Send a message to a friend",
+        "description": "Ask “How are you?” to someone you haven’t spoken to for a long time."
       },
       "social-comment-support": {
-        "title": "Laisser un commentaire de soutien",
-        "description": "Écris un commentaire sincère et encourageant sur la publication d’un ami."
+        "title": "Leave a supportive comment",
+        "description": "Write a sincere, supportive comment on a friend’s post."
       },
       "social-share-win": {
-        "title": "Partager la « petite victoire » du jour",
-        "description": "Prépare une carte pour un moment qui t’a rendu heureux(se) aujourd’hui."
+        "title": "Share today’s “small win”",
+        "description": "Get ready to save a moment that made you happy today as a card."
       },
       "social-new-connection": {
-        "title": "Créer une nouvelle connexion",
-        "description": "Envoie un court message à quelqu’un que tu suis depuis longtemps mais à qui tu n’as jamais écrit."
+        "title": "Create a new connection",
+        "description": "Send a short hello message to someone you’ve followed for a long time but never written to."
       },
       "social-phone-free-coffee": {
-        "title": "Pause café / thé sans téléphone",
-        "description": "Prends une pause de 15 minutes avec ou sans ami, sans utiliser ton téléphone."
+        "title": "Phone-free coffee / tea break",
+        "description": "Spend a 15-minute coffee break with a friend or alone without your phone."
       },
       "viral-plan-card": {
-        "title": "Planifier une carte Viral",
-        "description": "Imagine une idée de carte pour un moment, une note ou un objectif que tu veux partager aujourd’hui, et écris son titre."
+        "title": "Plan a Viral card",
+        "description": "Think of a card idea for a moment, note or goal you want to share today and write its title."
       },
       "viral-gratitude-3": {
-        "title": "Être reconnaissant(e) pour 3 choses",
-        "description": "Note 3 choses pour lesquelles tu es reconnaissant(e) aujourd’hui ; tu peux en faire une carte si tu veux."
+        "title": "Be grateful for 3 things",
+        "description": "Write down 3 things you are grateful for today as short notes; you can turn them into a card if you like."
       },
       "viral-before-after": {
-        "title": "Trouver une idée avant/après",
-        "description": "Trouve quelque chose que tu peux montrer en « avant–après », comme le rangement d’un bureau, le nettoyage d’un écran ou un itinéraire de marche."
+        "title": "Find a before / after photo idea",
+        "description": "Find something you can show “before–after”, such as desk organization, screen clean-up or a walking route."
       }
     },
     "meta": {
-      "createdAt": "Créée",
-      "completedAt": "Terminée",
-      "originGiven": "Tâche donnée",
-      "originSelf": "Tâche pour toi-même",
-      "priorityPrefix": "Priorité : {{priority}}",
-      "timePrefix": "Heure : {{when}}",
-      "repeatPrefix": "Répétition : {{repeat}}"
+      "createdAt": "Created",
+      "completedAt": "Completed",
+      "originGiven": "Task given to you",
+      "originSelf": "Task to yourself",
+      "priorityPrefix": "Priority: {{priority}}",
+      "timePrefix": "Time: {{when}}",
+      "repeatPrefix": "Repeat: {{repeat}}"
     },
     "request": {
-      "areaTitle": "Reçois ta tâche du jour en surprise.",
-      "areaSubtitle": "Appuie sur le bouton, Viral choisira une tâche pour toi.",
-      "buttonIdle": "Donne-moi la tâche du jour",
-      "buttonHasTask": "La tâche du jour est prête 👇",
-      "cardTitlePrefix": "Tâche du jour : ",
-      "doButton": "Fait ✓",
-      "changeButton": "Changer",
-      "changeUsedLabel": "Tu as déjà utilisé ton changement pour aujourd’hui"
+      "areaTitle": "Get today’s task as a surprise.",
+      "areaSubtitle": "Press the button and Viral chooses a ready task for you.",
+      "buttonIdle": "Give me today’s task",
+      "buttonHasTask": "Today’s task is ready 👇",
+      "cardTitlePrefix": "Today’s task: ",
+      "doButton": "Done ✓",
+      "changeButton": "Change",
+      "changeUsedLabel": "You’ve used your change for today"
     },
     "requestAlerts": {
-      "noMoreChangesTitle": "Limite atteinte pour aujourd’hui",
-      "noMoreChangesBody": "Tu peux changer la tâche prête au maximum une fois par jour. Demain tu pourras en avoir une nouvelle. 🙌",
-      "alreadyChangedBody": "Tu as déjà changé la tâche du jour une fois."
+      "noMoreChangesTitle": "Your limit for today is reached",
+      "noMoreChangesBody": "You can change the ready task at most once per day. You can get a new task tomorrow. 🙌",
+      "alreadyChangedBody": "You have already changed today’s task once."
     },
     "completeRequested": {
-      "alertTitle": "Félicitations 🎉",
-      "alertBody": "Tu as terminé la tâche du jour !\n\nNiveau : {{level}}\nTerminées aujourd’hui : {{completedToday}}\nSérie : {{streak}} jour(s)",
+      "alertTitle": "Congratulations 🎉",
+      "alertBody": "You completed today’s task!\n\nLevel: {{level}}\nCompleted today: {{completedToday}}\nStreak: {{streak}} day(s)",
       "ok": "OK",
-      "createCard": "Créer une carte"
+      "createCard": "Create card"
     },
     "sections": {
-      "activeTitle": "Tâches actives",
-      "activeEmpty": "Il n’y a actuellement aucune tâche active. Tu peux en ajouter une nouvelle.",
-      "completedTitle": "Tâches terminées",
-      "completedEmpty": "Aucune tâche terminée pour le moment.",
-      "completedToggleShow": "Afficher",
-      "completedToggleHide": "Masquer",
-      "completedClear": "Effacer",
-      "completedReactivate": "Réactiver",
-      "completedCreateCard": "Créer une carte",
-      "completedShowMore": "Affichage des 3 dernières tâches – Tout voir",
-      "completedShowLess": "Toutes les tâches sont affichées – N’afficher que les 3 dernières"
+      "activeTitle": "Active tasks",
+      "activeEmpty": "There are no active tasks at the moment. You can add a new task.",
+      "completedTitle": "Completed tasks",
+      "completedEmpty": "No tasks have been completed yet.",
+      "completedToggleShow": "Show",
+      "completedToggleHide": "Hide",
+      "completedClear": "Clear",
+      "completedReactivate": "Activate again",
+      "completedCreateCard": "Create card",
+      "completedShowMore": "Showing last 3 tasks – View all",
+      "completedShowLess": "You’re viewing all – Show only last 3"
     },
     "buttons": {
-      "edit": "Modifier",
-      "delete": "Supprimer"
+      "edit": "Edit",
+      "delete": "Delete"
     },
     "alerts": {
-      "clearCompletedTitle": "Effacer les tâches terminées",
-      "clearCompletedBody": "Toutes les tâches terminées seront supprimées. Les tâches actives resteront.\n\nEs-tu sûr(e) ?",
-      "clearCancel": "Annuler",
-      "clearConfirm": "Oui, supprimer",
-      "deleteTaskTitle": "Supprimer la tâche",
-      "deleteTaskBody": "Veux-tu supprimer cette tâche seulement de l’écran Tâches, ou également les cartes créées à partir de cette tâche dans le fil ?",
-      "deleteCancel": "Annuler",
-      "deleteOnlyTask": "Supprimer seulement de la liste",
-      "deleteTaskAndCards": "Supprimer la tâche et ses cartes"
+      "clearCompletedTitle": "Clear completed tasks",
+      "clearCompletedBody": "All completed tasks will be deleted. Active tasks will remain.\n\nAre you sure?",
+      "clearCancel": "Cancel",
+      "clearConfirm": "Yes, delete",
+      "deleteTaskTitle": "Delete task",
+      "deleteTaskBody": "Do you want to remove this task only from the Tasks screen, or also delete the cards created from this task in the Feed?",
+      "deleteCancel": "Cancel",
+      "deleteOnlyTask": "Delete only from task list",
+      "deleteTaskAndCards": "Delete task and its cards"
     },
     "edit": {
-      "title": "Modifier la tâche",
-      "placeholder": "Titre de la tâche",
-      "cancel": "Annuler",
-      "save": "Enregistrer"
+      "title": "Edit task",
+      "placeholder": "Task title",
+      "cancel": "Cancel",
+      "save": "Save"
     },
     "completeModal": {
-      "title": "Tâche terminée 🎉",
-      "text": "Si tu veux, tu peux partager cette tâche sous forme de carte dans le fil.",
-      "later": "Plus tard",
-      "createCard": "Créer une carte"
+      "title": "Task completed 🎉",
+      "text": "If you want, you can share this task as a card in the Feed.",
+      "later": "Later",
+      "createCard": "Create card"
     },
-    "completeCardPrefix": "Tâche terminée : ",
+    "completeCardPrefix": "Task completed: ",
     "pro": {
-      "title": "Donner une tâche à un ami (Pro)",
-      "body": "Bientôt : tu pourras assigner des tâches à tes amis et leur envoyer des notifications. Cette fonctionnalité sera disponible pour les utilisateurs de Viral Pro.",
-      "button": "Je suis curieux(se) de Pro",
+      "title": "Assign a task to a friend (Pro)",
+      "body": "Coming soon: you’ll be able to assign tasks to people from your friends list and send them notifications. This feature will be for Viral Pro users.",
+      "button": "I’m curious about Pro",
       "alertTitle": "Viral Pro",
-      "alertBody": "Tu es en phase de planification des fonctionnalités Pro. À l’approche du lancement, tu préciseras les détails. 🚀"
+      "alertBody": "You are in the planning phase for Pro features. As the app gets closer to launch, you’ll clarify the details. 🚀"
     }
   },
   "sharePanel": {
-    "title": "Partager",
-    "shareTitle": "Partager",
-    "infoText": "Vous pouvez partager sur des plateformes externes via vos comptes connectés.",
-    "shareBody": "Vous pouvez partager sur des plateformes externes.",
-    "noAccounts": "Aucun compte connecté.",
-    "connectButton": "Connecter des comptes",
-    "cancel": "Annuler",
-    "shareAll": "Partager sur tous les comptes",
-    "shareAllButton": "Partager sur tous les comptes",
-    "connectFallbackTitle": "Connecter vos comptes",
-    "connectFallbackBody": "Ajoutez des comptes depuis votre profil.",
-    "infoTitle": "À propos du partage externe",
-    "infoBody": "Le partage est simulé dans cette version.",
-    "shareAllTitle": "Partager sur tous les comptes",
-    "shareAllBody": "Le partage est simulé."
+    "title": "Share",
+    "shareTitle": "Share",
+    "infoText": "You can share on external platforms using your connected accounts. Platforms may open their own share screens.",
+    "shareBody": "You can share on external platforms using your connected accounts.",
+    "noAccounts": "You haven't connected any accounts yet.\nPlease connect accounts before sharing.",
+    "connectButton": "Connect Accounts",
+    "cancel": "Cancel",
+    "shareAll": "Share on all accounts",
+    "shareAllButton": "Share on all accounts",
+    "connectFallbackTitle": "Connect your accounts",
+    "connectFallbackBody": "You can add external accounts from the \"Connect Accounts\" section in your profile.",
+    "infoTitle": "About external sharing",
+    "infoBody": "You see a summary below to share cards created on Viral to your connected accounts. In this version, sharing is informational; you must open the relevant app for actual sharing.",
+    "shareAllTitle": "Share on all accounts",
+    "shareAllBody": "We assume you shared on your connected accounts. Sharing is simulated in this version."
   },
   "share": {
     "requireAccounts": {
-      "title": "Connecte tes comptes",
-      "desc": "Pour partager sur des plateformes externes, tu dois d’abord connecter tes comptes.",
-      "desc2": "Tu peux ajouter tes comptes externes depuis la section « Connecter mes comptes » sur l’écran de profil.",
-      "connectButton": "Connecter mes comptes",
-      "cancelButton": "Annuler",
+      "title": "Connect your accounts",
+      "desc": "To share on external platforms, you must connect your accounts first.",
+      "desc2": "You can add your external accounts from the \"Connect my accounts\" section on your profile screen.",
+      "connectButton": "Connect my accounts",
+      "cancelButton": "Cancel",
       "okButton": "OK"
     }
   },
   "nav": {
     "feed": "Fil",
-    "upload": "Publier",
+    "upload": "Importer",
     "tasks": "Tâches",
     "profile": "Profil",
     "logout": "Se déconnecter"
   },
   "feed": {
     "guestName": "invité",
-    "headerTitle": "Fil",
+    "headerTitle": "Feed",
     "headerSub": "Salut, {{name}} 👋",
-    "headerTagline": "Tes tâches, tes vidéos et tes partages — tout se rejoint ici.",
+    "headerTagline": "Your tasks, videos and shares — all meet here.",
     "focusNetwork": {
-      "button": "Aller au Focus Network"
+      "button": "Go to Focus Network"
     },
     "filters": {
-      "all": "Tous",
-      "mine": "Mes",
-      "tasks": "Cartes de tâches",
-      "video": "Vidéo",
-      "external": "Activité externe"
+      "all": "All",
+      "mine": "Mine",
+      "tasks": "Task cards",
+      "video": "Video",
+      "external": "External activity"
     },
-    "refreshBanner": "Fil actualisé.",
+    "refreshBanner": "Feed refreshed.",
     "empty": {
-      "loading": "Chargement du fil...",
-      "noPosts": "Aucun partage pour l’instant.",
-      "cta": "Crée ta première tâche / vidéo"
+      "loading": "Loading feed...",
+      "noPosts": "There are no shares yet.",
+      "cta": "Create your first task / video"
     },
     "post": {
-      "genericTitle": "Partage",
-      "genericName": "Publication"
+      "genericTitle": "Share",
+      "genericName": "Post",
+      "readMore": "... Voir plus",
+      "showLess": "Voir moins"
     },
     "badges": {
-      "taskCard": "Carte de tâche"
+      "taskCard": "Task card"
     },
     "external": {
-      "badge": "Partage externe"
+      "badge": "External share"
     },
     "labels": {
-      "descriptionPrefix": "Description :"
+      "descriptionPrefix": "Description:"
+    },
+    "text": {
+      "showMore": "... See more",
+      "showLess": "Show less"
     },
     "share": {
-      "planned": "Partage planifié : {{targets}}",
-      "last": "Dernier partage : {{date}} ({{targets}})",
-      "alsoSharedOn": "Également partagé sur :",
-      "defaultText": "Publication Viral",
-      "shareText": "Texte de partage pour {{platform}} :\n{{text}}",
-      "simulationTitle": "Partage (simulation)",
-      "simulationMessage": "On considère qu’un partage a été effectué sur {{platform}}.",
-      "errorTitle": "Partage",
-      "errorMessage": "Le partage a été annulé ou une erreur est survenue.",
-      "choose": "Choisir le partage",
-      "previewTitle": "Aperçu du partage",
-      "previewFallback": "Texte du partage",
-      "simulateButton": "Partager (simulation)",
-      "plannedShort": "Planifié",
-      "noAccountsTitle": "Connecte d’abord tes comptes",
-      "noAccountsBody": "Pour partager sur des plateformes externes, tu dois d’abord connecter tes comptes.",
-      "goProfileTitle": "Connecte tes comptes",
-      "goProfileBody": "Sur l’écran Profil, utilise la section « Connecter mes comptes » pour ajouter tes comptes externes."
+      "planned": "Scheduled sharing: {{targets}}",
+      "last": "Last share: {{date}} ({{targets}})",
+      "alsoSharedOn": "Also shared on:",
+      "defaultText": "Viral post",
+      "shareText": "Share text for {{platform}}:\n{{text}}",
+      "simulationTitle": "Share (simulation)",
+      "simulationMessage": "We assume that a share was made on {{platform}}.",
+      "errorTitle": "Share",
+      "errorMessage": "Sharing was cancelled or an error occurred.",
+      "choose": "Choose share",
+      "previewTitle": "Share preview",
+      "previewFallback": "Share text",
+      "simulateButton": "Share (simulation)",
+      "plannedShort": "Planned",
+      "noAccountsTitle": "Connect your accounts first",
+      "noAccountsBody": "To share on external platforms, you need to connect your accounts first.",
+      "goProfileTitle": "Connect your accounts",
+      "goProfileBody": "On the Profile screen, use the “Connect my accounts” section to add your external accounts."
     },
     "video": {
-      "info": "📹 Une vidéo est planifiée avec cette carte.",
-      "watch": "Regarder la vidéo",
-      "sheetTitlePrefix": "Carte avec vidéo :"
+      "info": "📹 A video is planned with this card.",
+      "watch": "Watch video",
+      "sheetTitlePrefix": "Card with video:"
     },
     "comments": {
-      "offLabel": "Commentaires désactivés",
-      "cta": "Écrire un commentaire",
-      "count": "{{count}} commentaire(s)",
-      "title": "Commentaires",
-      "toggleOpen": "Afficher les commentaires",
-      "toggleClose": "Masquer les commentaires",
-      "empty": "Aucun commentaire pour le moment. Sois le premier 🙂",
-      "disabledTitle": "Commentaires désactivés",
-      "disabledMessage": "Les commentaires sont désactivés pour cette publication.",
-      "disabledInfo": "Les commentaires sont désactivés pour cette publication. Tu peux seulement voir les commentaires existants.",
-      "placeholder": "Écrire un commentaire...",
-      "replyPlaceholder": "Répondre à {{author}}...",
-      "replyingTo": "Tu réponds à : {{author}}",
-      "send": "Envoyer",
-      "actionsTitle": "Actions sur le commentaire",
-      "deleteQuestion": "Supprimer ce commentaire ?",
-      "delete": "Supprimer le commentaire",
-      "reply": "Répondre"
+      "offLabel": "Comments turned off",
+      "cta": "Write a comment",
+      "count": "{{count}} comment(s)",
+      "title": "Comments",
+      "toggleOpen": "Open comments",
+      "toggleClose": "Close comments",
+      "empty": "No comments yet. Be the first one 🙂",
+      "disabledTitle": "Comments turned off",
+      "disabledMessage": "Comments are turned off for this post.",
+      "disabledInfo": "Comments are turned off for this post. You can only view existing comments.",
+      "placeholder": "Write a comment...",
+      "replyPlaceholder": "Reply to {{author}}...",
+      "replyingTo": "You’re replying to: {{author}}",
+      "send": "Send",
+      "actionsTitle": "Comment actions",
+      "deleteQuestion": "Delete this comment?",
+      "delete": "Delete comment",
+      "reply": "Reply"
     },
     "notifications": {
       "title": "Notifications",
-      "markAll": "Tout marquer comme lu",
-      "empty": "Tu n’as pas encore de notifications. Quand tu commenteras et joueras avec les réglages, tes notifications apparaîtront ici.",
-      "commentsToggle": "Tu as {{state}} les commentaires pour la publication « {{title}} ».",
-      "stateClosed": "désactivé",
-      "stateOpened": "activé",
-      "close": "Fermer",
-      "addedComment": "Tu as ajouté un commentaire à la publication « {{title}} ».",
+      "markAll": "Mark all as read",
+      "empty": "You don’t have any notifications yet. As you comment and play with settings, your notifications will appear here.",
+      "commentsToggle": "You {{state}} comments for the post titled “{{title}}”.",
+      "stateClosed": "turned off",
+      "stateOpened": "turned on",
+      "close": "Close",
+      "addedComment": "You added a comment to the post titled “{{title}}”.",
       "reported": "You reported the post “{{title}}”.",
       "blocked": "You blocked {{author}}."
     },
     "freeVideo": {
-      "title": "Vidéo",
-      "message": "Que veux-tu faire avec cette vidéo ?",
-      "delete": "Supprimer la vidéo"
+      "title": "Video",
+      "message": "What do you want to do with this video?",
+      "delete": "Delete video"
     },
     "postActions": {
-      "title": "Actions sur la publication",
-      "message": "Que veux-tu faire avec cette publication ?",
-      "archive": "Archiver la carte",
-      "delete": "Supprimer la carte",
-      "noPermission": "Cette carte ne t’appartient pas. Tu ne peux pas la supprimer.",
+      "title": "Post actions",
+      "message": "What would you like to do with this post?",
+      "archive": "Archive card",
+      "delete": "Delete card",
+      "noPermission": "This card isn't yours. You can't delete it.",
       "report": "Report",
       "blockUser": "Block User"
     },
     "time": {
-      "justNow": "à l’instant",
-      "minutesAgo": "il y a {{count}} min",
-      "hoursAgo": "il y a {{count}} h",
-      "yesterday": "hier",
-      "daysAgo": "il y a {{count}} jour(s)"
+      "justNow": "just now",
+      "minutesAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} h ago",
+      "yesterday": "yesterday",
+      "daysAgo": "{{count}} day(s) ago"
     },
     "report": {
       "successTitle": "Report received",
@@ -654,136 +701,136 @@
   },
   "auth": {
     "switch": {
-      "title": "Changer d’utilisateur",
-      "body": "Les champs seront effacés. E-mail/téléphone + mot de passe sont requis pour se connecter."
+      "title": "Switch user",
+      "body": "Fields will be cleared. Email/phone + password are required to sign in."
     },
     "welcome": {
-      "title": "Bienvenue 👋",
-      "subtitle": "Formulaire d’inscription pour les vrais utilisateurs."
+      "title": "Welcome 👋",
+      "subtitle": "Registration form for real users."
     },
     "login": {
-      "title": "Se connecter",
-      "subtitle": "Connecte-toi avec ton e-mail/téléphone et ton mot de passe.",
-      "identifierPlaceholder": "E-mail ou Téléphone",
-      "passwordPlaceholder": "Ton mot de passe",
-      "loginButton": "Se connecter",
-      "loading": "Connexion...",
-      "forgotPassword": "Mot de passe oublié ?",
-      "newHere": "Nouveau ici ? Créer un compte",
-      "haveAccount": "Tu as déjà un compte ? Se connecter",
-      "switchUser": "Changer d’utilisateur",
-      "backToLogin": "← Retour à la connexion"
+      "title": "Sign in",
+      "subtitle": "Sign in with your email/phone and password.",
+      "identifierPlaceholder": "Email or Phone",
+      "passwordPlaceholder": "Your password",
+      "loginButton": "Sign in",
+      "loading": "Signing in...",
+      "forgotPassword": "Forgot password?",
+      "newHere": "New here? Create an account",
+      "haveAccount": "Already have an account? Sign in",
+      "switchUser": "Switch user",
+      "backToLogin": "← Back to login"
     },
     "register": {
-      "subtitle": "Formulaire d’inscription pour les vrais utilisateurs.",
-      "fullNameLabel": "Nom complet",
-      "fullNamePlaceholder": "Nom complet",
-      "emailLabel": "E-mail",
-      "emailPlaceholder": "exemple@mail.com",
-      "phoneLabel": "Téléphone",
+      "subtitle": "Registration form for real users.",
+      "fullNameLabel": "Full name",
+      "fullNamePlaceholder": "Full name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "example@mail.com",
+      "phoneLabel": "Phone",
       "phonePlaceholder": "5xx xxx xx xx",
-      "passwordLabel": "Mot de passe",
-      "passwordPlaceholder": "Ton mot de passe",
-      "passwordConfirmLabel": "Mot de passe (confirmation)",
-      "passwordConfirmPlaceholder": "Confirmer le mot de passe",
-      "passwordHint": "Le mot de passe doit contenir au moins 8 caractères, avec majuscules/minuscules, un chiffre et un symbole.",
-      "submit": "Créer un compte",
-      "haveAccount": "Tu as déjà un compte ? Se connecter",
-      "cta": "Tu as déjà un compte ? Se connecter"
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Your password",
+      "passwordConfirmLabel": "Password (confirm)",
+      "passwordConfirmPlaceholder": "Confirm password",
+      "passwordHint": "Password must be at least 8 characters and include upper/lowercase letters, a number, and a symbol.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account? Sign in",
+      "cta": "Already have an account? Sign in"
     },
     "forgot": {
-      "title": "Mot de passe oublié",
-      "subtitle": "Tu peux recevoir un code via ton e-mail enregistré ou ton numéro de téléphone.",
-      "email": "E-mail",
-      "phone": "Téléphone",
-      "channelEmail": "E-mail",
-      "channelPhone": "Téléphone",
-      "emailPlaceholder": "Ton e-mail enregistré",
-      "sendCode": "Envoyer le code de vérification",
-      "verifyTitle": "Vérifier le code",
-      "verifySubtitle": "Saisis le code et ton nouveau mot de passe.",
-      "codePlaceholder": "Code de vérification",
-      "newPasswordPlaceholder": "Nouveau mot de passe",
-      "newPasswordConfirmPlaceholder": "Nouveau mot de passe (confirmation)",
-      "updateButton": "Mettre à jour le mot de passe",
-      "backToLogin": "← Retour à la connexion"
+      "title": "Forgot password",
+      "subtitle": "You can receive a verification code using your registered email address or phone number.",
+      "email": "Email",
+      "phone": "Phone",
+      "channelEmail": "Email",
+      "channelPhone": "Phone",
+      "emailPlaceholder": "Your registered email address",
+      "sendCode": "Send verification code",
+      "verifyTitle": "Verify code",
+      "verifySubtitle": "Enter the verification code and your new password.",
+      "codePlaceholder": "Verification code",
+      "newPasswordPlaceholder": "New password",
+      "newPasswordConfirmPlaceholder": "New password (confirm)",
+      "updateButton": "Update password",
+      "backToLogin": "← Back to login"
     }
   },
   "focusNetwork": {
-    "title": "Réseau Focus",
-    "subtitle": "Ici, tu ne vois que les publications des personnes que tu as choisies.",
+    "title": "Focus Network",
+    "subtitle": "Here you only see posts from people you selected.",
     "tabs": {
-      "network": "Mon réseau",
-      "discover": "Découvrir",
-      "requests": "Demandes"
+      "network": "My Network",
+      "discover": "Discover",
+      "requests": "Requests"
     },
     "search": {
-      "networkPlaceholder": "Rechercher dans ton réseau (@utilisateur, nom)...",
-      "discoverPlaceholder": "Découvrir : @handle / nom / e-mail / téléphone...",
-      "requestsPlaceholder": "Rechercher dans les demandes..."
+      "networkPlaceholder": "Search your network (@user, name)...",
+      "discoverPlaceholder": "Discover: @handle / name / email / phone...",
+      "requestsPlaceholder": "Search requests..."
     },
     "sections": {
-      "network": "Mon réseau",
-      "discover": "Découvrir",
-      "incomingRequests": "Demandes reçues"
+      "network": "My Network",
+      "discover": "Discover",
+      "incomingRequests": "Incoming requests"
     },
     "count": {
-      "people": "{{count}} personnes",
-      "requests": "{{count}} demandes"
+      "people": "{{count}} people",
+      "requests": "{{count}} requests"
     },
     "summary": {
-      "inNetwork": "Dans le réseau Focus.",
-      "alreadyInNetwork": "Déjà dans ton réseau.",
-      "incomingRequest": "T’a envoyé une demande.",
-      "outgoingPending": "Demande envoyée (en attente).",
-      "discoverFallback": "Ajouter depuis la liste Découvrir.",
-      "requestPending": "La demande d’ami est en attente."
+      "inNetwork": "In focus network.",
+      "alreadyInNetwork": "Already in your network.",
+      "incomingRequest": "Sent you a request.",
+      "outgoingPending": "Request sent (pending).",
+      "discoverFallback": "Add from the discover list.",
+      "requestPending": "Friend request is pending."
     },
     "actions": {
-      "detail": "Détail",
-      "accept": "Accepter",
-      "decline": "Refuser",
-      "sendRequest": "Envoyer une demande",
-      "addPerson": "Ajouter une personne",
-      "removeFromNetwork": "Retirer du réseau",
-      "inMyNetwork": "Dans mon réseau",
-      "pending": "En attente",
-      "requestExists": "Demande existante"
+      "detail": "Details",
+      "accept": "Accept",
+      "decline": "Decline",
+      "sendRequest": "Send request",
+      "addPerson": "Add person",
+      "removeFromNetwork": "Remove from network",
+      "inMyNetwork": "In my network",
+      "pending": "Pending",
+      "requestExists": "Request exists"
     },
     "banner": {
-      "newRequestTitle": "Nouvelle demande de connexion",
-      "newRequestBody": "{{count}} nouvelles demandes. Appuie pour voir."
+      "newRequestTitle": "New connection request",
+      "newRequestBody": "{{count}} new requests. Tap to view."
     },
     "empty": {
-      "noSearchMatch": "Aucune personne correspondante trouvée.",
-      "noResults": "Aucun résultat pour le moment.",
-      "noPendingRequests": "Aucune demande en attente."
+      "noSearchMatch": "No matching person found.",
+      "noResults": "No results right now.",
+      "noPendingRequests": "No pending requests."
     },
     "note": {
-      "backendDiscover": "Remarque : la liste Découvrir vient du backend. Sans connexion, les résultats peuvent ne pas se mettre à jour."
+      "backendDiscover": "Note: The discover list comes from the backend. If there is no connection, results may not update."
     },
     "detail": {
-      "rule1": "• Système d’amitié : envoyer une demande → l’autre personne accepte.",
-      "rule2": "• Aucun lien forcé. Tout avance avec approbation.",
-      "rule3": "• Sans connexion, les actions peuvent échouer."
+      "rule1": "• Friendship system: send request → other side accepts.",
+      "rule2": "• No forced connection. Everything proceeds with approval.",
+      "rule3": "• If there is no connection, actions may fail."
     },
     "alerts": {
-      "loginRequiredTitle": "Connexion requise",
-      "loginRequiredBody": "Une session utilisateur est nécessaire pour cette action.",
-      "alreadyInNetworkTitle": "Déjà dans ton réseau",
-      "alreadyInNetworkBody": "Cette personne est déjà dans ton Réseau Focus.",
-      "pendingTitle": "En attente",
-      "pendingBody": "Tu as déjà envoyé une demande à cette personne. Attends qu’elle l’accepte.",
-      "requestExistsTitle": "Demande existante",
-      "requestExistsBody": "Cette personne t’a déjà envoyé une demande. Tu peux l’accepter depuis l’onglet « Demandes ».",
-      "actionFailedWithConnection": "L’action a échoué. (Connexion ?)",
-      "declineFailed": "Le refus a échoué.",
-      "requestSendFailed": "La demande n’a pas pu être envoyée. (Connexion ?)",
-      "acceptFailed": "Impossible d’accepter. (Connexion ?)"
+      "loginRequiredTitle": "Login required",
+      "loginRequiredBody": "A user session is required for this action.",
+      "alreadyInNetworkTitle": "Already in your network",
+      "alreadyInNetworkBody": "This person is already in your Focus Network.",
+      "pendingTitle": "Pending",
+      "pendingBody": "You already sent a request to this person. Wait for them to accept it.",
+      "requestExistsTitle": "Request exists",
+      "requestExistsBody": "This person has already sent you a request. You can accept it from the “Requests” tab.",
+      "actionFailedWithConnection": "Action failed. (Connection?)",
+      "declineFailed": "Decline action failed.",
+      "requestSendFailed": "Request could not be sent. (Connection?)",
+      "acceptFailed": "Could not accept. (Connection?)"
     },
     "net": {
-      "invalidBaseUrl": "API_BASE_URL semble invalide.",
-      "onlineFetchError": "Erreur de récupération en ligne du Réseau Focus"
+      "invalidBaseUrl": "API_BASE_URL seems invalid.",
+      "onlineFetchError": "Focus Network online fetch error"
     }
   }
 }

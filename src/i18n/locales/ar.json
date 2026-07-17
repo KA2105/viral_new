@@ -1,157 +1,157 @@
 {
   "common": {
     "appName": "Viral",
-    "ok": "حسنًا",
+    "ok": "OK",
     "cancel": "إلغاء",
     "close": "إغلاق",
     "continue": "متابعة",
     "hide": "إخفاء",
-    "show": "إظهار",
+    "show": "عرض",
     "save": "حفظ",
     "saving": "جارٍ الحفظ...",
     "loading": "جارٍ التحميل...",
     "warning": "تحذير",
     "error": "خطأ",
-    "success": "تمّ"
+    "success": "نجاح"
   },
   "onboarding": {
     "language": {
-      "title": "اختر اللغة",
-      "subtitle": "اختر لغتك للمتابعة",
-      "hint": "يمكنك تغيير اللغة لاحقًا من شاشة الملف الشخصي."
+      "title": "Select Language",
+      "subtitle": "Choose your language to continue",
+      "hint": "You can change language later from Profile screen."
     },
     "buttons": {
-      "skip": "تخطي",
-      "next": "التالي",
-      "start": "ابدأ"
+      "skip": "Skip",
+      "next": "Next",
+      "start": "Start"
     }
   },
   "profile": {
     "title": "الملف الشخصي",
-    "languageButton": "اللغة",
-    "languageHint": "اختر لغة التطبيق",
-    "defaultUser": "مستخدم",
-    "fullNameLabel": "الاسم الكامل",
-    "fullNamePlaceholder": "الاسم الكامل",
-    "handleLabel": "اسم المستخدم",
+    "languageButton": "Language",
+    "languageHint": "Choose app language",
+    "defaultUser": "User",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "Full name",
+    "handleLabel": "Username",
     "handlePlaceholder": "@user",
-    "bioLabel": "نبذة (تعريف)",
-    "bioPlaceholder": "قدّم نفسك بإيجاز...",
-    "websiteLabel": "رابط (اختياري)",
+    "bioLabel": "About (bio)",
+    "bioPlaceholder": "Briefly introduce yourself...",
+    "websiteLabel": "Link (optional)",
     "websitePlaceholder": "https://",
-    "emailLabel": "البريد الإلكتروني",
+    "emailLabel": "E-mail",
     "emailPlaceholder": "example@mail.com",
-    "phoneLabel": "الهاتف",
+    "phoneLabel": "Phone",
     "phonePlaceholder": "5x xx xx xx",
-    "phoneHint": "لا حاجة لإضافة صفر في البداية. رمز الدولة على اليسار.",
-    "passwordLabel": "كلمة المرور",
-    "passwordPlaceholder": "كلمة المرور",
-    "passwordConfirmLabel": "كلمة المرور (تأكيد)",
-    "passwordConfirmPlaceholder": "أعد كتابة كلمة المرور",
-    "passwordHint": "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل مع أحرف كبيرة وصغيرة وأرقام ورموز.",
+    "phoneHint": "No need to add a leading 0. Country code is on the left.",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Your password",
+    "passwordConfirmLabel": "Password (again)",
+    "passwordConfirmPlaceholder": "Type the password again",
+    "passwordHint": "Password must be at least 8 characters, and include upper/lowercase letters, numbers and symbols.",
     "logout": "تسجيل الخروج",
-    "loadingProfile": "جارٍ تحميل الملف الشخصي...",
+    "loadingProfile": "Loading profile...",
     "alert": {
-      "warning": "تحذير",
-      "error": "خطأ",
-      "success": "تم بنجاح",
-      "passwordRequired": "كلمة المرور وتأكيدها مطلوبان.",
-      "passwordMismatch": "يجب أن تتطابق كلمة المرور مع التأكيد.",
-      "saveFailed": "تعذر تحديث الملف الشخصي.",
-      "saveSuccess": "تم تحديث معلومات ملفك الشخصي.",
+      "warning": "Warning",
+      "error": "Error",
+      "success": "Success",
+      "passwordRequired": "Password and confirmation are required.",
+      "passwordMismatch": "Password and confirmation must match.",
+      "saveFailed": "Profile could not be updated.",
+      "saveSuccess": "Your profile information has been updated.",
       "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
     },
     "verify": {
-      "sectionTitle": "التحقق من الهاتف",
-      "statusVerified": "تم التحقق من الهاتف",
-      "statusNotVerified": "لم يتم التحقق من الهاتف",
-      "codeSentTitle": "تم إرسال رمز التحقق",
-      "codeSentDev": "محاكاة (dev): الرمز {{code}}",
-      "codeSentText": "تم إرسال رمز تحقق إلى هاتفك (محاكاة).",
-      "enterCode": "يرجى إدخال رمز التحقق.",
-      "verifyFailed": "تعذر التحقق من الرمز.",
-      "verifySuccess": "تم التحقق من رقم هاتفك.",
-      "sendCodeButton": "إرسال الرمز (محاكاة)",
-      "codePlaceholder": "رمز التحقق",
-      "confirmButton": "تأكيد الرمز"
+      "sectionTitle": "Phone verification",
+      "statusVerified": "Phone verified",
+      "statusNotVerified": "Phone not verified",
+      "codeSentTitle": "Verification code sent",
+      "codeSentDev": "Simulation (dev): Code {{code}}",
+      "codeSentText": "A verification code was sent to your phone (simulation).",
+      "enterCode": "Please enter the verification code.",
+      "verifyFailed": "Code could not be verified.",
+      "verifySuccess": "Your phone number has been verified.",
+      "sendCodeButton": "Send code (simulation)",
+      "codePlaceholder": "Verification code",
+      "confirmButton": "Verify code"
     },
     "personalSection": {
-      "title": "البيانات الشخصية",
-      "hide": "إخفاء",
-      "showEdit": "عرض / تعديل"
+      "title": "Personal information",
+      "hide": "Hide",
+      "showEdit": "Show / Edit"
     },
     "avatar": {
-      "label": "الصورة الشخصية",
-      "readError": "تعذر قراءة الصورة المحددة.",
-      "pickError": "حدثت مشكلة أثناء اختيار الصورة الشخصية. حاول مرة أخرى.",
-      "change": "تغيير الصورة",
-      "choose": "اختيار صورة"
+      "label": "Profile photo",
+      "readError": "Selected image could not be read.",
+      "pickError": "There was a problem selecting profile photo. Please try again.",
+      "change": "Change photo",
+      "choose": "Choose photo"
     },
     "onboarding": {
-      "restartTitle": "إعادة بدء الجولة التعريفية",
-      "restartMessage": "أنت على وشك إعادة تشغيل الجولة التعريفية القصيرة. المتابعة؟",
-      "restartConfirm": "نعم، ابدأ",
-      "readyTitle": "جاهز 🎉",
-      "readyMessage": "سيتم فتح الجولة التعريفية بعد قليل. في نهايتها ستعود إلى التطبيق.",
-      "restartButton": "إعادة تشغيل الجولة"
+      "restartTitle": "Restart intro tour",
+      "restartMessage": "You are about to restart the short intro tour. Continue?",
+      "restartConfirm": "Yes, start",
+      "readyTitle": "Ready 🎉",
+      "readyMessage": "The onboarding will open again in a moment. At the end of the tour, you’ll return to the app.",
+      "restartButton": "Restart onboarding"
     },
     "invite": {
-      "button": "دعوة أصدقائي",
-      "title": "ابحث عني على Viral",
-      "usernameLabel": "اسم المستخدم",
-      "profileLinkLabel": "رابط الملف الشخصي",
-      "appLinkLabel": "رابط تطبيق Viral",
-      "platformQuestion": "على أي منصة تريد المشاركة؟",
-      "defaultUsername": "مستخدم Viral",
-      "shareLine1": "ابحث عني على Viral! 👋",
-      "shareUsername": "اسم المستخدم: {{username}}",
-      "shareProfile": "الملف: {{link}}",
-      "shareApp": "رابط التطبيق: {{link}}",
-      "shareVia": "(أشارك هذه الرسالة عبر {{platform}})"
+      "button": "Invite my friends",
+      "title": "Find me on Viral",
+      "usernameLabel": "Username",
+      "profileLinkLabel": "Profile link",
+      "appLinkLabel": "Viral app link",
+      "platformQuestion": "Which platform do you want to share on?",
+      "defaultUsername": "Viral user",
+      "shareLine1": "Find me on Viral! 👋",
+      "shareUsername": "Username: {{username}}",
+      "shareProfile": "Profile: {{link}}",
+      "shareApp": "App link: {{link}}",
+      "shareVia": "(I’m sharing this message via {{platform}})"
     },
     "accounts": {
-      "sectionTitle": "ربط الحسابات",
-      "toggleButton": "ربط / إزالة الحساب",
-      "summary": "{{count}} حساب مرتبط",
-      "connected": "مرتبط",
-      "connect": "ربط",
-      "account": "حساب",
-      "connectedFlash": "تم ربط حساب {{label}} بـ Viral.",
-      "disconnectedFlash": "تم إزالة ربط حساب {{label}} من Viral.",
-      "manage": "إدارة الحساب",
-      "bind": "ربط الحساب",
-      "hintConnected": "يمكنك إزالة هذا الحساب من Viral أو تحديث الربط.",
-      "hintDisconnected": "لربط هذا الحساب بـ Viral، أدخل رابط الملف الشخصي أو الصفحة.",
+      "sectionTitle": "Account connections",
+      "toggleButton": "Connect / remove account",
+      "summary": "{{count}} connected account(s)",
+      "connected": "Connected",
+      "connect": "Connect",
+      "account": "Account",
+      "connectedFlash": "Your {{label}} account has been connected to Viral.",
+      "disconnectedFlash": "Your {{label}} account has been removed from Viral.",
+      "manage": "manage your account",
+      "bind": "connect your account",
+      "hintConnected": "You can remove this account from Viral or update its connection.",
+      "hintDisconnected": "To connect this account to Viral, enter the profile or page URL.",
       "linkPlaceholder": "https://...",
-      "removeButton": "إزالة الحساب",
+      "removeButton": "Remove account",
       "enterLink": "First enter the link of the account you want to connect."
     },
     "feedStats": {
-      "sectionTitle": "إحصائيات الخلاصة",
-      "totalCards": "إجمالي البطاقات",
-      "visibleCards": "البطاقات الظاهرة",
-      "totalLikes": "إجمالي الإعجابات",
-      "videoCards": "بطاقات تحتوي على فيديو"
+      "sectionTitle": "Feed statistics",
+      "totalCards": "Total cards",
+      "visibleCards": "Visible cards",
+      "totalLikes": "Total likes",
+      "videoCards": "Cards with video"
     },
     "activities": {
-      "sectionTitle": "أحدث الأنشطة",
-      "empty": "لا توجد بطاقات مرتبطة باسمك حتى الآن. عندما تضيف بطاقات مهام أو فيديو إلى الخلاصة سترى ملخصاتها هنا.",
-      "badgeTaskCard": "بطاقة مهمة",
-      "badgeVideo": "فيديو",
-      "noSharePlanned": "لا توجد مشاركة مخططة"
+      "sectionTitle": "Recent activities",
+      "empty": "There is no card associated with your name yet. When you add task cards or videos to the feed, you’ll see their summaries here.",
+      "badgeTaskCard": "Task card",
+      "badgeVideo": "Video",
+      "noSharePlanned": "No planned share"
     },
     "taskStats": {
-      "sectionTitle": "إحصائيات المهام",
-      "totalTasks": "إجمالي المهام",
-      "completed": "المكتملة"
+      "sectionTitle": "Task statistics",
+      "totalTasks": "Total tasks",
+      "completed": "Completed"
     },
     "account": {
-      "sectionTitle": "الحساب",
-      "instagramLogs": "عرض سجلات المشاركة على إنستغرام"
+      "sectionTitle": "Account",
+      "instagramLogs": "View Instagram share logs"
     },
     "section": {
-      "hide": "إخفاء",
-      "show": "إظهار"
+      "hide": "Hide",
+      "show": "Show"
     },
     "delete": {
       "title": "Delete Account",
@@ -169,463 +169,509 @@
     "screenTitleTask": "إنشاء بطاقة مهمة",
     "screenTitleFree": "إنشاء بطاقة مشاركة",
     "mode": {
-      "task": "مشاركة مهمة",
-      "free": "مشاركة حرة",
-      "taskDescription": "يمكنك اختيار إحدى المهام التي أكملتها ومشاركتها كبطاقة.",
-      "freeDescription": "أنت تقوم الآن بإنشاء بطاقة مشاركة حرة بدون اختيار مهمة.",
-      "toggleHideTasks": "إخفاء",
-      "toggleShowTasks": "عرض القائمة",
-      "noCompletedTasksInline": "لا توجد مهام مكتملة حتى الآن. أكمل مهمة من شاشة المهام أولاً.",
-      "noCompletedTasksTitle": "لم يتم العثور على مهام",
-      "noCompletedTasksBody": "لا توجد مهام مكتملة حالياً. لإستخدام وضع المهمة، أكمل مهمة أولاً."
+      "task": "مهمة",
+      "free": "حر",
+      "taskDescription": "يمكنك اختيار مهمة مكتملة ومشاركتها كبطاقة.",
+      "freeDescription": "أنت تنشئ بطاقة مشاركة حرة بدون اختيار مهمة.",
+      "toggleHideTasks": "Hide",
+      "toggleShowTasks": "Show list",
+      "noCompletedTasksInline": "ليس لديك مهام مكتملة بعد. أكمل مهمة أولاً من شاشة المهام.",
+      "noCompletedTasksTitle": "No tasks found",
+      "noCompletedTasksBody": "There are no completed tasks at the moment. To switch to task mode, complete a task first."
     },
     "fields": {
-      "cardTitleLabel": "عنوان البطاقة",
-      "cardTitlePlaceholder": "اكتب عنواناً (اختياري)",
+      "cardTitleLabel": "Card title",
+      "cardTitlePlaceholder": "Write a title (optional)",
       "cardDescriptionLabel": "وصف البطاقة",
-      "cardDescriptionPlaceholder": "وصف المهمة أو نص المشاركة الحرة... (اختياري)"
+      "cardDescriptionPlaceholder": "وصف المهمة أو نص مشاركة حر... (اختياري)"
     },
     "video": {
       "label": "فيديو (اختياري)",
-      "hint": "في الإصدار المجاني يمكن أن يصل طول الفيديو إلى 30 ثانية. التطبيق يدعم فيديوهات حتى 3 دقائق.",
-      "pick": "اختيار فيديو",
-      "change": "تغيير الفيديو",
+      "hint": "In the free version videos can be up to 30 seconds. The app currently supports videos up to 3 minutes.",
+      "pick": "اختر فيديو",
+      "change": "Change video",
       "notSelected": "لم يتم اختيار فيديو بعد",
-      "selectedFallback": "تم اختيار فيديو",
-      "tooLongTitle": "الفيديو طويل جداً",
-      "tooLongBody": "حالياً يتم دعم فيديوهات حتى 3 دقائق فقط. يرجى تقصير الفيديو والمحاولة مرة أخرى.",
-      "overFreeLimitTitle": "الفيديو أطول من 30 ثانية",
-      "overFreeLimitBody": "في الإصدار المجاني يجب أن يكون الفيديو أقصر من 30 ثانية. للإطلاع على خيار Pro للفيديوهات الأطول لاحقاً.",
-      "overFreeLimitCancel": "إلغاء",
-      "overFreeLimitPro": "أرغب في معرفة المزيد عن Pro",
+      "selectedFallback": "Video selected",
+      "tooLongTitle": "Video is too long",
+      "tooLongBody": "Currently only videos up to 3 minutes are supported. Please shorten your video and try again.",
+      "overFreeLimitTitle": "Video is longer than 30 seconds",
+      "overFreeLimitBody": "In the free version, the video you want to send must be shorter than 30 seconds. You’ll be able to explore the Pro option for longer videos.",
+      "overFreeLimitCancel": "Cancel",
+      "overFreeLimitPro": "I’m curious about Pro",
       "proInfoTitle": "Viral Pro",
-      "proInfoBody": "ميزات Pro حالياً في مرحلة التخطيط. مع الاقتراب من الإطلاق، ستقوم بتفصيل دعم الفيديوهات الطويلة. 🚀",
-      "pickErrorTitle": "تعذر اختيار الفيديو",
-      "pickErrorBody": "حدث خطأ أثناء اختيار الفيديو. يرجى المحاولة مرة أخرى."
+      "proInfoBody": "You are currently at the planning stage of Pro features. As you get closer to launch, you’ll detail Pro and long-video support. 🚀",
+      "pickErrorTitle": "Video could not be selected",
+      "pickErrorBody": "An error occurred while selecting video. Please try again.",
+      "uploadFailedTitle": "Video could not be uploaded",
+      "uploadFailedBody": "Video could not be uploaded to the server. Check your internet/server."
     },
     "share": {
-      "plannedLabel": "مشاركة مخططة",
-      "freePostTip": "يمكنك المشاركة بدون مهمة أيضاً. شارك فيديوهاتك ولحظاتك وكل ما تريد بحرية؛ ستظهر كبطاقات مستقلة في الخلاصة.",
-      "platformNotConnectedTitle": "حساب {{platform}} غير مرتبط",
-      "platformNotConnectedBody": "للمشاركة على {{platform}} يجب ربط حساب {{platform}} مع Viral.",
-      "platformNotConnectedCancel": "لا تقم بربط الحساب",
-      "platformNotConnectedConnect": "ربط حساب {{platform}} بـ Viral",
-      "goProfileTitle": "الذهاب إلى شاشة الملف الشخصي",
-      "goProfileBody": "انتقل إلى تبويب \"الملف الشخصي\" وقم بربط حساب {{platform}} من قسم \"ربط الحسابات\"."
+      "plannedLabel": "مشاركة مجدولة",
+      "freePostTip": "You can also share without a task. Freely share your videos, moments and anything you like; they’ll appear as independent cards in the feed.",
+      "platformNotConnectedTitle": "{{platform}} account not connected",
+      "platformNotConnectedBody": "To share on {{platform}}, you must connect your {{platform}} account to Viral.",
+      "platformNotConnectedCancel": "Do not connect my account",
+      "platformNotConnectedConnect": "Connect my {{platform}} account to Viral",
+      "goProfileTitle": "Go to profile screen",
+      "goProfileBody": "Go to the “Profile” tab and connect your {{platform}} account from the “Account connections” section."
     },
     "preview": {
       "label": "معاينة",
-      "taskPrefix": "مهمة مكتملة: ",
-      "freePrefix": "مشاركة جاهزة: ",
-      "freeBadge": "بطاقة مشاركة حرة",
-      "taskBadge": "بطاقة مهمة",
-      "contentLabelTask": "المحتوى",
-      "contentLabelFree": "محتوى المشاركة",
-      "plannedLabel": "مشاركة مخططة:",
-      "videoLabel": "📹 فيديو: {{label}}",
-      "videoFallback": "الفيديو المحدد",
-      "noTaskSelected": "لم يتم اختيار مهمة"
+      "taskPrefix": "Completed task: ",
+      "freePrefix": "Share ready: ",
+      "freeBadge": "Free share card",
+      "taskBadge": "Task card",
+      "contentLabelTask": "Content",
+      "contentLabelFree": "Share content",
+      "plannedLabel": "Planned share:",
+      "videoLabel": "📹 Video: {{label}}",
+      "videoFallback": "selected video",
+      "noTaskSelected": "No task selected"
     },
     "submit": {
       "creating": "جارٍ الإنشاء...",
       "task": "إنشاء بطاقة مهمة",
-      "free": "إنشاء بطاقة"
+      "free": "إنشاء البطاقة"
     },
     "alerts": {
       "missingContentTitle": "تحذير",
-      "missingContentBody": "اختر مهمة أو أضف عنواناً / وصفاً / فيديو قبل إنشاء البطاقة.",
-      "successTitle": "تم بنجاح",
-      "successTaskBody": "تمت مشاركة بطاقة المهمة في الخلاصة.",
-      "successFreeBody": "تمت إضافة بطاقة المشاركة الحرة إلى الخلاصة."
+      "missingContentBody": "Select a task or add a title / description / video before creating the card.",
+      "successTitle": "نجاح",
+      "successTaskBody": "Task card has been shared in the feed.",
+      "successFreeBody": "Your free share card has been added to the feed."
+    },
+    "praise": {
+      "tab": "إشادة",
+      "screenTitle": "مشاركة إشادة",
+      "description": "اكتب رسالة إشادة قصيرة لصديق وشاركها كبطاقة خاصة.",
+      "friendLabel": "صديق",
+      "friendPlaceholder": "اسم الصديق أو اسم المستخدم",
+      "friendFallback": "صديقك",
+      "categoryLabel": "الفئة",
+      "messageLabel": "رسالة قصيرة",
+      "messagePlaceholder": "مثال: طاقتك رفعت معنويات الجميع اليوم.",
+      "submit": "مشاركة الإشادة",
+      "feedTitle": "إشادة لـ @{{friend}}",
+      "previewTitle": "إشادة لـ @{{friend}}",
+      "badge": "بطاقة إشادة",
+      "previewMessageLabel": "رسالة الإشادة",
+      "previewEmptyMessage": "ستظهر رسالة الإشادة هنا.",
+      "previewFriendHint": "سيتم وسم @{{friend}}",
+      "categoryFallback": "إشادة",
+      "successTitle": "تمت مشاركة الإشادة",
+      "successBody": "تمت إضافة بطاقة الإشادة إلى الخلاصة.",
+      "missingFriendTitle": "لم يتم اختيار صديق",
+      "missingFriendBody": "اكتب اسم صديق لمشاركة الإشادة.",
+      "missingMessageTitle": "الرسالة مفقودة",
+      "missingMessageBody": "اكتب رسالة إشادة قصيرة.",
+      "categories": {
+        "kindness": "اللطف",
+        "success": "النجاح",
+        "support": "الدعم",
+        "energy": "الطاقة",
+        "creativity": "الإبداع",
+        "leadership": "القيادة"
+      }
+    },
+    "images": {
+      "pickErrorTitle": "تعذر اختيار الصور",
+      "pickErrorBody": "حدث خطأ أثناء اختيار الصور.",
+      "uploadFailedTitle": "تعذر رفع الصور",
+      "uploadFailedBody": "تعذر رفع الصور إلى الخادم. تحقق من الإنترنت/الخادم."
     }
   },
   "tasks": {
     "screenTitle": "المهام",
-    "statsLine": "نشطة: {{active}} · مكتملة: {{completed}}",
+    "statsLine": "Active: {{active}} · Completed: {{completed}}",
     "todayCard": {
-      "label": "مهمة اليوم",
-      "doneButton": "اكتملت"
+      "label": "Today’s task",
+      "doneButton": "Completed"
     },
     "levelCard": {
-      "label": "المستوى",
-      "streak": "🔥 سلسلة: {{count}} يوم",
-      "completedToday": "🎯 مكتملة اليوم: {{count}}",
-      "longestStreak": "🏅 أطول سلسلة: {{count}} يوم"
+      "label": "Level",
+      "streak": "🔥 Streak: {{count}} day(s)",
+      "completedToday": "🎯 Completed today: {{count}}",
+      "longestStreak": "🏅 Longest streak: {{count}} day(s)"
     },
     "modes": {
-      "givenTitle": "طلب مهمة",
-      "selfTitle": "إضافة مهمة",
-      "givenDescription": "اطلب مهمة مفاجئة؛ Viral سيختار لك واحدة.",
-      "selfDescription": "يمكنك إضافة مهام لنفسك من هذه الصفحة."
+      "givenTitle": "Request a task",
+      "selfTitle": "Add task",
+      "givenDescription": "Request a surprise task; Viral chooses one for you.",
+      "selfDescription": "You can add tasks for yourself on this page."
     },
     "self": {
-      "inputPlaceholder": "مثال: 20 دقيقة تركيز",
-      "scheduleQuestion": "متى ستقوم بهذه المهمة؟",
-      "repeatQuestion": "هل ستتكرر هذه المهمة؟",
-      "reminderLabel": "تذكير",
-      "reminderOn": "مفعل",
-      "reminderOff": "غير مفعل",
-      "addButton": "إضافة",
-      "backToFeedButton": "← الخلاصة"
+      "inputPlaceholder": "e.g. 20 min focus",
+      "scheduleQuestion": "When will you do this task?",
+      "repeatQuestion": "Will this task repeat?",
+      "reminderLabel": "Reminder",
+      "reminderOn": "On",
+      "reminderOff": "Off",
+      "addButton": "Add",
+      "backToFeedButton": "← Feed"
     },
     "scheduleOptions": {
-      "today": "اليوم",
-      "tomorrow": "غداً",
-      "thisWeek": "هذا الأسبوع"
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This week"
     },
     "repeatOptions": {
-      "none": "مرة واحدة",
-      "daily": "يومي",
-      "weekly": "أسبوعي"
+      "none": "One-time",
+      "daily": "Daily",
+      "weekly": "Weekly"
     },
     "categories": {
-      "general": "عام",
-      "school": "دراسة",
-      "work": "عمل",
-      "health": "صحة",
-      "family": "عائلة",
-      "social": "اجتماعي"
+      "general": "General",
+      "school": "School",
+      "work": "Work",
+      "health": "Health",
+      "family": "Family",
+      "social": "Social"
     },
     "priorities": {
-      "low": "منخفضة",
-      "medium": "متوسطة",
-      "high": "مرتفعة"
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
     },
     "templates": {
       "focus-25min": {
-        "title": "ركّز لمدة 25 دقيقة",
-        "description": "قم بكتم صوت الهاتف وركّز على مهمة واحدة لمدة 25 دقيقة."
+        "title": "Focus for 25 minutes",
+        "description": "Silence your phone and focus on a single task for 25 minutes."
       },
       "focus-deep-clean": {
-        "title": "تنظيف سريع لمكتبك / مساحة العمل",
-        "description": "جمّع الأشياء غير الضرورية على مكتبك؛ تأثير \"بداية جديدة\" خلال 10 دقائق."
+        "title": "Mini desk / workspace clean-up",
+        "description": "Collect unnecessary items on your desk; create a 10-minute “fresh start” effect."
       },
       "focus-inbox-zero": {
-        "title": "خفّف من صندوق البريد",
-        "description": "احذف أو أرشف على الأقل 5 رسائل غير ضرورية اليوم."
+        "title": "Lighten your inbox",
+        "description": "Delete or archive at least 5 unnecessary emails today."
       },
       "focus-no-scroll-20min": {
-        "title": "قاعدة 20 دقيقة بدون تمرير",
-        "description": "اقضِ 20 دقيقة دون تصفح أي خلاصة على وسائل التواصل الاجتماعي."
+        "title": "20-minute “no scroll” rule",
+        "description": "Spend 20 minutes without scrolling any social media feed."
       },
       "health-steps-6000": {
-        "title": "امشِ 6000 خطوة اليوم",
-        "description": "خطط لمشي قصير عدة مرات في اليوم؛ المجموع 6000 خطوة على الأقل."
+        "title": "Take 6000 steps today",
+        "description": "Plan short walks outside; reach at least 6000 steps in total."
       },
       "health-water-6": {
-        "title": "اشرب 6 أكواب ماء على الأقل",
-        "description": "وزّع شرب الماء على اليوم وتابع استهلاكك."
+        "title": "Drink at least 6 glasses of water",
+        "description": "Spread your water intake throughout the day and track it."
       },
       "health-stretch-10": {
-        "title": "استراحة تمدد 10 دقائق",
-        "description": "قم بتمارين بسيطة للرقبة والكتفين وأسفل الظهر."
+        "title": "10-minute stretch break",
+        "description": "Do simple stretch exercises for your neck, shoulders and lower back."
       },
       "health-walk-sunset": {
-        "title": "مشي قصير عند الغروب",
-        "description": "اخرج لمشي لمدة 15 دقيقة في الهواء الطلق قرب وقت الغروب."
+        "title": "Evening mini walk",
+        "description": "Take a 15-minute fresh-air walk around sunset."
       },
       "work-priority-task": {
-        "title": "أنهِ أهم عمل اليوم",
-        "description": "اختر أهم مهمة اليوم، قسّمها إلى خطوات صغيرة وأكملها."
+        "title": "Finish your most important task",
+        "description": "Choose today’s most important task, break it into smaller steps and complete it."
       },
       "work-no-meeting-30": {
-        "title": "فترة تركيز 30 دقيقة بدون اجتماعات",
-        "description": "احجز في تقويمك 30 دقيقة هادئة وامتنع عن الاجتماعات خلالها."
+        "title": "30-minute meeting-free block",
+        "description": "Create a 30-minute silent focus block in your calendar and avoid scheduling meetings in it."
       },
       "work-feedback-ask": {
-        "title": "اطلب رأياً",
-        "description": "اطلب ردّ فعل أو ملاحظة قصيرة من زميل حول عمل قمت به."
+        "title": "Ask for feedback",
+        "description": "Ask a teammate for brief feedback on a piece of work you did."
       },
       "work-small-win-share": {
-        "title": "سجّل إنجاز اليوم الصغير",
-        "description": "اكتب في سطر واحد ما أسعدك أكثر في عملك اليوم."
+        "title": "Note today’s small win",
+        "description": "Write down in one sentence the work / progress that made you happiest today."
       },
       "school-25min-study": {
-        "title": "25 دقيقة دراسة / مراجعة",
-        "description": "ركّز على مادة واحدة فقط؛ ادرس 25 دقيقة دون لمس الهاتف."
+        "title": "25 minutes of study / review",
+        "description": "Focus on only one subject; study 25 minutes without touching your phone."
       },
       "school-question-solve": {
-        "title": "حل 10 أسئلة على الأقل",
-        "description": "اختر مادة واحلّ على الأقل 10 أسئلة جديدة اليوم."
+        "title": "Solve at least 10 questions",
+        "description": "Solve at least 10 new questions today from a subject you choose."
       },
       "school-notes-clean": {
-        "title": "رتّب ملاحظاتك",
-        "description": "نظّف موضوعاً واحداً في دفترك أو ملاحظاتك الرقمية وأضف عناوين واضحة."
+        "title": "Organize your notes",
+        "description": "Clean up one topic in your notebook / digital notes and add headings."
       },
       "school-share-tip": {
-        "title": "أرسل نصيحة دراسية لصديق",
-        "description": "شارك تقنية دراسة تستخدمها (بومودورو، ملاحظات ملوّنة، إلخ) مع أحد الأصدقاء."
+        "title": "Send a study tip to a friend",
+        "description": "Share a study technique you use (Pomodoro, colorful notes, etc.) with a friend."
       },
       "family-call-parent": {
-        "title": "مكالمة قصيرة مع العائلة",
-        "description": "تحدّث لمدة 5 دقائق على الأقل مع أحد والديك أو أحد أفراد العائلة."
+        "title": "Short chat with family",
+        "description": "Have at least a 5-minute sincere conversation with a parent or family member."
       },
       "family-eat-together": {
-        "title": "تناول وجبة مع العائلة",
-        "description": "تناول وجبة على نفس الطاولة مع العائلة بدون هواتف."
+        "title": "Eat together",
+        "description": "Have a meal with your family at the same table without phones."
       },
       "family-thank-message": {
-        "title": "أرسل رسالة شكر",
-        "description": "اكتب رسالة قصيرة لأحد أفراد عائلتك تعبّر فيها عن امتنانك."
+        "title": "Send a thank-you message",
+        "description": "Write a short “I’m glad you’re here” message to someone from your family."
       },
       "social-message-friend": {
-        "title": "أرسل رسالة لصديق",
-        "description": "اسأل \"كيف حالك؟\" لشخص لم تتحدث معه منذ فترة."
+        "title": "Send a message to a friend",
+        "description": "Ask “How are you?” to someone you haven’t spoken to for a long time."
       },
       "social-comment-support": {
-        "title": "اكتب تعليق دعم",
-        "description": "اكتب تعليقاً صادقاً وداعماً على مشاركة صديق."
+        "title": "Leave a supportive comment",
+        "description": "Write a sincere, supportive comment on a friend’s post."
       },
       "social-share-win": {
-        "title": "شارك \"الإنجاز الصغير\" لليوم",
-        "description": "استعد لحفظ لحظة أسعدتك اليوم كبطاقة."
+        "title": "Share today’s “small win”",
+        "description": "Get ready to save a moment that made you happy today as a card."
       },
       "social-new-connection": {
-        "title": "كوّن صداقة جديدة",
-        "description": "أرسل رسالة ترحيب قصيرة لشخص تتابعه منذ مدة ولم تتحدث معه من قبل."
+        "title": "Create a new connection",
+        "description": "Send a short hello message to someone you’ve followed for a long time but never written to."
       },
       "social-phone-free-coffee": {
-        "title": "استراحة قهوة / شاي بدون هاتف",
-        "description": "اقضِ استراحة قهوة أو شاي لمدة 15 دقيقة مع صديق أو وحدك بدون هاتف."
+        "title": "Phone-free coffee / tea break",
+        "description": "Spend a 15-minute coffee break with a friend or alone without your phone."
       },
       "viral-plan-card": {
-        "title": "خطط لبطاقة Viral",
-        "description": "فكّر في فكرة بطاقة للحظة أو ملاحظة أو هدف تريد مشاركته اليوم، واكتب عنوانها."
+        "title": "Plan a Viral card",
+        "description": "Think of a card idea for a moment, note or goal you want to share today and write its title."
       },
       "viral-gratitude-3": {
-        "title": "اشعر بالامتنان لثلاثة أشياء",
-        "description": "اكتب 3 أمور تشعر بالامتنان لها اليوم كملاحظات قصيرة؛ يمكنك تحويلها إلى بطاقة."
+        "title": "Be grateful for 3 things",
+        "description": "Write down 3 things you are grateful for today as short notes; you can turn them into a card if you like."
       },
       "viral-before-after": {
-        "title": "ابحث عن فكرة صورة قبل / بعد",
-        "description": "اختر شيئاً يمكنك إظهاره قبل وبعد مثل تنظيم المكتب أو تنظيف الشاشة أو مسار المشي."
+        "title": "Find a before / after photo idea",
+        "description": "Find something you can show “before–after”, such as desk organization, screen clean-up or a walking route."
       }
     },
     "meta": {
-      "createdAt": "تاريخ الإنشاء",
-      "completedAt": "تاريخ الإكمال",
-      "originGiven": "مهمة مُعطاة لك",
-      "originSelf": "مهمة لنفسك",
-      "priorityPrefix": "الأولوية: {{priority}}",
-      "timePrefix": "الوقت: {{when}}",
-      "repeatPrefix": "التكرار: {{repeat}}"
+      "createdAt": "Created",
+      "completedAt": "Completed",
+      "originGiven": "Task given to you",
+      "originSelf": "Task to yourself",
+      "priorityPrefix": "Priority: {{priority}}",
+      "timePrefix": "Time: {{when}}",
+      "repeatPrefix": "Repeat: {{repeat}}"
     },
     "request": {
-      "areaTitle": "احصل على مهمة اليوم كمفاجأة.",
-      "areaSubtitle": "اضغط الزر ليختار Viral مهمة جاهزة لك.",
-      "buttonIdle": "أعطني مهمة اليوم",
-      "buttonHasTask": "مهمة اليوم جاهزة 👇",
-      "cardTitlePrefix": "مهمة اليوم: ",
-      "doButton": "تم ✓",
-      "changeButton": "تغيير",
-      "changeUsedLabel": "لقد استخدمت محاولة التغيير اليوم"
+      "areaTitle": "Get today’s task as a surprise.",
+      "areaSubtitle": "Press the button and Viral chooses a ready task for you.",
+      "buttonIdle": "Give me today’s task",
+      "buttonHasTask": "Today’s task is ready 👇",
+      "cardTitlePrefix": "Today’s task: ",
+      "doButton": "Done ✓",
+      "changeButton": "Change",
+      "changeUsedLabel": "You’ve used your change for today"
     },
     "requestAlerts": {
-      "noMoreChangesTitle": "لقد وصلت إلى الحد المسموح لليوم",
-      "noMoreChangesBody": "يمكنك تغيير المهمة الجاهزة مرة واحدة فقط يومياً. يمكنك الحصول على مهمة جديدة غداً. 🙌",
-      "alreadyChangedBody": "لقد قمت بتغيير مهمة اليوم مرة واحدة بالفعل."
+      "noMoreChangesTitle": "Your limit for today is reached",
+      "noMoreChangesBody": "You can change the ready task at most once per day. You can get a new task tomorrow. 🙌",
+      "alreadyChangedBody": "You have already changed today’s task once."
     },
     "completeRequested": {
-      "alertTitle": "مبروك 🎉",
-      "alertBody": "لقد أكملت مهمة اليوم!\n\nالمستوى: {{level}}\nمكتملة اليوم: {{completedToday}}\nسلسلة: {{streak}} يوم",
-      "ok": "حسناً",
-      "createCard": "إنشاء بطاقة"
+      "alertTitle": "Congratulations 🎉",
+      "alertBody": "You completed today’s task!\n\nLevel: {{level}}\nCompleted today: {{completedToday}}\nStreak: {{streak}} day(s)",
+      "ok": "OK",
+      "createCard": "Create card"
     },
     "sections": {
-      "activeTitle": "المهام النشطة",
-      "activeEmpty": "لا توجد مهام نشطة حالياً. يمكنك إضافة مهمة جديدة.",
-      "completedTitle": "المهام المكتملة",
-      "completedEmpty": "لا توجد مهام مكتملة بعد.",
-      "completedToggleShow": "عرض",
-      "completedToggleHide": "إخفاء",
-      "completedClear": "مسح",
-      "completedReactivate": "إعادة تفعيل",
-      "completedCreateCard": "إنشاء بطاقة",
-      "completedShowMore": "يتم عرض آخر 3 مهام – عرض الكل",
-      "completedShowLess": "تقوم بعرض الكل – عرض آخر 3 فقط"
+      "activeTitle": "Active tasks",
+      "activeEmpty": "There are no active tasks at the moment. You can add a new task.",
+      "completedTitle": "Completed tasks",
+      "completedEmpty": "No tasks have been completed yet.",
+      "completedToggleShow": "Show",
+      "completedToggleHide": "Hide",
+      "completedClear": "Clear",
+      "completedReactivate": "Activate again",
+      "completedCreateCard": "Create card",
+      "completedShowMore": "Showing last 3 tasks – View all",
+      "completedShowLess": "You’re viewing all – Show only last 3"
     },
     "buttons": {
-      "edit": "تعديل",
-      "delete": "حذف"
+      "edit": "Edit",
+      "delete": "Delete"
     },
     "alerts": {
-      "clearCompletedTitle": "مسح المهام المكتملة",
-      "clearCompletedBody": "سيتم حذف جميع المهام المكتملة. لن يتم المساس بالمهام النشطة.\n\nهل أنت متأكد؟",
-      "clearCancel": "إلغاء",
-      "clearConfirm": "نعم، احذف",
-      "deleteTaskTitle": "حذف المهمة",
-      "deleteTaskBody": "هل تريد حذف هذه المهمة من شاشة المهام فقط، أم حذف البطاقات المرتبطة بها في الخلاصة أيضاً؟",
-      "deleteCancel": "إلغاء",
-      "deleteOnlyTask": "حذف من قائمة المهام فقط",
-      "deleteTaskAndCards": "حذف المهمة وبطاقاتها"
+      "clearCompletedTitle": "Clear completed tasks",
+      "clearCompletedBody": "All completed tasks will be deleted. Active tasks will remain.\n\nAre you sure?",
+      "clearCancel": "Cancel",
+      "clearConfirm": "Yes, delete",
+      "deleteTaskTitle": "Delete task",
+      "deleteTaskBody": "Do you want to remove this task only from the Tasks screen, or also delete the cards created from this task in the Feed?",
+      "deleteCancel": "Cancel",
+      "deleteOnlyTask": "Delete only from task list",
+      "deleteTaskAndCards": "Delete task and its cards"
     },
     "edit": {
-      "title": "تعديل المهمة",
-      "placeholder": "عنوان المهمة",
-      "cancel": "إلغاء",
-      "save": "حفظ"
+      "title": "Edit task",
+      "placeholder": "Task title",
+      "cancel": "Cancel",
+      "save": "Save"
     },
     "completeModal": {
-      "title": "تم إكمال المهمة 🎉",
-      "text": "يمكنك مشاركة هذه المهمة كبطاقة في الخلاصة.",
-      "later": "لاحقاً",
-      "createCard": "إنشاء بطاقة"
+      "title": "Task completed 🎉",
+      "text": "If you want, you can share this task as a card in the Feed.",
+      "later": "Later",
+      "createCard": "Create card"
     },
-    "completeCardPrefix": "تم إكمال المهمة: ",
+    "completeCardPrefix": "Task completed: ",
     "pro": {
-      "title": "اسند مهمة لصديق (Pro)",
-      "body": "قريباً: ستتمكن من إسناد مهام لأصدقائك وإرسال إشعارات لهم. هذه الميزة ستكون لمستخدمي Viral Pro.",
-      "button": "أرغب بمعرفة المزيد عن Pro",
+      "title": "Assign a task to a friend (Pro)",
+      "body": "Coming soon: you’ll be able to assign tasks to people from your friends list and send them notifications. This feature will be for Viral Pro users.",
+      "button": "I’m curious about Pro",
       "alertTitle": "Viral Pro",
-      "alertBody": "أنت في مرحلة التخطيط لميزات Pro. مع اقتراب الإطلاق، ستقوم بتوضيح التفاصيل. 🚀"
+      "alertBody": "You are in the planning phase for Pro features. As the app gets closer to launch, you’ll clarify the details. 🚀"
     }
   },
   "sharePanel": {
-    "title": "مشاركة",
-    "shareTitle": "مشاركة",
-    "infoText": "يمكنك المشاركة باستخدام حساباتك المرتبطة.",
-    "shareBody": "يمكنك المشاركة باستخدام حساباتك المرتبطة.",
-    "noAccounts": "لا توجد حسابات مرتبطة.",
-    "connectButton": "ربط الحسابات",
-    "cancel": "إلغاء",
-    "shareAll": "مشاركة في جميع الحسابات",
-    "shareAllButton": "مشاركة في جميع الحسابات",
-    "connectFallbackTitle": "ربط الحسابات",
-    "connectFallbackBody": "اربط الحسابات من الملف الشخصي.",
-    "infoTitle": "حول المشاركة",
-    "infoBody": "المشاركة تجريبية.",
-    "shareAllTitle": "مشاركة الكل",
-    "shareAllBody": "مشاركة تجريبية."
+    "title": "Share",
+    "shareTitle": "Share",
+    "infoText": "You can share on external platforms using your connected accounts. Platforms may open their own share screens.",
+    "shareBody": "You can share on external platforms using your connected accounts.",
+    "noAccounts": "You haven't connected any accounts yet.\nPlease connect accounts before sharing.",
+    "connectButton": "Connect Accounts",
+    "cancel": "Cancel",
+    "shareAll": "Share on all accounts",
+    "shareAllButton": "Share on all accounts",
+    "connectFallbackTitle": "Connect your accounts",
+    "connectFallbackBody": "You can add external accounts from the \"Connect Accounts\" section in your profile.",
+    "infoTitle": "About external sharing",
+    "infoBody": "You see a summary below to share cards created on Viral to your connected accounts. In this version, sharing is informational; you must open the relevant app for actual sharing.",
+    "shareAllTitle": "Share on all accounts",
+    "shareAllBody": "We assume you shared on your connected accounts. Sharing is simulated in this version."
   },
   "share": {
     "requireAccounts": {
-      "title": "اربط حساباتك",
-      "desc": "للمشاركة على المنصات الخارجية عليك أولاً ربط حساباتك.",
-      "desc2": "يمكنك إضافة حساباتك الخارجية من قسم \"ربط حساباتي\" في شاشة الملف الشخصي.",
-      "connectButton": "ربط حساباتي",
-      "cancelButton": "إلغاء",
-      "okButton": "حسناً"
+      "title": "Connect your accounts",
+      "desc": "To share on external platforms, you must connect your accounts first.",
+      "desc2": "You can add your external accounts from the \"Connect my accounts\" section on your profile screen.",
+      "connectButton": "Connect my accounts",
+      "cancelButton": "Cancel",
+      "okButton": "OK"
     }
   },
   "nav": {
     "feed": "الخلاصة",
-    "upload": "إضافة",
+    "upload": "رفع",
     "tasks": "المهام",
     "profile": "الملف الشخصي",
     "logout": "تسجيل الخروج"
   },
   "feed": {
-    "guestName": "زائر",
-    "headerTitle": "الخلاصة",
-    "headerSub": "مرحباً، {{name}} 👋",
-    "headerTagline": "مهامك وفيديوهاتك ومشاركاتك — كلها تجتمع هنا.",
+    "guestName": "ضيف",
+    "headerTitle": "Feed",
+    "headerSub": "مرحبًا، {{name}} 👋",
+    "headerTagline": "Your tasks, videos and shares — all meet here.",
     "focusNetwork": {
-      "button": "الذهاب إلى Focus Network"
+      "button": "Go to Focus Network"
     },
     "filters": {
-      "all": "الكل",
-      "mine": "خاصة بي",
-      "tasks": "بطاقات المهام",
-      "video": "فيديو",
-      "external": "نشاط خارجي"
+      "all": "All",
+      "mine": "Mine",
+      "tasks": "Task cards",
+      "video": "Video",
+      "external": "External activity"
     },
-    "refreshBanner": "تم تحديث الخلاصة.",
+    "refreshBanner": "Feed refreshed.",
     "empty": {
-      "loading": "جارٍ تحميل الخلاصة...",
-      "noPosts": "لا توجد مشاركات بعد.",
-      "cta": "أنشئ أول مهمة أو فيديو لك"
+      "loading": "Loading feed...",
+      "noPosts": "There are no shares yet.",
+      "cta": "Create your first task / video"
     },
     "post": {
-      "genericTitle": "مشاركة",
-      "genericName": "منشور"
+      "genericTitle": "Share",
+      "genericName": "Post",
+      "readMore": "... عرض المزيد",
+      "showLess": "عرض أقل"
     },
     "badges": {
-      "taskCard": "بطاقة مهمة"
+      "taskCard": "Task card"
     },
     "external": {
-      "badge": "مشاركة خارجية"
+      "badge": "External share"
     },
     "labels": {
-      "descriptionPrefix": "الوصف:"
+      "descriptionPrefix": "Description:"
+    },
+    "text": {
+      "showMore": "... See more",
+      "showLess": "Show less"
     },
     "share": {
-      "planned": "مشاركة مجدولة: {{targets}}",
-      "last": "آخر مشاركة: {{date}} ({{targets}})",
-      "alsoSharedOn": "تمت المشاركة أيضاً على:",
-      "defaultText": "منشور Viral",
-      "shareText": "نص المشاركة لـ {{platform}}:\n{{text}}",
-      "simulationTitle": "مشاركة (محاكاة)",
-      "simulationMessage": "نفترض أنه تمّت مشاركة على {{platform}}.",
-      "errorTitle": "مشاركة",
-      "errorMessage": "تم إلغاء المشاركة أو حدث خطأ.",
-      "choose": "اختر مشاركة",
-      "previewTitle": "معاينة المشاركة",
-      "previewFallback": "نص المشاركة",
-      "simulateButton": "مشاركة (محاكاة)",
-      "plannedShort": "مجدولة",
-      "noAccountsTitle": "اربط حساباتك أولاً",
-      "noAccountsBody": "للمشاركة على المنصات الخارجية يجب أولاً ربط حساباتك.",
-      "goProfileTitle": "اربط حساباتك",
-      "goProfileBody": "من شاشة الملف الشخصي يمكنك إضافة حساباتك الخارجية عبر قسم \"ربط حساباتي\"."
+      "planned": "Scheduled sharing: {{targets}}",
+      "last": "Last share: {{date}} ({{targets}})",
+      "alsoSharedOn": "Also shared on:",
+      "defaultText": "Viral post",
+      "shareText": "Share text for {{platform}}:\n{{text}}",
+      "simulationTitle": "Share (simulation)",
+      "simulationMessage": "We assume that a share was made on {{platform}}.",
+      "errorTitle": "Share",
+      "errorMessage": "Sharing was cancelled or an error occurred.",
+      "choose": "Choose share",
+      "previewTitle": "Share preview",
+      "previewFallback": "Share text",
+      "simulateButton": "Share (simulation)",
+      "plannedShort": "Planned",
+      "noAccountsTitle": "Connect your accounts first",
+      "noAccountsBody": "To share on external platforms, you need to connect your accounts first.",
+      "goProfileTitle": "Connect your accounts",
+      "goProfileBody": "On the Profile screen, use the “Connect my accounts” section to add your external accounts."
     },
     "video": {
-      "info": "📹 تم التخطيط لفيديو مع هذه البطاقة.",
-      "watch": "مشاهدة الفيديو",
-      "sheetTitlePrefix": "بطاقة مع فيديو:"
+      "info": "📹 A video is planned with this card.",
+      "watch": "Watch video",
+      "sheetTitlePrefix": "Card with video:"
     },
     "comments": {
-      "offLabel": "التعليقات معطّلة",
-      "cta": "اكتب تعليقاً",
-      "count": "{{count}} تعليق",
-      "title": "التعليقات",
-      "toggleOpen": "فتح التعليقات",
-      "toggleClose": "إغلاق التعليقات",
-      "empty": "لا توجد تعليقات بعد. كن أول من يعلّق 🙂",
-      "disabledTitle": "التعليقات معطّلة",
-      "disabledMessage": "التعليقات معطّلة لهذا المنشور.",
-      "disabledInfo": "التعليقات معطّلة. يمكنك فقط رؤية التعليقات الموجودة.",
-      "placeholder": "اكتب تعليقاً...",
-      "replyPlaceholder": "رد على {{author}}...",
-      "replyingTo": "ترد على: {{author}}",
-      "send": "إرسال",
-      "actionsTitle": "إجراءات التعليق",
-      "deleteQuestion": "حذف هذا التعليق؟",
-      "delete": "حذف التعليق",
-      "reply": "رد"
+      "offLabel": "Comments turned off",
+      "cta": "Write a comment",
+      "count": "{{count}} comment(s)",
+      "title": "Comments",
+      "toggleOpen": "Open comments",
+      "toggleClose": "Close comments",
+      "empty": "No comments yet. Be the first one 🙂",
+      "disabledTitle": "Comments turned off",
+      "disabledMessage": "Comments are turned off for this post.",
+      "disabledInfo": "Comments are turned off for this post. You can only view existing comments.",
+      "placeholder": "Write a comment...",
+      "replyPlaceholder": "Reply to {{author}}...",
+      "replyingTo": "You’re replying to: {{author}}",
+      "send": "Send",
+      "actionsTitle": "Comment actions",
+      "deleteQuestion": "Delete this comment?",
+      "delete": "Delete comment",
+      "reply": "Reply"
     },
     "notifications": {
-      "title": "الإشعارات",
-      "markAll": "تحديد الكل كمقروء",
-      "empty": "لا توجد إشعارات بعد. عندما تكتب تعليقات وتغيّر الإعدادات ستظهر الإشعارات هنا.",
-      "commentsToggle": "لقد {{state}} التعليقات للمنشور بعنوان “{{title}}”.",
-      "stateClosed": "أوقفت",
-      "stateOpened": "فعّلت",
-      "close": "إغلاق",
-      "addedComment": "لقد أضفت تعليقاً إلى المنشور بعنوان “{{title}}”.",
+      "title": "Notifications",
+      "markAll": "Mark all as read",
+      "empty": "You don’t have any notifications yet. As you comment and play with settings, your notifications will appear here.",
+      "commentsToggle": "You {{state}} comments for the post titled “{{title}}”.",
+      "stateClosed": "turned off",
+      "stateOpened": "turned on",
+      "close": "Close",
+      "addedComment": "You added a comment to the post titled “{{title}}”.",
       "reported": "You reported the post “{{title}}”.",
       "blocked": "You blocked {{author}}."
     },
     "freeVideo": {
-      "title": "فيديو",
-      "message": "ماذا تريد أن تفعل بهذا الفيديو؟",
-      "delete": "حذف الفيديو",
-      "noPermission": "هذه البطاقة ليست لك. لا يمكنك حذفها."
+      "title": "Video",
+      "message": "What do you want to do with this video?",
+      "delete": "Delete video"
     },
     "postActions": {
-      "title": "إجراءات المنشور",
-      "message": "ماذا تريد أن تفعل بهذا المنشور؟",
-      "archive": "أرشفة البطاقة",
-      "delete": "حذف البطاقة",
+      "title": "Post actions",
+      "message": "What would you like to do with this post?",
+      "archive": "Archive card",
+      "delete": "Delete card",
       "noPermission": "This card isn't yours. You can't delete it.",
       "report": "Report",
       "blockUser": "Block User"
     },
     "time": {
-      "justNow": "الآن",
-      "minutesAgo": "منذ {{count}} دقيقة",
-      "hoursAgo": "منذ {{count}} ساعة",
-      "yesterday": "أمس",
-      "daysAgo": "منذ {{count}} يوم"
+      "justNow": "just now",
+      "minutesAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} h ago",
+      "yesterday": "yesterday",
+      "daysAgo": "{{count}} day(s) ago"
     },
     "report": {
       "successTitle": "Report received",
@@ -643,148 +689,148 @@
     }
   },
   "common__dup": {
-    "warning": "تنبيه",
+    "warning": "تحذير",
     "error": "خطأ",
-    "success": "تم بنجاح",
+    "success": "نجاح",
     "cancel": "إلغاء",
     "continue": "متابعة",
-    "show": "إظهار",
+    "show": "عرض",
     "hide": "إخفاء",
     "saving": "جارٍ الحفظ...",
     "loading": "جارٍ التحميل..."
   },
   "auth": {
     "switch": {
-      "title": "تبديل المستخدم",
-      "body": "سيتم مسح الحقول. لتسجيل الدخول يلزم البريد/الهاتف + كلمة المرور."
+      "title": "Switch user",
+      "body": "Fields will be cleared. Email/phone + password are required to sign in."
     },
     "welcome": {
-      "title": "مرحبًا 👋",
-      "subtitle": "نموذج تسجيل للمستخدمين الحقيقيين."
+      "title": "Welcome 👋",
+      "subtitle": "Registration form for real users."
     },
     "login": {
-      "title": "تسجيل الدخول",
-      "subtitle": "سجّل الدخول باستخدام البريد/الهاتف وكلمة المرور.",
-      "identifierPlaceholder": "البريد الإلكتروني أو الهاتف",
-      "passwordPlaceholder": "كلمة المرور",
-      "loginButton": "تسجيل الدخول",
-      "loading": "جارٍ تسجيل الدخول...",
-      "forgotPassword": "هل نسيت كلمة المرور؟",
-      "newHere": "مستخدم جديد؟ إنشاء حساب",
-      "haveAccount": "لديك حساب بالفعل؟ تسجيل الدخول",
-      "switchUser": "تبديل المستخدم",
-      "backToLogin": "← الرجوع إلى تسجيل الدخول"
+      "title": "Sign in",
+      "subtitle": "Sign in with your email/phone and password.",
+      "identifierPlaceholder": "Email or Phone",
+      "passwordPlaceholder": "Your password",
+      "loginButton": "Sign in",
+      "loading": "Signing in...",
+      "forgotPassword": "Forgot password?",
+      "newHere": "New here? Create an account",
+      "haveAccount": "Already have an account? Sign in",
+      "switchUser": "Switch user",
+      "backToLogin": "← Back to login"
     },
     "register": {
-      "subtitle": "نموذج تسجيل للمستخدمين الحقيقيين.",
-      "fullNameLabel": "الاسم الكامل",
-      "fullNamePlaceholder": "الاسم الكامل",
-      "emailLabel": "البريد الإلكتروني",
+      "subtitle": "Registration form for real users.",
+      "fullNameLabel": "Full name",
+      "fullNamePlaceholder": "Full name",
+      "emailLabel": "Email",
       "emailPlaceholder": "example@mail.com",
-      "phoneLabel": "الهاتف",
+      "phoneLabel": "Phone",
       "phonePlaceholder": "5xx xxx xx xx",
-      "passwordLabel": "كلمة المرور",
-      "passwordPlaceholder": "كلمة المرور",
-      "passwordConfirmLabel": "كلمة المرور (تأكيد)",
-      "passwordConfirmPlaceholder": "تأكيد كلمة المرور",
-      "passwordHint": "يجب أن تكون كلمة المرور 8 أحرف على الأقل وتتضمن أحرفًا كبيرة/صغيرة ورقمًا ورمزًا.",
-      "submit": "إنشاء حساب",
-      "haveAccount": "لديك حساب بالفعل؟ تسجيل الدخول",
-      "cta": "لديك حساب بالفعل؟ تسجيل الدخول"
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Your password",
+      "passwordConfirmLabel": "Password (confirm)",
+      "passwordConfirmPlaceholder": "Confirm password",
+      "passwordHint": "Password must be at least 8 characters and include upper/lowercase letters, a number, and a symbol.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account? Sign in",
+      "cta": "Already have an account? Sign in"
     },
     "forgot": {
-      "title": "نسيت كلمة المرور",
-      "subtitle": "يمكنك استلام رمز تحقق عبر بريدك المسجل أو رقم هاتفك.",
-      "email": "البريد الإلكتروني",
-      "phone": "الهاتف",
-      "channelEmail": "البريد الإلكتروني",
-      "channelPhone": "الهاتف",
-      "emailPlaceholder": "بريدك الإلكتروني المسجل",
-      "sendCode": "إرسال رمز التحقق",
-      "verifyTitle": "التحقق من الرمز",
-      "verifySubtitle": "أدخل رمز التحقق وكلمة المرور الجديدة.",
-      "codePlaceholder": "رمز التحقق",
-      "newPasswordPlaceholder": "كلمة مرور جديدة",
-      "newPasswordConfirmPlaceholder": "كلمة مرور جديدة (تأكيد)",
-      "updateButton": "تحديث كلمة المرور",
-      "backToLogin": "← العودة إلى تسجيل الدخول"
+      "title": "Forgot password",
+      "subtitle": "You can receive a verification code using your registered email address or phone number.",
+      "email": "Email",
+      "phone": "Phone",
+      "channelEmail": "Email",
+      "channelPhone": "Phone",
+      "emailPlaceholder": "Your registered email address",
+      "sendCode": "Send verification code",
+      "verifyTitle": "Verify code",
+      "verifySubtitle": "Enter the verification code and your new password.",
+      "codePlaceholder": "Verification code",
+      "newPasswordPlaceholder": "New password",
+      "newPasswordConfirmPlaceholder": "New password (confirm)",
+      "updateButton": "Update password",
+      "backToLogin": "← Back to login"
     }
   },
   "focusNetwork": {
-    "title": "شبكة التركيز",
-    "subtitle": "هنا ترى فقط منشورات الأشخاص الذين اخترتهم.",
+    "title": "Focus Network",
+    "subtitle": "Here you only see posts from people you selected.",
     "tabs": {
-      "network": "شبكتي",
-      "discover": "اكتشف",
-      "requests": "الطلبات"
+      "network": "My Network",
+      "discover": "Discover",
+      "requests": "Requests"
     },
     "search": {
-      "networkPlaceholder": "ابحث في شبكتك (@المستخدم، الاسم)...",
-      "discoverPlaceholder": "اكتشف: @handle / الاسم / البريد الإلكتروني / الهاتف...",
-      "requestsPlaceholder": "ابحث في الطلبات..."
+      "networkPlaceholder": "Search your network (@user, name)...",
+      "discoverPlaceholder": "Discover: @handle / name / email / phone...",
+      "requestsPlaceholder": "Search requests..."
     },
     "sections": {
-      "network": "شبكتي",
-      "discover": "اكتشف",
-      "incomingRequests": "الطلبات الواردة"
+      "network": "My Network",
+      "discover": "Discover",
+      "incomingRequests": "Incoming requests"
     },
     "count": {
-      "people": "{{count}} أشخاص",
-      "requests": "{{count}} طلبات"
+      "people": "{{count}} people",
+      "requests": "{{count}} requests"
     },
     "summary": {
-      "inNetwork": "ضمن شبكة التركيز.",
-      "alreadyInNetwork": "موجود بالفعل في شبكتك.",
-      "incomingRequest": "أرسل لك طلبًا.",
-      "outgoingPending": "تم إرسال الطلب (قيد الانتظار).",
-      "discoverFallback": "أضف من قائمة الاكتشاف.",
-      "requestPending": "طلب الصداقة قيد الانتظار."
+      "inNetwork": "In focus network.",
+      "alreadyInNetwork": "Already in your network.",
+      "incomingRequest": "Sent you a request.",
+      "outgoingPending": "Request sent (pending).",
+      "discoverFallback": "Add from the discover list.",
+      "requestPending": "Friend request is pending."
     },
     "actions": {
-      "detail": "تفاصيل",
-      "accept": "قبول",
-      "decline": "رفض",
-      "sendRequest": "إرسال طلب",
-      "addPerson": "إضافة شخص",
-      "removeFromNetwork": "إزالة من الشبكة",
-      "inMyNetwork": "في شبكتي",
-      "pending": "قيد الانتظار",
-      "requestExists": "يوجد طلب"
+      "detail": "Details",
+      "accept": "Accept",
+      "decline": "Decline",
+      "sendRequest": "Send request",
+      "addPerson": "Add person",
+      "removeFromNetwork": "Remove from network",
+      "inMyNetwork": "In my network",
+      "pending": "Pending",
+      "requestExists": "Request exists"
     },
     "banner": {
-      "newRequestTitle": "طلب اتصال جديد",
-      "newRequestBody": "لديك {{count}} طلبات جديدة. اضغط لعرضها."
+      "newRequestTitle": "New connection request",
+      "newRequestBody": "{{count}} new requests. Tap to view."
     },
     "empty": {
-      "noSearchMatch": "لم يتم العثور على شخص مطابق.",
-      "noResults": "لا توجد نتائج الآن.",
-      "noPendingRequests": "لا توجد طلبات معلقة."
+      "noSearchMatch": "No matching person found.",
+      "noResults": "No results right now.",
+      "noPendingRequests": "No pending requests."
     },
     "note": {
-      "backendDiscover": "ملاحظة: قائمة الاكتشاف تأتي من الخادم. إذا لم يوجد اتصال فقد لا يتم تحديث النتائج."
+      "backendDiscover": "Note: The discover list comes from the backend. If there is no connection, results may not update."
     },
     "detail": {
-      "rule1": "• نظام الصداقة: أرسل طلبًا ← الطرف الآخر يقبله.",
-      "rule2": "• لا يوجد ربط إجباري. كل شيء يتم بالموافقة.",
-      "rule3": "• إذا لم يوجد اتصال فقد تفشل العمليات."
+      "rule1": "• Friendship system: send request → other side accepts.",
+      "rule2": "• No forced connection. Everything proceeds with approval.",
+      "rule3": "• If there is no connection, actions may fail."
     },
     "alerts": {
-      "loginRequiredTitle": "تسجيل الدخول مطلوب",
-      "loginRequiredBody": "مطلوب جلسة مستخدم لهذا الإجراء.",
-      "alreadyInNetworkTitle": "موجود بالفعل في شبكتك",
-      "alreadyInNetworkBody": "هذا الشخص موجود بالفعل في شبكة التركيز الخاصة بك.",
-      "pendingTitle": "قيد الانتظار",
-      "pendingBody": "لقد أرسلت بالفعل طلبًا لهذا الشخص. انتظر حتى يقبله.",
-      "requestExistsTitle": "يوجد طلب",
-      "requestExistsBody": "هذا الشخص أرسل لك طلبًا بالفعل. يمكنك قبوله من تبويب «الطلبات».",
-      "actionFailedWithConnection": "فشلت العملية. (الاتصال؟)",
-      "declineFailed": "فشل الرفض.",
-      "requestSendFailed": "تعذر إرسال الطلب. (الاتصال؟)",
-      "acceptFailed": "تعذر القبول. (الاتصال؟)"
+      "loginRequiredTitle": "Login required",
+      "loginRequiredBody": "A user session is required for this action.",
+      "alreadyInNetworkTitle": "Already in your network",
+      "alreadyInNetworkBody": "This person is already in your Focus Network.",
+      "pendingTitle": "Pending",
+      "pendingBody": "You already sent a request to this person. Wait for them to accept it.",
+      "requestExistsTitle": "Request exists",
+      "requestExistsBody": "This person has already sent you a request. You can accept it from the “Requests” tab.",
+      "actionFailedWithConnection": "Action failed. (Connection?)",
+      "declineFailed": "Decline action failed.",
+      "requestSendFailed": "Request could not be sent. (Connection?)",
+      "acceptFailed": "Could not accept. (Connection?)"
     },
     "net": {
-      "invalidBaseUrl": "يبدو أن API_BASE_URL غير صالح.",
-      "onlineFetchError": "خطأ في الجلب عبر الإنترنت لشبكة التركيز"
+      "invalidBaseUrl": "API_BASE_URL seems invalid.",
+      "onlineFetchError": "Focus Network online fetch error"
     }
   }
 }

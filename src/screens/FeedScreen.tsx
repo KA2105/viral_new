@@ -118,6 +118,7 @@ const MAX_EXTERNAL_POSTS = 50;
 
 // ✅ NEW: görsel limiti
 const MAX_POST_IMAGES_PREVIEW = 10;
+const IMAGE_VIEWER_ZOOM_SCALE = 2.2;
 
 // 👍 Animasyonlu beğeni butonu (gönderi için)
 const AnimatedLikeButton: React.FC<{
@@ -315,6 +316,21 @@ type ActiveVideoState = {
 
 export default function FeedScreen({ go }: Props) {
   const { t } = useTranslation();
+
+  const [windowSize, setWindowSize] = useState(() => Dimensions.get('window'));
+  const isLandscape = windowSize.width > windowSize.height;
+
+  useEffect(() => {
+    const sub = Dimensions.addEventListener('change', ({ window }) => {
+      setWindowSize(window);
+    });
+
+    return () => {
+      try {
+        sub.remove();
+      } catch {}
+    };
+  }, []);
 
   const auth = useAuth() as any;
   const { userId, backendUserId, profile } = auth || {};
@@ -1423,6 +1439,99 @@ export default function FeedScreen({ go }: Props) {
   const [imageViewerVisible, setImageViewerVisible] = useState(false);
   const [viewerImages, setViewerImages] = useState<string[]>([]);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [imageViewerZoomed, setImageViewerZoomed] = useState(false);
+  const imageViewerZoomedRef = useRef(false);
+  const imageViewerWindowSizeRef = useRef(windowSize);
+  const imageViewerLastTapRef = useRef<number>(0);
+  const imageViewerPan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const imageViewerPanOffset = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    imageViewerZoomedRef.current = imageViewerZoomed;
+  }, [imageViewerZoomed]);
+
+  useEffect(() => {
+    imageViewerWindowSizeRef.current = windowSize;
+  }, [windowSize]);
+
+  const resetImageViewerZoom = () => {
+    imageViewerZoomedRef.current = false;
+    setImageViewerZoomed(false);
+    imageViewerPanOffset.current = { x: 0, y: 0 };
+    imageViewerPan.stopAnimation();
+    imageViewerPan.setOffset({ x: 0, y: 0 });
+    imageViewerPan.setValue({ x: 0, y: 0 });
+    imageViewerPan.flattenOffset();
+  };
+
+  const toggleImageViewerZoom = () => {
+    const next = !imageViewerZoomedRef.current;
+    imageViewerZoomedRef.current = next;
+    setImageViewerZoomed(next);
+
+    if (!next) {
+      resetImageViewerZoom();
+    } else {
+      imageViewerPanOffset.current = { x: 0, y: 0 };
+      imageViewerPan.stopAnimation();
+      imageViewerPan.setOffset({ x: 0, y: 0 });
+      imageViewerPan.setValue({ x: 0, y: 0 });
+      imageViewerPan.flattenOffset();
+    }
+  };
+
+  const registerImageViewerTap = () => {
+    const now = Date.now();
+    if (now - imageViewerLastTapRef.current < 320) {
+      toggleImageViewerZoom();
+      imageViewerLastTapRef.current = 0;
+      return true;
+    }
+
+    imageViewerLastTapRef.current = now;
+    return false;
+  };
+
+  const imageViewerPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => imageViewerZoomedRef.current,
+      onMoveShouldSetPanResponder: (_, gesture) =>
+        imageViewerZoomedRef.current && (Math.abs(gesture.dx) > 2 || Math.abs(gesture.dy) > 2),
+      onPanResponderGrant: () => {
+        if (registerImageViewerTap()) {
+          return;
+        }
+
+        imageViewerPan.stopAnimation();
+        imageViewerPan.setOffset(imageViewerPanOffset.current);
+        imageViewerPan.setValue({ x: 0, y: 0 });
+      },
+      onPanResponderMove: Animated.event([null, { dx: imageViewerPan.x, dy: imageViewerPan.y }], {
+        useNativeDriver: false,
+      }),
+      onPanResponderRelease: (_, gesture) => {
+        imageViewerPan.flattenOffset();
+
+        const w = imageViewerWindowSizeRef.current.width;
+        const h = imageViewerWindowSizeRef.current.height;
+        const maxX = Math.max(0, (w * IMAGE_VIEWER_ZOOM_SCALE - w) / 2);
+        const maxY = Math.max(0, (h * IMAGE_VIEWER_ZOOM_SCALE - h) / 2);
+        const nextX = Math.max(-maxX, Math.min(maxX, imageViewerPanOffset.current.x + gesture.dx));
+        const nextY = Math.max(-maxY, Math.min(maxY, imageViewerPanOffset.current.y + gesture.dy));
+
+        imageViewerPanOffset.current = { x: nextX, y: nextY };
+        Animated.spring(imageViewerPan, {
+          toValue: { x: nextX, y: nextY },
+          useNativeDriver: false,
+          friction: 7,
+          tension: 60,
+        }).start();
+      },
+      onPanResponderTerminate: () => {
+        imageViewerPan.flattenOffset();
+      },
+    }),
+  ).current;
   
   const [sharePost, setSharePost] = useState<Post | null>(null);
   const [shareVisible, setShareVisible] = useState(false);
@@ -2326,13 +2435,30 @@ const openImageViewer = (post: Post, index: number) => {
   if (!imgs.length) return;
 
   stopAllVideos();
+  resetImageViewerZoom();
   setViewerImages(imgs);
   setViewerIndex(index);
   setImageViewerVisible(true);
 };
 
+const openSingleImageViewer = (uri: string | null | undefined) => {
+  const cleanUri = typeof uri === 'string' ? uri.trim() : '';
+  if (!cleanUri) return;
+
+  stopAllVideos();
+  resetImageViewerZoom();
+  setViewerImages([cleanUri]);
+  setViewerIndex(0);
+  setImageViewerVisible(true);
+};
+
+const handleImageViewerTap = () => {
+  registerImageViewerTap();
+};
+
 const closeImageViewer = () => {
   setImageViewerVisible(false);
+  resetImageViewerZoom();
 }; 
 
   const openComments = (post: Post) => {
@@ -2493,21 +2619,24 @@ const closeImageViewer = () => {
     try {
       stopAllVideos();
 
-      const mainText =
-        (post as any).note || (post as any).body || (post as any).title || t('feed.share.defaultText', 'Shared from Viral');
-      const viralPromo = '\n\nCreated on Viral 🎯\n\nDiscover Viral:\nhttps://viral.app';
+      const postId = String((post as any)?.id ?? '').trim();
+      const explicitShareUrl =
+        (post as any)?.shareUrl != null ? String((post as any).shareUrl).trim() : '';
 
-      const message = t('feed.share.shareText', {
-        defaultValue: '{{platform}} share:\n{{text}}',
-        platform: platformLabel,
-        text: mainText + viralPromo,
+      const postShareUrl =
+        explicitShareUrl && /^https?:\/\//i.test(explicitShareUrl)
+          ? explicitShareUrl
+          : postId && /^\d+$/.test(postId) && apiBase
+            ? `${apiBase}/p/${encodeURIComponent(postId)}`
+            : 'https://play.google.com/store/apps/details?id=com.viral_new';
+
+      // KRİTİK: Facebook önizlemeyi mesajdaki ilk/uygun linkten seçiyor.
+      // Post metni veya mağaza linklerini burada göndermiyoruz; sadece Viral post linki.
+      await Share.share({
+        title: platformLabel ? `Viral - ${platformLabel}` : 'Viral',
+        message: postShareUrl,
+        url: postShareUrl,
       });
-
-      const rawUrl = typeof (post as any).videoUri === 'string' ? (post as any).videoUri : undefined;
-      const firstImageUrl = getSafeImageUris(post)[0];
-      const url = rawUrl && !isExternalLocal(post) ? rawUrl : firstImageUrl || undefined;
-
-      await Share.share(url ? { message, url } : { message });
     } catch (e) {
       console.warn('[Share] paylaşım hatası veya iptal:', e);
       Alert.alert(
@@ -2722,7 +2851,14 @@ const renderFullPostCard = (
         <View style={styles.freeVideoHeaderRow}>
           <View style={styles.authorRow}>
             {cardAvatarUri ? (
-              <Image source={{ uri: cardAvatarUri }} style={styles.authorAvatar} />
+              <Pressable
+                onPress={(e: any) => {
+                  e?.stopPropagation?.();
+                  openSingleImageViewer(cardAvatarUri);
+                }}
+              >
+                <Image source={{ uri: cardAvatarUri }} style={styles.authorAvatar} />
+              </Pressable>
             ) : (
               <View style={styles.authorAvatarFallback}>
                 <Text style={styles.authorAvatarInitial}>{avatarInitial}</Text>
@@ -2815,7 +2951,7 @@ const renderFullPostCard = (
 )}
 
         <Pressable
-          style={styles.freeVideoPlayerWrapper}
+          style={[styles.freeVideoPlayerWrapper, isLandscape && styles.freeVideoPlayerWrapperLandscape]}
           onPress={() => {
             if (!videoUri) return;
             openInlineVideo(instanceId, listItemId, videoUri);
@@ -2826,7 +2962,9 @@ const renderFullPostCard = (
               source={{ uri: videoUri }}
               style={{ width: '100%', height: '100%' }}
               controls={isThisVideoActive}
-              resizeMode="cover"
+              resizeMode="contain"
+              fullscreenAutorotate={true}
+              fullscreenOrientation="all"
               paused={!isThisVideoActive || isThisVideoPaused}
               repeat={false}
               playInBackground={false}
@@ -2970,7 +3108,14 @@ const renderFullPostCard = (
 
       <View style={styles.cardAuthorRow}>
         {cardAvatarUri ? (
-          <Image source={{ uri: cardAvatarUri }} style={styles.authorAvatar} />
+          <Pressable
+            onPress={(e: any) => {
+              e?.stopPropagation?.();
+              openSingleImageViewer(cardAvatarUri);
+            }}
+          >
+            <Image source={{ uri: cardAvatarUri }} style={styles.authorAvatar} />
+          </Pressable>
         ) : (
           <View style={styles.authorAvatarFallback}>
             <Text style={styles.authorAvatarInitial}>{avatarInitial}</Text>
@@ -3145,7 +3290,7 @@ const renderFullPostCard = (
           </Pressable>
 
           <Pressable
-            style={[styles.freeVideoPlayerWrapper, { marginTop: 10 }]}
+            style={[styles.freeVideoPlayerWrapper, isLandscape && styles.freeVideoPlayerWrapperLandscape, { marginTop: 10 }]}
             onPress={(e: any) => {
               e?.stopPropagation?.();
               if (!videoUri) return;
@@ -3157,7 +3302,9 @@ const renderFullPostCard = (
                 source={{ uri: videoUri }}
                 style={{ width: '100%', height: '100%' }}
                 controls={isThisVideoActive}
-                resizeMode="cover"
+                resizeMode="contain"
+                fullscreenAutorotate={true}
+                fullscreenOrientation="all"
                 paused={!isThisVideoActive || isThisVideoPaused}
                 repeat={false}
                 playInBackground={false}
@@ -3647,7 +3794,14 @@ return (
           <View style={styles.modalFooterRow}>
             <View style={styles.authorRow}>
               {safeModalAvatarUri ? (
-                <Image source={{ uri: safeModalAvatarUri }} style={styles.authorAvatar} />
+                <Pressable
+                  onPress={(e: any) => {
+                    e?.stopPropagation?.();
+                    openSingleImageViewer(safeModalAvatarUri);
+                  }}
+                >
+                  <Image source={{ uri: safeModalAvatarUri }} style={styles.authorAvatar} />
+                </Pressable>
               ) : (
                 <View style={styles.authorAvatarFallback}>
                   <Text style={styles.authorAvatarInitial}>{modalAvatarInitial}</Text>
@@ -3779,7 +3933,14 @@ return (
                     }}
                   >
                     {u.avatarUri ? (
-                      <Image source={{ uri: u.avatarUri }} style={styles.likeUserAvatar} />
+                      <Pressable
+                        onPress={(e: any) => {
+                          e?.stopPropagation?.();
+                          openSingleImageViewer(u.avatarUri);
+                        }}
+                      >
+                        <Image source={{ uri: u.avatarUri }} style={styles.likeUserAvatar} />
+                      </Pressable>
                     ) : (
                       <View style={styles.likeUserAvatarFallback}>
                         <Text style={styles.likeUserAvatarInitial}>{initial}</Text>
@@ -3825,18 +3986,41 @@ return (
       initialScrollIndex={viewerIndex}
       keyExtractor={(_, i) => `viewer_${i}`}
       getItemLayout={(_, index) => ({
-        length: Dimensions.get('window').width,
-        offset: Dimensions.get('window').width * index,
+        length: windowSize.width,
+        offset: windowSize.width * index,
         index,
       })}
+      extraData={`${windowSize.width}_${windowSize.height}_${imageViewerZoomed}`}
+      scrollEnabled={!imageViewerZoomed}
+      onMomentumScrollEnd={(e: any) => {
+        const nextIndex = Math.round(e.nativeEvent.contentOffset.x / Math.max(1, windowSize.width));
+        setViewerIndex(nextIndex);
+        resetImageViewerZoom();
+      }}
       renderItem={({ item }) => (
-        <View style={styles.imageViewerPage}>
-          <Image
+        <Pressable
+          style={[styles.imageViewerPage, { width: windowSize.width, height: windowSize.height }]}
+          onPress={handleImageViewerTap}
+        >
+          <Animated.Image
+            {...(imageViewerZoomed ? imageViewerPanResponder.panHandlers : {})}
             source={{ uri: item }}
-            style={styles.imageViewerImage}
+            style={[
+              styles.imageViewerImage,
+              {
+                width: windowSize.width,
+                height: windowSize.height,
+                transform: imageViewerZoomed
+                  ? [
+                      ...imageViewerPan.getTranslateTransform(),
+                      { scale: IMAGE_VIEWER_ZOOM_SCALE },
+                    ]
+                  : [{ scale: 1 }],
+              },
+            ]}
             resizeMode="contain"
           />
-        </View>
+        </Pressable>
       )}
       showsHorizontalScrollIndicator={false}
     />
@@ -4569,7 +4753,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#000000',
     marginBottom: 6,
-    height: Math.round((Dimensions.get('window').width - 32) * 16 / 9),
+    // ✅ Dikey ekranda X/Twitter gibi 16:9 alan; video contain ile kırpılmadan görünür.
+    height: Math.round((Dimensions.get('window').width - 32) * 9 / 16),
+  },
+  freeVideoPlayerWrapperLandscape: {
+    // ✅ Yatay ekranda alan büyür ama player contain kaldığı için görüntü kaybı olmaz.
+    height: Math.max(260, Dimensions.get('window').height - 96),
   },
   freeVideoPlayer: {
     width: '100%',
@@ -4947,8 +5136,6 @@ imageViewerContainer: {
 },
 
 imageViewerPage: {
-  width: Dimensions.get('window').width,
-  height: Dimensions.get('window').height,
   justifyContent: 'center',
   alignItems: 'center',
   backgroundColor: '#000000',

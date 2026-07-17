@@ -169,8 +169,8 @@
     "screenTitleTask": "Görev kartı oluştur",
     "screenTitleFree": "Paylaşım kartı oluştur",
     "mode": {
-      "task": "Görev paylaşımı",
-      "free": "Serbest paylaşım",
+      "task": "Görev",
+      "free": "Serbest",
       "taskDescription": "Tamamladığın görevlerden birini seçip kart olarak paylaşabilirsin.",
       "freeDescription": "Şu anda görev seçmeden serbest bir paylaşım kartı oluşturuyorsun.",
       "toggleHideTasks": "Gizle",
@@ -201,7 +201,9 @@
       "proInfoTitle": "Viral Pro",
       "proInfoBody": "Şu anda Pro özelliklerinin planlama aşamasındasın. Yayına yaklaştıkça Pro sürümünü ve uzun video desteğini detaylandıracaksın. 🚀",
       "pickErrorTitle": "Video seçilemedi",
-      "pickErrorBody": "Video seçilirken bir hata oluştu. Lütfen tekrar dene."
+      "pickErrorBody": "Video seçilirken bir hata oluştu. Lütfen tekrar dene.",
+      "uploadFailedTitle": "Video yüklenemedi",
+      "uploadFailedBody": "Video sunucuya yüklenemedi. İnternet/Server kontrol et."
     },
     "share": {
       "plannedLabel": "Planlı paylaşım",
@@ -237,6 +239,45 @@
       "successTitle": "Başarılı",
       "successTaskBody": "Görev kartı akışta paylaşıldı.",
       "successFreeBody": "Serbest paylaşım kartın akışa eklendi."
+    },
+    "praise": {
+      "tab": "Övgü",
+      "screenTitle": "Övgü Paylaşımı",
+      "description": "Bir arkadaşına kısa bir övgü yaz ve özel kart olarak paylaş.",
+      "friendLabel": "Arkadaş",
+      "friendPlaceholder": "Arkadaş adı veya kullanıcı adı",
+      "friendFallback": "arkadaşın",
+      "categoryLabel": "Kategori",
+      "messageLabel": "Kısa mesaj",
+      "messagePlaceholder": "Örn: Bugün enerjin herkese iyi geldi.",
+      "submit": "Övgü Paylaş",
+      "feedTitle": "@{{friend}} için övgü",
+      "previewTitle": "@{{friend}} için övgü",
+      "badge": "Övgü Kartı",
+      "previewMessageLabel": "Övgü mesajı",
+      "previewEmptyMessage": "Övgü mesajın burada görünecek.",
+      "previewFriendHint": "@{{friend}} etiketlenecek",
+      "categoryFallback": "Övgü",
+      "successTitle": "Övgü paylaşıldı",
+      "successBody": "Övgü kartın akışa eklendi.",
+      "missingFriendTitle": "Arkadaş seçilmedi",
+      "missingFriendBody": "Övgü paylaşımı için bir arkadaş adı yaz.",
+      "missingMessageTitle": "Mesaj eksik",
+      "missingMessageBody": "Kısa bir övgü mesajı yaz.",
+      "categories": {
+        "kindness": "İyilik",
+        "success": "Başarı",
+        "support": "Destek",
+        "energy": "Enerji",
+        "creativity": "Yaratıcılık",
+        "leadership": "Liderlik"
+      }
+    },
+    "images": {
+      "pickErrorTitle": "Fotoğraflar seçilemedi",
+      "pickErrorBody": "Fotoğraf seçerken bir hata oluştu.",
+      "uploadFailedTitle": "Fotoğraflar yüklenemedi",
+      "uploadFailedBody": "Fotoğraflar sunucuya yüklenemedi. İnternet/Server kontrol et."
     }
   },
   "tasks": {
@@ -537,7 +578,9 @@
     },
     "post": {
       "genericTitle": "Paylaşım",
-      "genericName": "Gönderi"
+      "genericName": "Gönderi",
+      "readMore": "... Devamını gör",
+      "showLess": "Daha az göster"
     },
     "badges": {
       "taskCard": "Görev kartı"
@@ -547,6 +590,10 @@
     },
     "labels": {
       "descriptionPrefix": "Açıklama:"
+    },
+    "text": {
+      "showMore": "... Devamını gör",
+      "showLess": "Daha az göster"
     },
     "share": {
       "planned": "Planlı paylaşım: {{targets}}",

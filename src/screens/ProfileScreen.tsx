@@ -11,6 +11,9 @@ import {
   Image,
   Share,
   ActivityIndicator,
+  Modal,
+  Dimensions,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -200,6 +203,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
 
   // Arkadaş davet kartı
   const [showInviteCard, setShowInviteCard] = useState(false);
+
+  // ✅ Profil fotoğrafı büyütme / zoom
+  const [avatarViewerVisible, setAvatarViewerVisible] = useState(false);
+  const [avatarZoomed, setAvatarZoomed] = useState(false);
 
   // ✅ handle validator (backend ile aynı kurala yakın)
   const isValidHandle = (h: string) => /^[a-zA-Z0-9_.]{3,24}$/.test(h);
@@ -867,13 +874,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
 
         {/* Avatar + ad / handle / mail */}
         <View style={styles.headerRow}>
-          <View style={styles.avatar}>
+          <TouchableOpacity
+            style={styles.avatar}
+            activeOpacity={0.9}
+            onPress={() => {
+              if (avatarUri) {
+                setAvatarViewerVisible(true);
+              }
+            }}
+          >
             {avatarUri ? (
               <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
             ) : (
               <Text style={styles.avatarText}>{initial}</Text>
             )}
-          </View>
+          </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={styles.usernameLabel}>
               {t('profile.fullNameLabel', 'Ad Soyad')}
@@ -1522,6 +1537,40 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={avatarViewerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setAvatarViewerVisible(false);
+          setAvatarZoomed(false);
+        }}
+      >
+        <View style={styles.avatarViewerBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => {
+              setAvatarViewerVisible(false);
+              setAvatarZoomed(false);
+            }}
+          />
+
+          <Pressable
+            onPress={() => setAvatarZoomed(prev => !prev)}
+            style={styles.avatarViewerContainer}
+          >
+            <Image
+              source={{ uri: avatarUri || undefined }}
+              style={[
+                styles.avatarViewerImage,
+                avatarZoomed && styles.avatarViewerImageZoomed,
+              ]}
+              resizeMode="contain"
+            />
+          </Pressable>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1881,4 +1930,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   invitePlatformIcon: { width: 20, height: 20, borderRadius: 10 },
+
+  avatarViewerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  avatarViewerContainer: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  avatarViewerImage: {
+    width: Dimensions.get('window').width * 0.9,
+    height: Dimensions.get('window').height * 0.5,
+  },
+
+  avatarViewerImageZoomed: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height * 0.85,
+  },
 });

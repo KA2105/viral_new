@@ -1,7 +1,7 @@
 {
   "common": {
     "appName": "Viral",
-    "ok": "ठीक",
+    "ok": "OK",
     "cancel": "रद्द करें",
     "close": "बंद करें",
     "continue": "जारी रखें",
@@ -12,146 +12,146 @@
     "loading": "लोड हो रहा है...",
     "warning": "चेतावनी",
     "error": "त्रुटि",
-    "success": "सफल"
+    "success": "सफलता"
   },
   "onboarding": {
     "language": {
-      "title": "भाषा चुनें",
-      "subtitle": "आगे बढ़ने के लिए अपनी भाषा चुनें",
-      "hint": "आप बाद में प्रोफ़ाइल स्क्रीन से भाषा बदल सकते हैं।"
+      "title": "Select Language",
+      "subtitle": "Choose your language to continue",
+      "hint": "You can change language later from Profile screen."
     },
     "buttons": {
-      "skip": "छोड़ें",
-      "next": "अगला",
-      "start": "शुरू करें"
+      "skip": "Skip",
+      "next": "Next",
+      "start": "Start"
     }
   },
   "profile": {
     "title": "प्रोफ़ाइल",
-    "languageButton": "भाषा",
-    "languageHint": "ऐप की भाषा चुनें",
-    "defaultUser": "उपयोगकर्ता",
-    "fullNameLabel": "पूरा नाम",
-    "fullNamePlaceholder": "पूरा नाम",
-    "handleLabel": "यूज़रनेम",
+    "languageButton": "Language",
+    "languageHint": "Choose app language",
+    "defaultUser": "User",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "Full name",
+    "handleLabel": "Username",
     "handlePlaceholder": "@user",
-    "bioLabel": "परिचय (बायो)",
-    "bioPlaceholder": "अपने बारे में संक्षेप में लिखें...",
-    "websiteLabel": "लिंक (वैकल्पिक)",
+    "bioLabel": "About (bio)",
+    "bioPlaceholder": "Briefly introduce yourself...",
+    "websiteLabel": "Link (optional)",
     "websitePlaceholder": "https://",
-    "emailLabel": "ई-मेल",
+    "emailLabel": "E-mail",
     "emailPlaceholder": "example@mail.com",
-    "phoneLabel": "फोन",
+    "phoneLabel": "Phone",
     "phonePlaceholder": "5x xx xx xx",
-    "phoneHint": "शुरू में 0 लगाने की ज़रूरत नहीं है। देश कोड बाएं तरफ है।",
-    "passwordLabel": "पासवर्ड",
-    "passwordPlaceholder": "आपका पासवर्ड",
-    "passwordConfirmLabel": "पासवर्ड (दोबारा)",
-    "passwordConfirmPlaceholder": "पासवर्ड दोबारा लिखें",
-    "passwordHint": "पासवर्ड कम से कम 8 अक्षरों का हो और उसमें बड़े/छोटे अक्षर, संख्या और चिन्ह शामिल हों।",
+    "phoneHint": "No need to add a leading 0. Country code is on the left.",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Your password",
+    "passwordConfirmLabel": "Password (again)",
+    "passwordConfirmPlaceholder": "Type the password again",
+    "passwordHint": "Password must be at least 8 characters, and include upper/lowercase letters, numbers and symbols.",
     "logout": "लॉग आउट",
-    "loadingProfile": "प्रोफ़ाइल लोड हो रही है...",
+    "loadingProfile": "Loading profile...",
     "alert": {
-      "warning": "चेतावनी",
-      "error": "त्रुटि",
-      "success": "सफल",
-      "passwordRequired": "पासवर्ड और पुष्टि दोनों आवश्यक हैं।",
-      "passwordMismatch": "पासवर्ड और पुष्टि एक जैसे होने चाहिए।",
-      "saveFailed": "प्रोफ़ाइल अपडेट नहीं हो सकी।",
-      "saveSuccess": "आपकी प्रोफ़ाइल जानकारी अपडेट हो गई है।",
+      "warning": "Warning",
+      "error": "Error",
+      "success": "Success",
+      "passwordRequired": "Password and confirmation are required.",
+      "passwordMismatch": "Password and confirmation must match.",
+      "saveFailed": "Profile could not be updated.",
+      "saveSuccess": "Your profile information has been updated.",
       "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
     },
     "verify": {
-      "sectionTitle": "फोन सत्यापन",
-      "statusVerified": "फोन सत्यापित",
-      "statusNotVerified": "फोन सत्यापित नहीं",
-      "codeSentTitle": "सत्यापन कोड भेजा गया",
-      "codeSentDev": "सिमुलेशन (dev): कोड {{code}}",
-      "codeSentText": "आपके फोन पर एक सत्यापन कोड भेजा गया है (सिमुलेशन)।",
-      "enterCode": "कृपया सत्यापन कोड दर्ज करें।",
-      "verifyFailed": "कोड सत्यापित नहीं हो सका।",
-      "verifySuccess": "आपका फ़ोन नंबर सत्यापित हो गया है।",
-      "sendCodeButton": "कोड भेजें (सिमुलेशन)",
-      "codePlaceholder": "सत्यापन कोड",
-      "confirmButton": "कोड सत्यापित करें"
+      "sectionTitle": "Phone verification",
+      "statusVerified": "Phone verified",
+      "statusNotVerified": "Phone not verified",
+      "codeSentTitle": "Verification code sent",
+      "codeSentDev": "Simulation (dev): Code {{code}}",
+      "codeSentText": "A verification code was sent to your phone (simulation).",
+      "enterCode": "Please enter the verification code.",
+      "verifyFailed": "Code could not be verified.",
+      "verifySuccess": "Your phone number has been verified.",
+      "sendCodeButton": "Send code (simulation)",
+      "codePlaceholder": "Verification code",
+      "confirmButton": "Verify code"
     },
     "personalSection": {
-      "title": "व्यक्तिगत जानकारी",
-      "hide": "छिपाएँ",
-      "showEdit": "दिखाएँ / संपादित करें"
+      "title": "Personal information",
+      "hide": "Hide",
+      "showEdit": "Show / Edit"
     },
     "avatar": {
-      "label": "प्रोफ़ाइल फ़ोटो",
-      "readError": "चुनी गई तस्वीर पढ़ी नहीं जा सकी।",
-      "pickError": "प्रोफ़ाइल फ़ोटो चुनते समय कोई समस्या हुई। कृपया दोबारा कोशिश करें।",
-      "change": "फ़ोटो बदलें",
-      "choose": "फ़ोटो चुनें"
+      "label": "Profile photo",
+      "readError": "Selected image could not be read.",
+      "pickError": "There was a problem selecting profile photo. Please try again.",
+      "change": "Change photo",
+      "choose": "Choose photo"
     },
     "onboarding": {
-      "restartTitle": "इंट्रो टूर फिर से शुरू करें",
-      "restartMessage": "आप छोटा इंट्रो टूर दोबारा शुरू करने वाले हैं। जारी रखें?",
-      "restartConfirm": "हाँ, शुरू करें",
-      "readyTitle": "तैयार 🎉",
-      "readyMessage": "ऑनबोर्डिंग थोड़ी ही देर में दोबारा खुलेगा। टूर के अंत में आप ऐप पर वापस आएँगे।",
-      "restartButton": "ऑनबोर्डिंग दोबारा शुरू करें"
+      "restartTitle": "Restart intro tour",
+      "restartMessage": "You are about to restart the short intro tour. Continue?",
+      "restartConfirm": "Yes, start",
+      "readyTitle": "Ready 🎉",
+      "readyMessage": "The onboarding will open again in a moment. At the end of the tour, you’ll return to the app.",
+      "restartButton": "Restart onboarding"
     },
     "invite": {
-      "button": "दोस्तों को आमंत्रित करें",
-      "title": "मुझे Viral पर खोजें",
-      "usernameLabel": "यूज़रनेम",
-      "profileLinkLabel": "प्रोफ़ाइल लिंक",
-      "appLinkLabel": "Viral ऐप लिंक",
-      "platformQuestion": "आप किस प्लेटफ़ॉर्म पर साझा करना चाहते हैं?",
-      "defaultUsername": "Viral उपयोगकर्ता",
-      "shareLine1": "मुझे Viral पर खोजें! 👋",
-      "shareUsername": "यूज़रनेम: {{username}}",
-      "shareProfile": "प्रोफ़ाइल: {{link}}",
-      "shareApp": "ऐप लिंक: {{link}}",
-      "shareVia": "(मैं यह संदेश {{platform}} के माध्यम से साझा कर रहा/रही हूँ)"
+      "button": "Invite my friends",
+      "title": "Find me on Viral",
+      "usernameLabel": "Username",
+      "profileLinkLabel": "Profile link",
+      "appLinkLabel": "Viral app link",
+      "platformQuestion": "Which platform do you want to share on?",
+      "defaultUsername": "Viral user",
+      "shareLine1": "Find me on Viral! 👋",
+      "shareUsername": "Username: {{username}}",
+      "shareProfile": "Profile: {{link}}",
+      "shareApp": "App link: {{link}}",
+      "shareVia": "(I’m sharing this message via {{platform}})"
     },
     "accounts": {
-      "sectionTitle": "अकाउंट कनेक्शन",
-      "toggleButton": "अकाउंट जोड़ें / हटाएँ",
-      "summary": "{{count}} जुड़े हुए अकाउंट",
-      "connected": "जुड़ा हुआ",
-      "connect": "जोड़ें",
-      "account": "अकाउंट",
-      "connectedFlash": "आपका {{label}} अकाउंट Viral से जुड़ गया है।",
-      "disconnectedFlash": "आपका {{label}} अकाउंट Viral से हटा दिया गया है।",
-      "manage": "अकाउंट प्रबंधित करें",
-      "bind": "अकाउंट जोड़ें",
-      "hintConnected": "आप इस अकाउंट को Viral से हटा सकते हैं या कनेक्शन अपडेट कर सकते हैं।",
-      "hintDisconnected": "इस अकाउंट को Viral से जोड़ने के लिए प्रोफ़ाइल या पेज URL दर्ज करें।",
+      "sectionTitle": "Account connections",
+      "toggleButton": "Connect / remove account",
+      "summary": "{{count}} connected account(s)",
+      "connected": "Connected",
+      "connect": "Connect",
+      "account": "Account",
+      "connectedFlash": "Your {{label}} account has been connected to Viral.",
+      "disconnectedFlash": "Your {{label}} account has been removed from Viral.",
+      "manage": "manage your account",
+      "bind": "connect your account",
+      "hintConnected": "You can remove this account from Viral or update its connection.",
+      "hintDisconnected": "To connect this account to Viral, enter the profile or page URL.",
       "linkPlaceholder": "https://...",
-      "removeButton": "अकाउंट हटाएँ",
+      "removeButton": "Remove account",
       "enterLink": "First enter the link of the account you want to connect."
     },
     "feedStats": {
-      "sectionTitle": "फ़ीड आँकड़े",
-      "totalCards": "कुल कार्ड",
-      "visibleCards": "दिखाई देने वाले कार्ड",
-      "totalLikes": "कुल पसंद",
-      "videoCards": "वीडियो वाले कार्ड"
+      "sectionTitle": "Feed statistics",
+      "totalCards": "Total cards",
+      "visibleCards": "Visible cards",
+      "totalLikes": "Total likes",
+      "videoCards": "Cards with video"
     },
     "activities": {
-      "sectionTitle": "हाल की गतिविधियाँ",
-      "empty": "अभी तक आपके नाम से कोई कार्ड नहीं है। जब आप फ़ीड में टास्क कार्ड या वीडियो जोड़ेंगे, तो उनके सारांश यहाँ दिखेंगे।",
-      "badgeTaskCard": "टास्क कार्ड",
-      "badgeVideo": "वीडियो",
-      "noSharePlanned": "कोई नियोजित शेयर नहीं"
+      "sectionTitle": "Recent activities",
+      "empty": "There is no card associated with your name yet. When you add task cards or videos to the feed, you’ll see their summaries here.",
+      "badgeTaskCard": "Task card",
+      "badgeVideo": "Video",
+      "noSharePlanned": "No planned share"
     },
     "taskStats": {
-      "sectionTitle": "टास्क आँकड़े",
-      "totalTasks": "कुल टास्क",
-      "completed": "पूरा हुआ"
+      "sectionTitle": "Task statistics",
+      "totalTasks": "Total tasks",
+      "completed": "Completed"
     },
     "account": {
-      "sectionTitle": "अकाउंट",
-      "instagramLogs": "Instagram शेयर लॉग देखें"
+      "sectionTitle": "Account",
+      "instagramLogs": "View Instagram share logs"
     },
     "section": {
-      "hide": "छिपाएँ",
-      "show": "दिखाएँ"
+      "hide": "Hide",
+      "show": "Show"
     },
     "delete": {
       "title": "Delete Account",
@@ -166,466 +166,512 @@
     "notLoggedIn": "No active session found."
   },
   "upload": {
-    "screenTitleTask": "टास्क कार्ड बनाएँ",
+    "screenTitleTask": "कार्य कार्ड बनाएँ",
     "screenTitleFree": "शेयर कार्ड बनाएँ",
     "mode": {
-      "task": "टास्क शेयर",
-      "free": "फ्री शेयर",
-      "taskDescription": "आप पूरी की गई टास्क में से किसी एक को चुनकर कार्ड के रूप में साझा कर सकते हैं।",
-      "freeDescription": "आप अभी बिना टास्क चुने एक फ्री शेयर कार्ड बना रहे हैं।",
-      "toggleHideTasks": "छिपाएँ",
-      "toggleShowTasks": "सूची दिखाएँ",
-      "noCompletedTasksInline": "आपके पास अभी कोई पूरी की गई टास्क नहीं है। पहले टास्क स्क्रीन से एक टास्क पूरी करें।",
-      "noCompletedTasksTitle": "कोई टास्क नहीं मिला",
-      "noCompletedTasksBody": "इस समय कोई पूरी की गई टास्क नहीं है। टास्क मोड पर जाने के लिए पहले एक टास्क पूरी करें।"
+      "task": "कार्य",
+      "free": "मुक्त",
+      "taskDescription": "आप अपनी पूरी की हुई किसी कार्य को कार्ड के रूप में साझा कर सकते हैं।",
+      "freeDescription": "आप बिना कार्य चुने एक मुक्त शेयर कार्ड बना रहे हैं।",
+      "toggleHideTasks": "Hide",
+      "toggleShowTasks": "Show list",
+      "noCompletedTasksInline": "आपके पास अभी कोई पूरा किया हुआ कार्य नहीं है। पहले Tasks स्क्रीन से कोई कार्य पूरा करें।",
+      "noCompletedTasksTitle": "No tasks found",
+      "noCompletedTasksBody": "There are no completed tasks at the moment. To switch to task mode, complete a task first."
     },
     "fields": {
-      "cardTitleLabel": "कार्ड शीर्षक",
-      "cardTitlePlaceholder": "कोई शीर्षक लिखें (वैकल्पिक)",
+      "cardTitleLabel": "Card title",
+      "cardTitlePlaceholder": "Write a title (optional)",
       "cardDescriptionLabel": "कार्ड विवरण",
-      "cardDescriptionPlaceholder": "टास्क विवरण या फ्री शेयर टेक्स्ट... (वैकल्पिक)"
+      "cardDescriptionPlaceholder": "कार्य विवरण या मुक्त शेयर टेक्स्ट... (वैकल्पिक)"
     },
     "video": {
       "label": "वीडियो (वैकल्पिक)",
-      "hint": "फ्री वर्ज़न में वीडियो अधिकतम 30 सेकंड तक हो सकते हैं। ऐप वर्तमान में अधिकतम 3 मिनट के वीडियो सपोर्ट करता है।",
+      "hint": "In the free version videos can be up to 30 seconds. The app currently supports videos up to 3 minutes.",
       "pick": "वीडियो चुनें",
-      "change": "वीडियो बदलें",
-      "notSelected": "अभी तक कोई वीडियो नहीं चुना गया",
-      "selectedFallback": "वीडियो चुना गया",
-      "tooLongTitle": "वीडियो बहुत लंबा है",
-      "tooLongBody": "फिलहाल केवल 3 मिनट तक के वीडियो सपोर्ट किए जाते हैं। कृपया अपना वीडियो छोटा करके दोबारा कोशिश करें।",
-      "overFreeLimitTitle": "वीडियो 30 सेकंड से लंबा है",
-      "overFreeLimitBody": "फ्री वर्ज़न में आपका वीडियो 30 सेकंड से कम होना चाहिए। लंबे वीडियो के लिए आप आगे चलकर Pro विकल्प देख पाएँगे।",
-      "overFreeLimitCancel": "रद्द करें",
-      "overFreeLimitPro": "मैं Pro के बारे में जानना चाहता/चाहती हूँ",
+      "change": "Change video",
+      "notSelected": "अभी कोई वीडियो चयनित नहीं",
+      "selectedFallback": "Video selected",
+      "tooLongTitle": "Video is too long",
+      "tooLongBody": "Currently only videos up to 3 minutes are supported. Please shorten your video and try again.",
+      "overFreeLimitTitle": "Video is longer than 30 seconds",
+      "overFreeLimitBody": "In the free version, the video you want to send must be shorter than 30 seconds. You’ll be able to explore the Pro option for longer videos.",
+      "overFreeLimitCancel": "Cancel",
+      "overFreeLimitPro": "I’m curious about Pro",
       "proInfoTitle": "Viral Pro",
-      "proInfoBody": "आप अभी Pro फ़ीचर्स की योजना बनाने के चरण में हैं। रिलीज़ के करीब आते ही आप Pro और लंबी वीडियो सपोर्ट को विस्तार से तय करेंगे। 🚀",
-      "pickErrorTitle": "वीडियो चुना नहीं जा सका",
-      "pickErrorBody": "वीडियो चुनते समय कोई त्रुटि हुई। कृपया दोबारा कोशिश करें।"
+      "proInfoBody": "You are currently at the planning stage of Pro features. As you get closer to launch, you’ll detail Pro and long-video support. 🚀",
+      "pickErrorTitle": "Video could not be selected",
+      "pickErrorBody": "An error occurred while selecting video. Please try again.",
+      "uploadFailedTitle": "Video could not be uploaded",
+      "uploadFailedBody": "Video could not be uploaded to the server. Check your internet/server."
     },
     "share": {
-      "plannedLabel": "नियोजित शेयर",
-      "freePostTip": "आप बिना टास्क के भी शेयर कर सकते हैं। अपने वीडियो, पलों और जो चाहें, उन्हें फ़ीड में स्वतंत्र कार्ड की तरह साझा करें।",
-      "platformNotConnectedTitle": "{{platform}} अकाउंट जुड़ा नहीं है",
-      "platformNotConnectedBody": "{{platform}} पर शेयर करने के लिए आपको अपना {{platform}} अकाउंट Viral से जोड़ना होगा।",
-      "platformNotConnectedCancel": "मेरा अकाउंट न जोड़ें",
-      "platformNotConnectedConnect": "मेरा {{platform}} अकाउंट Viral से जोड़ें",
-      "goProfileTitle": "प्रोफ़ाइल स्क्रीन पर जाएँ",
-      "goProfileBody": "“प्रोफ़ाइल” टैब पर जाएँ और “अकाउंट कनेक्शन” सेक्शन से अपना {{platform}} अकाउंट जोड़ें।"
+      "plannedLabel": "योजनाबद्ध शेयर",
+      "freePostTip": "You can also share without a task. Freely share your videos, moments and anything you like; they’ll appear as independent cards in the feed.",
+      "platformNotConnectedTitle": "{{platform}} account not connected",
+      "platformNotConnectedBody": "To share on {{platform}}, you must connect your {{platform}} account to Viral.",
+      "platformNotConnectedCancel": "Do not connect my account",
+      "platformNotConnectedConnect": "Connect my {{platform}} account to Viral",
+      "goProfileTitle": "Go to profile screen",
+      "goProfileBody": "Go to the “Profile” tab and connect your {{platform}} account from the “Account connections” section."
     },
     "preview": {
       "label": "पूर्वावलोकन",
-      "taskPrefix": "पूरी की गई टास्क: ",
-      "freePrefix": "शेयर तैयार: ",
-      "freeBadge": "फ्री शेयर कार्ड",
-      "taskBadge": "टास्क कार्ड",
-      "contentLabelTask": "सामग्री",
-      "contentLabelFree": "शेयर सामग्री",
-      "plannedLabel": "नियोजित शेयर:",
-      "videoLabel": "📹 वीडियो: {{label}}",
-      "videoFallback": "चुना गया वीडियो",
-      "noTaskSelected": "कोई टास्क नहीं चुनी गई"
+      "taskPrefix": "Completed task: ",
+      "freePrefix": "Share ready: ",
+      "freeBadge": "Free share card",
+      "taskBadge": "Task card",
+      "contentLabelTask": "Content",
+      "contentLabelFree": "Share content",
+      "plannedLabel": "Planned share:",
+      "videoLabel": "📹 Video: {{label}}",
+      "videoFallback": "selected video",
+      "noTaskSelected": "No task selected"
     },
     "submit": {
-      "creating": "बनाया जा रहा है...",
-      "task": "टास्क कार्ड बनाएँ",
+      "creating": "बन रहा है...",
+      "task": "कार्य कार्ड बनाएँ",
       "free": "कार्ड बनाएँ"
     },
     "alerts": {
       "missingContentTitle": "चेतावनी",
-      "missingContentBody": "कार्ड बनाने से पहले कोई टास्क चुनें या शीर्षक / विवरण / वीडियो जोड़ें।",
-      "successTitle": "सफल",
-      "successTaskBody": "टास्क कार्ड फ़ीड में साझा कर दिया गया है।",
-      "successFreeBody": "आपका फ्री शेयर कार्ड फ़ीड में जोड़ दिया गया है।"
+      "missingContentBody": "Select a task or add a title / description / video before creating the card.",
+      "successTitle": "सफलता",
+      "successTaskBody": "Task card has been shared in the feed.",
+      "successFreeBody": "Your free share card has been added to the feed."
+    },
+    "praise": {
+      "tab": "प्रशंसा",
+      "screenTitle": "प्रशंसा साझा करें",
+      "description": "किसी दोस्त के लिए छोटी प्रशंसा लिखें और विशेष कार्ड के रूप में साझा करें।",
+      "friendLabel": "दोस्त",
+      "friendPlaceholder": "दोस्त का नाम या यूज़रनेम",
+      "friendFallback": "आपका दोस्त",
+      "categoryLabel": "श्रेणी",
+      "messageLabel": "छोटा संदेश",
+      "messagePlaceholder": "उदाहरण: आपकी ऊर्जा ने आज सबको उत्साहित किया।",
+      "submit": "प्रशंसा साझा करें",
+      "feedTitle": "@{{friend}} के लिए प्रशंसा",
+      "previewTitle": "@{{friend}} के लिए प्रशंसा",
+      "badge": "प्रशंसा कार्ड",
+      "previewMessageLabel": "प्रशंसा संदेश",
+      "previewEmptyMessage": "आपका प्रशंसा संदेश यहाँ दिखाई देगा।",
+      "previewFriendHint": "@{{friend}} को टैग किया जाएगा",
+      "categoryFallback": "प्रशंसा",
+      "successTitle": "प्रशंसा साझा हुई",
+      "successBody": "आपका प्रशंसा कार्ड फ़ीड में जोड़ दिया गया।",
+      "missingFriendTitle": "कोई दोस्त चयनित नहीं",
+      "missingFriendBody": "प्रशंसा साझा करने के लिए दोस्त का नाम लिखें।",
+      "missingMessageTitle": "संदेश नहीं है",
+      "missingMessageBody": "एक छोटा प्रशंसा संदेश लिखें।",
+      "categories": {
+        "kindness": "दयालुता",
+        "success": "सफलता",
+        "support": "समर्थन",
+        "energy": "ऊर्जा",
+        "creativity": "रचनात्मकता",
+        "leadership": "नेतृत्व"
+      }
+    },
+    "images": {
+      "pickErrorTitle": "फ़ोटो चयनित नहीं हो सकीं",
+      "pickErrorBody": "फ़ोटो चुनते समय त्रुटि हुई।",
+      "uploadFailedTitle": "फ़ोटो अपलोड नहीं हो सकीं",
+      "uploadFailedBody": "फ़ोटो सर्वर पर अपलोड नहीं हो सकीं। इंटरनेट/सर्वर जाँचें।"
     }
   },
   "tasks": {
-    "screenTitle": "टास्क",
-    "statsLine": "सक्रिय: {{active}} · पूर्ण: {{completed}}",
+    "screenTitle": "कार्य",
+    "statsLine": "Active: {{active}} · Completed: {{completed}}",
     "todayCard": {
-      "label": "आज की टास्क",
-      "doneButton": "पूर्ण"
+      "label": "Today’s task",
+      "doneButton": "Completed"
     },
     "levelCard": {
-      "label": "लेवल",
-      "streak": "🔥 स्ट्रीक: {{count}} दिन",
-      "completedToday": "🎯 आज पूरी: {{count}}",
-      "longestStreak": "🏅 सबसे लंबी स्ट्रीक: {{count}} दिन"
+      "label": "Level",
+      "streak": "🔥 Streak: {{count}} day(s)",
+      "completedToday": "🎯 Completed today: {{count}}",
+      "longestStreak": "🏅 Longest streak: {{count}} day(s)"
     },
     "modes": {
-      "givenTitle": "टास्क माँगें",
-      "selfTitle": "टास्क जोड़ें",
-      "givenDescription": "सरप्राइज टास्क माँगें; Viral आपके लिए एक चुन लेगा।",
-      "selfDescription": "आप इस पेज से अपने लिए टास्क जोड़ सकते हैं।"
+      "givenTitle": "Request a task",
+      "selfTitle": "Add task",
+      "givenDescription": "Request a surprise task; Viral chooses one for you.",
+      "selfDescription": "You can add tasks for yourself on this page."
     },
     "self": {
-      "inputPlaceholder": "जैसे: 20 मिनट फ़ोकस",
-      "scheduleQuestion": "आप यह टास्क कब करेंगे?",
-      "repeatQuestion": "क्या यह टास्क दोहराई जाएगी?",
-      "reminderLabel": "रिमाइंडर",
-      "reminderOn": "चालू",
-      "reminderOff": "बंद",
-      "addButton": "जोड़ें",
-      "backToFeedButton": "← फ़ीड"
+      "inputPlaceholder": "e.g. 20 min focus",
+      "scheduleQuestion": "When will you do this task?",
+      "repeatQuestion": "Will this task repeat?",
+      "reminderLabel": "Reminder",
+      "reminderOn": "On",
+      "reminderOff": "Off",
+      "addButton": "Add",
+      "backToFeedButton": "← Feed"
     },
     "scheduleOptions": {
-      "today": "आज",
-      "tomorrow": "कल",
-      "thisWeek": "इस सप्ताह"
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This week"
     },
     "repeatOptions": {
-      "none": "एक बार",
-      "daily": "प्रतिदिन",
-      "weekly": "साप्ताहिक"
+      "none": "One-time",
+      "daily": "Daily",
+      "weekly": "Weekly"
     },
     "categories": {
-      "general": "सामान्य",
-      "school": "स्कूल",
-      "work": "काम",
-      "health": "स्वास्थ्य",
-      "family": "परिवार",
-      "social": "सोशल"
+      "general": "General",
+      "school": "School",
+      "work": "Work",
+      "health": "Health",
+      "family": "Family",
+      "social": "Social"
     },
     "priorities": {
-      "low": "कम",
-      "medium": "मध्यम",
-      "high": "उच्च"
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
     },
     "templates": {
       "focus-25min": {
-        "title": "25 मिनट तक फ़ोकस करें",
-        "description": "फ़ोन साइलेंट पर रखें और 25 मिनट तक एक ही काम पर ध्यान दें।"
+        "title": "Focus for 25 minutes",
+        "description": "Silence your phone and focus on a single task for 25 minutes."
       },
       "focus-deep-clean": {
-        "title": "मेज़ / कार्यस्थल की मिनी सफाई",
-        "description": "मेज़ से अनावश्यक चीज़ें हटाएँ; 10 मिनट की “नई शुरुआत” जैसा असर बनाएँ।"
+        "title": "Mini desk / workspace clean-up",
+        "description": "Collect unnecessary items on your desk; create a 10-minute “fresh start” effect."
       },
       "focus-inbox-zero": {
-        "title": "इनबॉक्स हल्का करें",
-        "description": "आज कम से कम 5 अनावश्यक ईमेल डिलीट या आर्काइव करें।"
+        "title": "Lighten your inbox",
+        "description": "Delete or archive at least 5 unnecessary emails today."
       },
       "focus-no-scroll-20min": {
-        "title": "20 मिनट “स्क्रॉल नहीं” नियम",
-        "description": "20 मिनट तक किसी भी सोशल मीडिया फ़ीड को स्क्रॉल किए बिना समय बिताएँ।"
+        "title": "20-minute “no scroll” rule",
+        "description": "Spend 20 minutes without scrolling any social media feed."
       },
       "health-steps-6000": {
-        "title": "आज 6000 क़दम चलें",
-        "description": "दिन में छोटे-छोटे वॉक प्लान करें; कुल मिलाकर कम से कम 6000 क़दम पूरे करें।"
+        "title": "Take 6000 steps today",
+        "description": "Plan short walks outside; reach at least 6000 steps in total."
       },
       "health-water-6": {
-        "title": "कम से कम 6 गिलास पानी पिएँ",
-        "description": "दिन भर में पानी पीने को फैलाएँ और उसका हिसाब रखें।"
+        "title": "Drink at least 6 glasses of water",
+        "description": "Spread your water intake throughout the day and track it."
       },
       "health-stretch-10": {
-        "title": "10 मिनट की स्ट्रेच ब्रेक",
-        "description": "गर्दन, कंधे और कमर के लिए हल्की स्ट्रेचिंग करें।"
+        "title": "10-minute stretch break",
+        "description": "Do simple stretch exercises for your neck, shoulders and lower back."
       },
       "health-walk-sunset": {
-        "title": "शाम के समय छोटी वॉक",
-        "description": "सूर्यास्त के आसपास 15 मिनट की ताज़ी हवा में वॉक करें।"
+        "title": "Evening mini walk",
+        "description": "Take a 15-minute fresh-air walk around sunset."
       },
       "work-priority-task": {
-        "title": "आज का सबसे ज़रूरी काम पूरा करें",
-        "description": "आज का सबसे महत्वपूर्ण काम चुनें, उसे छोटे कदमों में बाँटें और पूरा करें।"
+        "title": "Finish your most important task",
+        "description": "Choose today’s most important task, break it into smaller steps and complete it."
       },
       "work-no-meeting-30": {
-        "title": "30 मिनट का मीटिंग-फ्री ब्लॉक",
-        "description": "अपने कैलेंडर में 30 मिनट का शांत फ़ोकस ब्लॉक रखें और इस दौरान कोई मीटिंग न रखें।"
+        "title": "30-minute meeting-free block",
+        "description": "Create a 30-minute silent focus block in your calendar and avoid scheduling meetings in it."
       },
       "work-feedback-ask": {
-        "title": "फ़ीडबैक माँगें",
-        "description": "किए गए किसी काम पर टीम के साथी से छोटा सा फ़ीडबैक माँगें।"
+        "title": "Ask for feedback",
+        "description": "Ask a teammate for brief feedback on a piece of work you did."
       },
       "work-small-win-share": {
-        "title": "आज की छोटी जीत नोट करें",
-        "description": "आज आपको सबसे ज़्यादा खुश करने वाला काम / प्रगति एक लाइन में लिखें।"
+        "title": "Note today’s small win",
+        "description": "Write down in one sentence the work / progress that made you happiest today."
       },
       "school-25min-study": {
-        "title": "25 मिनट पढ़ाई / रिविज़न",
-        "description": "सिर्फ़ एक विषय पर ध्यान दें; 25 मिनट तक बिना फोन देखे पढ़ें।"
+        "title": "25 minutes of study / review",
+        "description": "Focus on only one subject; study 25 minutes without touching your phone."
       },
       "school-question-solve": {
-        "title": "कम से कम 10 प्रश्न हल करें",
-        "description": "किसी चुने हुए विषय से आज कम से कम 10 नए प्रश्न हल करें।"
+        "title": "Solve at least 10 questions",
+        "description": "Solve at least 10 new questions today from a subject you choose."
       },
       "school-notes-clean": {
-        "title": "अपनी नोट्स व्यवस्थित करें",
-        "description": "अपनी कॉपी / डिजिटल नोट्स में एक टॉपिक साफ़ करें, शीर्षक जोड़ें।"
+        "title": "Organize your notes",
+        "description": "Clean up one topic in your notebook / digital notes and add headings."
       },
       "school-share-tip": {
-        "title": "किसी दोस्त को स्टडी टिप भेजें",
-        "description": "कोई स्टडी तकनीक (पोमोडोरो, रंगीन नोट्स आदि) किसी दोस्त के साथ साझा करें।"
+        "title": "Send a study tip to a friend",
+        "description": "Share a study technique you use (Pomodoro, colorful notes, etc.) with a friend."
       },
       "family-call-parent": {
-        "title": "परिवार से छोटी बातचीत",
-        "description": "माता-पिता या परिवार के किसी सदस्य से कम से कम 5 मिनट दिल से बात करें।"
+        "title": "Short chat with family",
+        "description": "Have at least a 5-minute sincere conversation with a parent or family member."
       },
       "family-eat-together": {
-        "title": "साथ में खाना खाएँ",
-        "description": "परिवार के साथ एक ही मेज़ पर बिना फोन के खाना खाएँ।"
+        "title": "Eat together",
+        "description": "Have a meal with your family at the same table without phones."
       },
       "family-thank-message": {
-        "title": "धन्यवाद संदेश भेजें",
-        "description": "परिवार के किसी सदस्य को छोटा सा “अच्छा लगा कि तुम हो” जैसा संदेश लिखें।"
+        "title": "Send a thank-you message",
+        "description": "Write a short “I’m glad you’re here” message to someone from your family."
       },
       "social-message-friend": {
-        "title": "किसी दोस्त को संदेश भेजें",
-        "description": "काफ़ी समय से बात न किए हुए किसी व्यक्ति से पूछें: “कैसे हो?”"
+        "title": "Send a message to a friend",
+        "description": "Ask “How are you?” to someone you haven’t spoken to for a long time."
       },
       "social-comment-support": {
-        "title": "सपोर्टिव टिप्पणी छोड़ें",
-        "description": "किसी दोस्त की पोस्ट पर ईमानदार और समर्थन देने वाली टिप्पणी लिखें।"
+        "title": "Leave a supportive comment",
+        "description": "Write a sincere, supportive comment on a friend’s post."
       },
       "social-share-win": {
-        "title": "आज की “छोटी जीत” साझा करें",
-        "description": "आज आपको खुश करने वाले छोटे से पल को कार्ड के रूप में सहेजने की तैयारी करें।"
+        "title": "Share today’s “small win”",
+        "description": "Get ready to save a moment that made you happy today as a card."
       },
       "social-new-connection": {
-        "title": "नया कनेक्शन बनाएँ",
-        "description": "किसी ऐसे व्यक्ति को छोटा-सा हेलो संदेश भेजें जिसे आप लंबे समय से फ़ॉलो कर रहे हैं लेकिन कभी लिखा नहीं।"
+        "title": "Create a new connection",
+        "description": "Send a short hello message to someone you’ve followed for a long time but never written to."
       },
       "social-phone-free-coffee": {
-        "title": "फोन-फ्री कॉफ़ी / चाय ब्रेक",
-        "description": "किसी दोस्त के साथ या अकेले 15 मिनट की कॉफ़ी ब्रेक बिना फोन के बिताएँ।"
+        "title": "Phone-free coffee / tea break",
+        "description": "Spend a 15-minute coffee break with a friend or alone without your phone."
       },
       "viral-plan-card": {
-        "title": "एक Viral कार्ड प्लान करें",
-        "description": "आज साझा करना चाहने वाले किसी पल, नोट या लक्ष्य के लिए कार्ड आइडिया सोचें और उसका शीर्षक लिखें।"
+        "title": "Plan a Viral card",
+        "description": "Think of a card idea for a moment, note or goal you want to share today and write its title."
       },
       "viral-gratitude-3": {
-        "title": "3 चीज़ों के लिए आभारी रहें",
-        "description": "आज जिन 3 बातों के लिए आप आभारी हैं, उन्हें छोटे नोट्स में लिखें; चाहें तो उन्हें कार्ड में बदल सकते हैं।"
+        "title": "Be grateful for 3 things",
+        "description": "Write down 3 things you are grateful for today as short notes; you can turn them into a card if you like."
       },
       "viral-before-after": {
-        "title": "“पहले / बाद” फ़ोटो का आइडिया खोजें",
-        "description": "कोई ऐसी चीज़ चुनें जिसे आप पहले–बाद में दिखा सकें, जैसे मेज़ की सफ़ाई, स्क्रीन क्लीन-अप या वॉकिंग रूट।"
+        "title": "Find a before / after photo idea",
+        "description": "Find something you can show “before–after”, such as desk organization, screen clean-up or a walking route."
       }
     },
     "meta": {
-      "createdAt": "बनाया गया",
-      "completedAt": "पूर्ण होने का समय",
-      "originGiven": "आपको दी गई टास्क",
-      "originSelf": "अपने लिए टास्क",
-      "priorityPrefix": "प्राथमिकता: {{priority}}",
-      "timePrefix": "समय: {{when}}",
-      "repeatPrefix": "दोहराव: {{repeat}}"
+      "createdAt": "Created",
+      "completedAt": "Completed",
+      "originGiven": "Task given to you",
+      "originSelf": "Task to yourself",
+      "priorityPrefix": "Priority: {{priority}}",
+      "timePrefix": "Time: {{when}}",
+      "repeatPrefix": "Repeat: {{repeat}}"
     },
     "request": {
-      "areaTitle": "आज की टास्क सरप्राइज के रूप में लें।",
-      "areaSubtitle": "बटन दबाएँ और Viral आपके लिए तैयार टास्क चुन लेगा।",
-      "buttonIdle": "आज की टास्क दें",
-      "buttonHasTask": "आज की टास्क तैयार है 👇",
-      "cardTitlePrefix": "आज की टास्क: ",
-      "doButton": "हो गया ✓",
-      "changeButton": "बदलें",
-      "changeUsedLabel": "आज का बदलाव उपयोग हो चुका है"
+      "areaTitle": "Get today’s task as a surprise.",
+      "areaSubtitle": "Press the button and Viral chooses a ready task for you.",
+      "buttonIdle": "Give me today’s task",
+      "buttonHasTask": "Today’s task is ready 👇",
+      "cardTitlePrefix": "Today’s task: ",
+      "doButton": "Done ✓",
+      "changeButton": "Change",
+      "changeUsedLabel": "You’ve used your change for today"
     },
     "requestAlerts": {
-      "noMoreChangesTitle": "आज के लिए सीमा पूरी हो गई",
-      "noMoreChangesBody": "आप तैयार टास्क को दिन में अधिकतम एक बार बदल सकते हैं। आप कल नई टास्क ले पाएँगे। 🙌",
-      "alreadyChangedBody": "आप आज की टास्क को पहले ही एक बार बदल चुके हैं।"
+      "noMoreChangesTitle": "Your limit for today is reached",
+      "noMoreChangesBody": "You can change the ready task at most once per day. You can get a new task tomorrow. 🙌",
+      "alreadyChangedBody": "You have already changed today’s task once."
     },
     "completeRequested": {
-      "alertTitle": "बधाई हो 🎉",
-      "alertBody": "आपने आज की टास्क पूरी कर ली!\n\nलेवल: {{level}}\nआज पूरी: {{completedToday}}\nस्ट्रीक: {{streak}} दिन",
-      "ok": "ठीक है",
-      "createCard": "कार्ड बनाएँ"
+      "alertTitle": "Congratulations 🎉",
+      "alertBody": "You completed today’s task!\n\nLevel: {{level}}\nCompleted today: {{completedToday}}\nStreak: {{streak}} day(s)",
+      "ok": "OK",
+      "createCard": "Create card"
     },
     "sections": {
-      "activeTitle": "सक्रिय टास्क",
-      "activeEmpty": "अभी कोई सक्रिय टास्क नहीं है। आप नई टास्क जोड़ सकते हैं।",
-      "completedTitle": "पूर्ण टास्क",
-      "completedEmpty": "अभी तक कोई टास्क पूरी नहीं हुई है।",
-      "completedToggleShow": "दिखाएँ",
-      "completedToggleHide": "छिपाएँ",
-      "completedClear": "साफ़ करें",
-      "completedReactivate": "फिर से सक्रिय करें",
-      "completedCreateCard": "कार्ड बनाएँ",
-      "completedShowMore": "आख़िरी 3 टास्क दिख रही हैं – सभी देखें",
-      "completedShowLess": "आप सभी देख रहे हैं – केवल आख़िरी 3 दिखाएँ"
+      "activeTitle": "Active tasks",
+      "activeEmpty": "There are no active tasks at the moment. You can add a new task.",
+      "completedTitle": "Completed tasks",
+      "completedEmpty": "No tasks have been completed yet.",
+      "completedToggleShow": "Show",
+      "completedToggleHide": "Hide",
+      "completedClear": "Clear",
+      "completedReactivate": "Activate again",
+      "completedCreateCard": "Create card",
+      "completedShowMore": "Showing last 3 tasks – View all",
+      "completedShowLess": "You’re viewing all – Show only last 3"
     },
     "buttons": {
-      "edit": "संपादित करें",
-      "delete": "हटाएँ"
+      "edit": "Edit",
+      "delete": "Delete"
     },
     "alerts": {
-      "clearCompletedTitle": "पूर्ण टास्क साफ़ करें",
-      "clearCompletedBody": "सभी पूर्ण टास्क हटाई जाएँगी। सक्रिय टास्क बनी रहेंगी।\n\nक्या आप सुनिश्चित हैं?",
-      "clearCancel": "रद्द करें",
-      "clearConfirm": "हाँ, हटाएँ",
-      "deleteTaskTitle": "टास्क हटाएँ",
-      "deleteTaskBody": "क्या आप इस टास्क को केवल टास्क स्क्रीन से हटाना चाहते हैं या इस टास्क से बने कार्डों को भी फ़ीड से हटाना चाहते हैं?",
-      "deleteCancel": "रद्द करें",
-      "deleteOnlyTask": "केवल टास्क सूची से हटाएँ",
-      "deleteTaskAndCards": "टास्क और उससे जुड़े कार्ड हटाएँ"
+      "clearCompletedTitle": "Clear completed tasks",
+      "clearCompletedBody": "All completed tasks will be deleted. Active tasks will remain.\n\nAre you sure?",
+      "clearCancel": "Cancel",
+      "clearConfirm": "Yes, delete",
+      "deleteTaskTitle": "Delete task",
+      "deleteTaskBody": "Do you want to remove this task only from the Tasks screen, or also delete the cards created from this task in the Feed?",
+      "deleteCancel": "Cancel",
+      "deleteOnlyTask": "Delete only from task list",
+      "deleteTaskAndCards": "Delete task and its cards"
     },
     "edit": {
-      "title": "टास्क संपादित करें",
-      "placeholder": "टास्क शीर्षक",
-      "cancel": "रद्द करें",
-      "save": "सहेजें"
+      "title": "Edit task",
+      "placeholder": "Task title",
+      "cancel": "Cancel",
+      "save": "Save"
     },
     "completeModal": {
-      "title": "टास्क पूरी हुई 🎉",
-      "text": "यदि चाहें तो आप इस टास्क को फ़ीड में कार्ड के रूप में साझा कर सकते हैं।",
-      "later": "बाद में",
-      "createCard": "कार्ड बनाएँ"
+      "title": "Task completed 🎉",
+      "text": "If you want, you can share this task as a card in the Feed.",
+      "later": "Later",
+      "createCard": "Create card"
     },
-    "completeCardPrefix": "टास्क पूरी हुई: ",
+    "completeCardPrefix": "Task completed: ",
     "pro": {
-      "title": "दोस्त को टास्क दें (Pro)",
-      "body": "जल्द ही: आप अपनी फ़्रेंड लिस्ट से लोगों को टास्क असाइन कर पाएँगे और उन्हें नोटिफ़िकेशन भेज सकेंगे। यह फ़ीचर Viral Pro उपयोगकर्ताओं के लिए होगा।",
-      "button": "मैं Pro के बारे में जानना चाहता/चाहती हूँ",
+      "title": "Assign a task to a friend (Pro)",
+      "body": "Coming soon: you’ll be able to assign tasks to people from your friends list and send them notifications. This feature will be for Viral Pro users.",
+      "button": "I’m curious about Pro",
       "alertTitle": "Viral Pro",
-      "alertBody": "आप अभी Pro फ़ीचर्स की योजना बना रहे हैं। ऐप लॉन्च के करीब आते ही आप विवरण साफ़ करेंगे। 🚀"
+      "alertBody": "You are in the planning phase for Pro features. As the app gets closer to launch, you’ll clarify the details. 🚀"
     }
   },
   "sharePanel": {
-    "title": "शेयर",
-    "shareTitle": "शेयर",
-    "infoText": "आप जुड़े खातों का उपयोग करके शेयर कर सकते हैं।",
-    "shareBody": "आप जुड़े खातों का उपयोग करके शेयर कर सकते हैं।",
-    "noAccounts": "कोई खाता जुड़ा नहीं है।",
-    "connectButton": "खाते जोड़ें",
-    "cancel": "रद्द करें",
-    "shareAll": "सभी खातों पर शेयर करें",
-    "shareAllButton": "सभी खातों पर शेयर करें",
-    "connectFallbackTitle": "खाते जोड़ें",
-    "connectFallbackBody": "प्रोफ़ाइल से खाते जोड़ें।",
-    "infoTitle": "शेयर के बारे में",
-    "infoBody": "शेयर सिमुलेटेड है।",
-    "shareAllTitle": "सभी पर शेयर",
-    "shareAllBody": "सिमुलेटेड शेयर।"
+    "title": "Share",
+    "shareTitle": "Share",
+    "infoText": "You can share on external platforms using your connected accounts. Platforms may open their own share screens.",
+    "shareBody": "You can share on external platforms using your connected accounts.",
+    "noAccounts": "You haven't connected any accounts yet.\nPlease connect accounts before sharing.",
+    "connectButton": "Connect Accounts",
+    "cancel": "Cancel",
+    "shareAll": "Share on all accounts",
+    "shareAllButton": "Share on all accounts",
+    "connectFallbackTitle": "Connect your accounts",
+    "connectFallbackBody": "You can add external accounts from the \"Connect Accounts\" section in your profile.",
+    "infoTitle": "About external sharing",
+    "infoBody": "You see a summary below to share cards created on Viral to your connected accounts. In this version, sharing is informational; you must open the relevant app for actual sharing.",
+    "shareAllTitle": "Share on all accounts",
+    "shareAllBody": "We assume you shared on your connected accounts. Sharing is simulated in this version."
   },
   "share": {
     "requireAccounts": {
-      "title": "अपने अकाउंट्स जोड़ें",
-      "desc": "बाहरी प्लेटफ़ॉर्म पर शेयर करने के लिए आपको पहले अपने अकाउंट्स जोड़ने होंगे।",
-      "desc2": "प्रोफ़ाइल स्क्रीन पर आप \"मेरे अकाउंट्स जोड़ें\" सेक्शन से अपने बाहरी अकाउंट्स जोड़ सकते हैं।",
-      "connectButton": "मेरे अकाउंट्स जोड़ें",
-      "cancelButton": "रद्द करें",
-      "okButton": "ठीक है"
+      "title": "Connect your accounts",
+      "desc": "To share on external platforms, you must connect your accounts first.",
+      "desc2": "You can add your external accounts from the \"Connect my accounts\" section on your profile screen.",
+      "connectButton": "Connect my accounts",
+      "cancelButton": "Cancel",
+      "okButton": "OK"
     }
   },
   "nav": {
     "feed": "फ़ीड",
     "upload": "अपलोड",
-    "tasks": "टास्क",
+    "tasks": "कार्य",
     "profile": "प्रोफ़ाइल",
     "logout": "लॉग आउट"
   },
   "feed": {
-    "guestName": "मेहमान",
-    "headerTitle": "फ़ीड",
+    "guestName": "अतिथि",
+    "headerTitle": "Feed",
     "headerSub": "नमस्ते, {{name}} 👋",
-    "headerTagline": "आपकी टास्क, वीडियो और शेयर — सब यहाँ मिलते हैं।",
+    "headerTagline": "Your tasks, videos and shares — all meet here.",
     "focusNetwork": {
-      "button": "Focus Network पर जाएँ"
+      "button": "Go to Focus Network"
     },
     "filters": {
-      "all": "सभी",
-      "mine": "मेरे",
-      "tasks": "टास्क कार्ड",
-      "video": "वीडियो",
-      "external": "बाहरी गतिविधि"
+      "all": "All",
+      "mine": "Mine",
+      "tasks": "Task cards",
+      "video": "Video",
+      "external": "External activity"
     },
-    "refreshBanner": "फ़ीड रिफ़्रेश हो गया।",
+    "refreshBanner": "Feed refreshed.",
     "empty": {
-      "loading": "फ़ीड लोड हो रहा है...",
-      "noPosts": "अभी तक कोई शेयर नहीं है।",
-      "cta": "अपनी पहली टास्क / वीडियो बनाएँ"
+      "loading": "Loading feed...",
+      "noPosts": "There are no shares yet.",
+      "cta": "Create your first task / video"
     },
     "post": {
-      "genericTitle": "शेयर",
-      "genericName": "पोस्ट"
+      "genericTitle": "Share",
+      "genericName": "Post",
+      "readMore": "... और देखें",
+      "showLess": "कम दिखाएँ"
     },
     "badges": {
-      "taskCard": "टास्क कार्ड"
+      "taskCard": "Task card"
     },
     "external": {
-      "badge": "बाहरी शेयर"
+      "badge": "External share"
     },
     "labels": {
-      "descriptionPrefix": "विवरण:"
+      "descriptionPrefix": "Description:"
+    },
+    "text": {
+      "showMore": "... See more",
+      "showLess": "Show less"
     },
     "share": {
-      "planned": "निर्धारित शेयर: {{targets}}",
-      "last": "आख़िरी शेयर: {{date}} ({{targets}})",
-      "alsoSharedOn": "यहाँ भी शेयर किया गया:",
-      "defaultText": "Viral पोस्ट",
-      "shareText": "{{platform}} के लिए शेयर टेक्स्ट:\n{{text}}",
-      "simulationTitle": "शेयर (सिमुलेशन)",
-      "simulationMessage": "हम मान लेते हैं कि {{platform}} पर शेयर किया गया है।",
-      "errorTitle": "शेयर",
-      "errorMessage": "शेयर रद्द कर दिया गया या कोई त्रुटि हुई।",
-      "choose": "शेयर चुनें",
-      "previewTitle": "शेयर पूर्वावलोकन",
-      "previewFallback": "शेयर टेक्स्ट",
-      "simulateButton": "शेयर (सिमुलेशन)",
-      "plannedShort": "निर्धारित",
-      "noAccountsTitle": "पहले अपने अकाउंट्स जोड़ें",
-      "noAccountsBody": "बाहरी प्लेटफ़ॉर्म पर शेयर करने के लिए आपको पहले अपने अकाउंट्स जोड़ने होंगे।",
-      "goProfileTitle": "अपने अकाउंट्स जोड़ें",
-      "goProfileBody": "प्रोफ़ाइल स्क्रीन पर \"मेरे अकाउंट्स जोड़ें\" सेक्शन से आप बाहरी अकाउंट्स जोड़ सकते हैं।"
+      "planned": "Scheduled sharing: {{targets}}",
+      "last": "Last share: {{date}} ({{targets}})",
+      "alsoSharedOn": "Also shared on:",
+      "defaultText": "Viral post",
+      "shareText": "Share text for {{platform}}:\n{{text}}",
+      "simulationTitle": "Share (simulation)",
+      "simulationMessage": "We assume that a share was made on {{platform}}.",
+      "errorTitle": "Share",
+      "errorMessage": "Sharing was cancelled or an error occurred.",
+      "choose": "Choose share",
+      "previewTitle": "Share preview",
+      "previewFallback": "Share text",
+      "simulateButton": "Share (simulation)",
+      "plannedShort": "Planned",
+      "noAccountsTitle": "Connect your accounts first",
+      "noAccountsBody": "To share on external platforms, you need to connect your accounts first.",
+      "goProfileTitle": "Connect your accounts",
+      "goProfileBody": "On the Profile screen, use the “Connect my accounts” section to add your external accounts."
     },
     "video": {
-      "info": "📹 इस कार्ड के साथ एक वीडियो तय किया गया है।",
-      "watch": "वीडियो देखें",
-      "sheetTitlePrefix": "वीडियो वाला कार्ड:"
+      "info": "📹 A video is planned with this card.",
+      "watch": "Watch video",
+      "sheetTitlePrefix": "Card with video:"
     },
     "comments": {
-      "offLabel": "टिप्पणियाँ बंद हैं",
-      "cta": "टिप्पणी लिखें",
-      "count": "{{count}} टिप्पणी",
-      "title": "टिप्पणियाँ",
-      "toggleOpen": "टिप्पणियाँ खोलें",
-      "toggleClose": "टिप्पणियाँ बंद करें",
-      "empty": "अभी तक कोई टिप्पणी नहीं है। पहली टिप्पणी आप करें 🙂",
-      "disabledTitle": "टिप्पणियाँ बंद हैं",
-      "disabledMessage": "इस पोस्ट के लिए टिप्पणियाँ बंद हैं।",
-      "disabledInfo": "इस पोस्ट के लिए टिप्पणियाँ बंद हैं। आप केवल मौजूद टिप्पणियाँ देख सकते हैं।",
-      "placeholder": "टिप्पणी लिखें...",
-      "replyPlaceholder": "{{author}} को उत्तर लिखें...",
-      "replyingTo": "आप इस टिप्पणी को उत्तर दे रहे हैं: {{author}}",
-      "send": "भेजें",
-      "actionsTitle": "टिप्पणी क्रियाएँ",
-      "deleteQuestion": "क्या यह टिप्पणी हटाएँ?",
-      "delete": "टिप्पणी हटाएँ",
-      "reply": "उत्तर दें"
+      "offLabel": "Comments turned off",
+      "cta": "Write a comment",
+      "count": "{{count}} comment(s)",
+      "title": "Comments",
+      "toggleOpen": "Open comments",
+      "toggleClose": "Close comments",
+      "empty": "No comments yet. Be the first one 🙂",
+      "disabledTitle": "Comments turned off",
+      "disabledMessage": "Comments are turned off for this post.",
+      "disabledInfo": "Comments are turned off for this post. You can only view existing comments.",
+      "placeholder": "Write a comment...",
+      "replyPlaceholder": "Reply to {{author}}...",
+      "replyingTo": "You’re replying to: {{author}}",
+      "send": "Send",
+      "actionsTitle": "Comment actions",
+      "deleteQuestion": "Delete this comment?",
+      "delete": "Delete comment",
+      "reply": "Reply"
     },
     "notifications": {
-      "title": "सूचनाएँ",
-      "markAll": "सभी को पढ़ा हुआ चिह्नित करें",
-      "empty": "अभी तक आपकी कोई सूचना नहीं है। जैसे-जैसे आप टिप्पणी करेंगे और सेटिंग से खेलेंगे, सूचनाएँ यहाँ दिखाई देंगी।",
-      "commentsToggle": "आपने “{{title}}” शीर्षक वाली पोस्ट के लिए टिप्पणियाँ {{state}} की हैं।",
-      "stateClosed": "बंद कीं",
-      "stateOpened": "चालू कीं",
-      "close": "बंद करें",
-      "addedComment": "आपने “{{title}}” शीर्षक वाली पोस्ट पर एक टिप्पणी जोड़ी है।",
+      "title": "Notifications",
+      "markAll": "Mark all as read",
+      "empty": "You don’t have any notifications yet. As you comment and play with settings, your notifications will appear here.",
+      "commentsToggle": "You {{state}} comments for the post titled “{{title}}”.",
+      "stateClosed": "turned off",
+      "stateOpened": "turned on",
+      "close": "Close",
+      "addedComment": "You added a comment to the post titled “{{title}}”.",
       "reported": "You reported the post “{{title}}”.",
       "blocked": "You blocked {{author}}."
     },
     "freeVideo": {
-      "title": "वीडियो",
-      "message": "आप इस वीडियो के साथ क्या करना चाहते हैं?",
-      "delete": "वीडियो हटाएँ",
-      "noPermission": "यह कार्ड आपका नहीं है। आप इसे 삭제 नहीं कर सकते।"
+      "title": "Video",
+      "message": "What do you want to do with this video?",
+      "delete": "Delete video"
     },
     "postActions": {
-      "title": "पोस्ट विकल्प",
-      "message": "आप इस पोस्ट के साथ क्या करना चाहते हैं?",
-      "archive": "कार्ड आर्काइव करें",
-      "delete": "कार्ड हटाएँ",
+      "title": "Post actions",
+      "message": "What would you like to do with this post?",
+      "archive": "Archive card",
+      "delete": "Delete card",
       "noPermission": "This card isn't yours. You can't delete it.",
       "report": "Report",
       "blockUser": "Block User"
     },
     "time": {
-      "justNow": "अभी",
-      "minutesAgo": "{{count}} मिनट पहले",
-      "hoursAgo": "{{count}} घंटे पहले",
-      "yesterday": "कल",
-      "daysAgo": "{{count}} दिन पहले"
+      "justNow": "just now",
+      "minutesAgo": "{{count}} min ago",
+      "hoursAgo": "{{count}} h ago",
+      "yesterday": "yesterday",
+      "daysAgo": "{{count}} day(s) ago"
     },
     "report": {
       "successTitle": "Report received",
@@ -645,146 +691,146 @@
   "common__dup": {
     "warning": "चेतावनी",
     "error": "त्रुटि",
-    "success": "सफल",
+    "success": "सफलता",
     "cancel": "रद्द करें",
     "continue": "जारी रखें",
     "show": "दिखाएँ",
     "hide": "छिपाएँ",
-    "saving": "सेव हो रहा है...",
+    "saving": "सहेजा जा रहा है...",
     "loading": "लोड हो रहा है..."
   },
   "auth": {
     "switch": {
-      "title": "उपयोगकर्ता बदलें",
-      "body": "फ़ील्ड साफ़ हो जाएँगे। लॉगिन के लिए ईमेल/फ़ोन + पासवर्ड आवश्यक है।"
+      "title": "Switch user",
+      "body": "Fields will be cleared. Email/phone + password are required to sign in."
     },
     "welcome": {
-      "title": "स्वागत है 👋",
-      "subtitle": "वास्तविक उपयोगकर्ताओं के लिए पंजीकरण फ़ॉर्म।"
+      "title": "Welcome 👋",
+      "subtitle": "Registration form for real users."
     },
     "login": {
-      "title": "लॉगिन करें",
-      "subtitle": "ईमेल/फ़ोन और पासवर्ड से लॉगिन करें।",
-      "identifierPlaceholder": "ईमेल या फ़ोन",
-      "passwordPlaceholder": "आपका पासवर्ड",
-      "loginButton": "लॉगिन करें",
-      "loading": "लॉगिन हो रहा है...",
-      "forgotPassword": "पासवर्ड भूल गए?",
-      "newHere": "नए हैं? खाता बनाएँ",
-      "haveAccount": "पहले से खाता है? लॉगिन करें",
-      "switchUser": "उपयोगकर्ता बदलें",
-      "backToLogin": "← लॉगिन स्क्रीन पर वापस जाएं"
+      "title": "Sign in",
+      "subtitle": "Sign in with your email/phone and password.",
+      "identifierPlaceholder": "Email or Phone",
+      "passwordPlaceholder": "Your password",
+      "loginButton": "Sign in",
+      "loading": "Signing in...",
+      "forgotPassword": "Forgot password?",
+      "newHere": "New here? Create an account",
+      "haveAccount": "Already have an account? Sign in",
+      "switchUser": "Switch user",
+      "backToLogin": "← Back to login"
     },
     "register": {
-      "subtitle": "वास्तविक उपयोगकर्ताओं के लिए पंजीकरण फ़ॉर्म।",
-      "fullNameLabel": "पूरा नाम",
-      "fullNamePlaceholder": "पूरा नाम",
-      "emailLabel": "ईमेल",
+      "subtitle": "Registration form for real users.",
+      "fullNameLabel": "Full name",
+      "fullNamePlaceholder": "Full name",
+      "emailLabel": "Email",
       "emailPlaceholder": "example@mail.com",
-      "phoneLabel": "फ़ोन",
+      "phoneLabel": "Phone",
       "phonePlaceholder": "5xx xxx xx xx",
-      "passwordLabel": "पासवर्ड",
-      "passwordPlaceholder": "आपका पासवर्ड",
-      "passwordConfirmLabel": "पासवर्ड (पुष्टि)",
-      "passwordConfirmPlaceholder": "पासवर्ड फिर से",
-      "passwordHint": "पासवर्ड कम से कम 8 अक्षरों का हो और बड़े/छोटे अक्षर, एक संख्या और एक प्रतीक शामिल करे।",
-      "submit": "खाता बनाएँ",
-      "haveAccount": "पहले से खाता है? लॉगिन करें",
-      "cta": "पहले से खाता है? लॉगिन करें"
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Your password",
+      "passwordConfirmLabel": "Password (confirm)",
+      "passwordConfirmPlaceholder": "Confirm password",
+      "passwordHint": "Password must be at least 8 characters and include upper/lowercase letters, a number, and a symbol.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account? Sign in",
+      "cta": "Already have an account? Sign in"
     },
     "forgot": {
-      "title": "पासवर्ड भूल गए",
-      "subtitle": "आप अपने पंजीकृत ईमेल या फ़ोन नंबर से सत्यापन कोड प्राप्त कर सकते हैं।",
-      "email": "ईमेल",
-      "phone": "फ़ोन",
-      "channelEmail": "ईमेल",
-      "channelPhone": "फ़ोन",
-      "emailPlaceholder": "आपका पंजीकृत ईमेल",
-      "sendCode": "सत्यापन कोड भेजें",
-      "verifyTitle": "कोड सत्यापित करें",
-      "verifySubtitle": "सत्यापन कोड और नया पासवर्ड दर्ज करें।",
-      "codePlaceholder": "सत्यापन कोड",
-      "newPasswordPlaceholder": "नया पासवर्ड",
-      "newPasswordConfirmPlaceholder": "नया पासवर्ड (पुष्टि)",
-      "updateButton": "पासवर्ड अपडेट करें",
-      "backToLogin": "← लॉगिन पर वापस जाएँ"
+      "title": "Forgot password",
+      "subtitle": "You can receive a verification code using your registered email address or phone number.",
+      "email": "Email",
+      "phone": "Phone",
+      "channelEmail": "Email",
+      "channelPhone": "Phone",
+      "emailPlaceholder": "Your registered email address",
+      "sendCode": "Send verification code",
+      "verifyTitle": "Verify code",
+      "verifySubtitle": "Enter the verification code and your new password.",
+      "codePlaceholder": "Verification code",
+      "newPasswordPlaceholder": "New password",
+      "newPasswordConfirmPlaceholder": "New password (confirm)",
+      "updateButton": "Update password",
+      "backToLogin": "← Back to login"
     }
   },
   "focusNetwork": {
-    "title": "फोकस नेटवर्क",
-    "subtitle": "यहाँ तुम केवल उन्हीं लोगों की पोस्ट देखोगे जिन्हें तुमने चुना है।",
+    "title": "Focus Network",
+    "subtitle": "Here you only see posts from people you selected.",
     "tabs": {
-      "network": "मेरा नेटवर्क",
-      "discover": "खोजें",
-      "requests": "अनुरोध"
+      "network": "My Network",
+      "discover": "Discover",
+      "requests": "Requests"
     },
     "search": {
-      "networkPlaceholder": "अपने नेटवर्क में खोजें (@उपयोगकर्ता, नाम)...",
-      "discoverPlaceholder": "खोजें: @handle / नाम / ईमेल / फोन...",
-      "requestsPlaceholder": "अनुरोधों में खोजें..."
+      "networkPlaceholder": "Search your network (@user, name)...",
+      "discoverPlaceholder": "Discover: @handle / name / email / phone...",
+      "requestsPlaceholder": "Search requests..."
     },
     "sections": {
-      "network": "मेरा नेटवर्क",
-      "discover": "खोजें",
-      "incomingRequests": "आने वाले अनुरोध"
+      "network": "My Network",
+      "discover": "Discover",
+      "incomingRequests": "Incoming requests"
     },
     "count": {
-      "people": "{{count}} लोग",
-      "requests": "{{count}} अनुरोध"
+      "people": "{{count}} people",
+      "requests": "{{count}} requests"
     },
     "summary": {
-      "inNetwork": "फोकस नेटवर्क में।",
-      "alreadyInNetwork": "पहले से ही तुम्हारे नेटवर्क में।",
-      "incomingRequest": "तुम्हें अनुरोध भेजा है।",
-      "outgoingPending": "अनुरोध भेजा गया (लंबित)।",
-      "discoverFallback": "खोज सूची से जोड़ें।",
-      "requestPending": "फ्रेंड रिक्वेस्ट लंबित है।"
+      "inNetwork": "In focus network.",
+      "alreadyInNetwork": "Already in your network.",
+      "incomingRequest": "Sent you a request.",
+      "outgoingPending": "Request sent (pending).",
+      "discoverFallback": "Add from the discover list.",
+      "requestPending": "Friend request is pending."
     },
     "actions": {
-      "detail": "विवरण",
-      "accept": "स्वीकार करें",
-      "decline": "अस्वीकार करें",
-      "sendRequest": "अनुरोध भेजें",
-      "addPerson": "व्यक्ति जोड़ें",
-      "removeFromNetwork": "नेटवर्क से हटाएँ",
-      "inMyNetwork": "मेरे नेटवर्क में",
-      "pending": "लंबित",
-      "requestExists": "अनुरोध मौजूद है"
+      "detail": "Details",
+      "accept": "Accept",
+      "decline": "Decline",
+      "sendRequest": "Send request",
+      "addPerson": "Add person",
+      "removeFromNetwork": "Remove from network",
+      "inMyNetwork": "In my network",
+      "pending": "Pending",
+      "requestExists": "Request exists"
     },
     "banner": {
-      "newRequestTitle": "नया कनेक्शन अनुरोध",
-      "newRequestBody": "{{count}} नए अनुरोध हैं। देखने के लिए टैप करें।"
+      "newRequestTitle": "New connection request",
+      "newRequestBody": "{{count}} new requests. Tap to view."
     },
     "empty": {
-      "noSearchMatch": "कोई मेल खाने वाला व्यक्ति नहीं मिला।",
-      "noResults": "अभी कोई परिणाम नहीं है।",
-      "noPendingRequests": "कोई लंबित अनुरोध नहीं है।"
+      "noSearchMatch": "No matching person found.",
+      "noResults": "No results right now.",
+      "noPendingRequests": "No pending requests."
     },
     "note": {
-      "backendDiscover": "नोट: खोज सूची बैकएंड से आती है। कनेक्शन न होने पर परिणाम अपडेट नहीं हो सकते।"
+      "backendDiscover": "Note: The discover list comes from the backend. If there is no connection, results may not update."
     },
     "detail": {
-      "rule1": "• मित्रता प्रणाली: अनुरोध भेजें → सामने वाला स्वीकार करे।",
-      "rule2": "• कोई ज़बरदस्ती कनेक्शन नहीं। सब कुछ स्वीकृति के साथ आगे बढ़ता है।",
-      "rule3": "• कनेक्शन न होने पर क्रियाएँ विफल हो सकती हैं।"
+      "rule1": "• Friendship system: send request → other side accepts.",
+      "rule2": "• No forced connection. Everything proceeds with approval.",
+      "rule3": "• If there is no connection, actions may fail."
     },
     "alerts": {
-      "loginRequiredTitle": "लॉगिन आवश्यक है",
-      "loginRequiredBody": "इस क्रिया के लिए उपयोगकर्ता सत्र आवश्यक है।",
-      "alreadyInNetworkTitle": "पहले से ही तुम्हारे नेटवर्क में",
-      "alreadyInNetworkBody": "यह व्यक्ति पहले से ही तुम्हारे फोकस नेटवर्क में है।",
-      "pendingTitle": "लंबित",
-      "pendingBody": "तुम इस व्यक्ति को पहले ही अनुरोध भेज चुके हो। उसके स्वीकार करने का इंतज़ार करो।",
-      "requestExistsTitle": "अनुरोध मौजूद है",
-      "requestExistsBody": "इस व्यक्ति ने तुम्हें पहले ही अनुरोध भेज दिया है। तुम इसे “अनुरोध” टैब से स्वीकार कर सकते हो।",
-      "actionFailedWithConnection": "क्रिया विफल हुई। (कनेक्शन?)",
-      "declineFailed": "अस्वीकार करना विफल हुआ।",
-      "requestSendFailed": "अनुरोध भेजा नहीं जा सका। (कनेक्शन?)",
-      "acceptFailed": "स्वीकार नहीं किया जा सका। (कनेक्शन?)"
+      "loginRequiredTitle": "Login required",
+      "loginRequiredBody": "A user session is required for this action.",
+      "alreadyInNetworkTitle": "Already in your network",
+      "alreadyInNetworkBody": "This person is already in your Focus Network.",
+      "pendingTitle": "Pending",
+      "pendingBody": "You already sent a request to this person. Wait for them to accept it.",
+      "requestExistsTitle": "Request exists",
+      "requestExistsBody": "This person has already sent you a request. You can accept it from the “Requests” tab.",
+      "actionFailedWithConnection": "Action failed. (Connection?)",
+      "declineFailed": "Decline action failed.",
+      "requestSendFailed": "Request could not be sent. (Connection?)",
+      "acceptFailed": "Could not accept. (Connection?)"
     },
     "net": {
-      "invalidBaseUrl": "API_BASE_URL अमान्य लगता है।",
-      "onlineFetchError": "फोकस नेटवर्क ऑनलाइन फ़ेच त्रुटि"
+      "invalidBaseUrl": "API_BASE_URL seems invalid.",
+      "onlineFetchError": "Focus Network online fetch error"
     }
   }
 }

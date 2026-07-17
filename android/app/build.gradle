@@ -79,8 +79,15 @@ android {
         applicationId "com.viral_new"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 20
-        versionName "1.0.1"
+        versionCode 25
+        versionName "1.0.6"
+
+        // ✅ Google Play 16 KB page size hazırlığı (NDK 28 ile yeniden derleme)
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
+        }
     }
 
     signingConfigs {
@@ -99,6 +106,14 @@ android {
                 keyAlias VIRAL_RELEASE_KEY_ALIAS
                 keyPassword VIRAL_RELEASE_KEY_PASSWORD
             }
+        }
+    }
+
+    // ✅ 16 KB page size için native .so dosyalarını modern paketleme ile bırak.
+    // Eski cihazlarda da sorun çıkarmaması için sıkıştırmadan paketler.
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging false
         }
     }
 
