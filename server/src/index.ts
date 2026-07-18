@@ -3356,7 +3356,7 @@ const handleCreateComment = async (req: any, res: any) => {
       return res.status(400).json({ ok: false, error: 'text-too-long' });
     }
 
-    const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true, userId: true } });
     if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
 
     const anyPrisma: any = prisma as any;
