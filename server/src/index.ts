@@ -1042,6 +1042,112 @@ async function deliverWelcomeExperience(user: any, languageRaw: any) {
 }
 
 
+const BROADCAST_POST_AUTHOR_EMAIL = (
+  process.env.BROADCAST_POST_AUTHOR_EMAIL ?? 'ka2105@gmail.com'
+).toString().trim().toLowerCase();
+
+const BROADCAST_POST_AUTHOR_ID = Number(
+  (process.env.BROADCAST_POST_AUTHOR_ID ?? '').toString().trim()
+);
+
+function isBroadcastPostAuthor(user: any): boolean {
+  const userId = Number(user?.id);
+  if (
+    Number.isFinite(BROADCAST_POST_AUTHOR_ID) &&
+    BROADCAST_POST_AUTHOR_ID > 0 &&
+    userId === BROADCAST_POST_AUTHOR_ID
+  ) {
+    return true;
+  }
+
+  const email = typeof user?.email === 'string' ? user.email.trim().toLowerCase() : '';
+  return !!email && email === BROADCAST_POST_AUTHOR_EMAIL;
+}
+
+async function createNewPostNotifications(params: {
+  actorUser: any;
+  postId: number;
+  fallbackName?: string | null;
+}) {
+  const { actorUser, postId, fallbackName } = params;
+  const actorUserId = Number(actorUser?.id);
+
+  if (!Number.isFinite(actorUserId) || actorUserId <= 0 || !isBroadcastPostAuthor(actorUser)) {
+    return;
+  }
+
+  const recipients = await prisma.user.findMany({
+    where: {
+      id: { not: actorUserId },
+      email: { not: null },
+    },
+    select: { id: true },
+  });
+
+  if (!recipients.length) return;
+
+  const actorName = displayNameForNotification(actorUser, fallbackName);
+  const message = `${actorName} yeni bir paylaşım yaptı.`;
+
+  const result = await (prisma as any).notification.createMany({
+    data: recipients.map(recipient => ({
+      userId: recipient.id,
+      actorUserId,
+      postId,
+      type: 'new-post',
+      message,
+    })),
+  });
+
+  console.log('[Notification][NewPost] created', {
+    actorUserId,
+    postId,
+    recipientCount: Number(result?.count ?? recipients.length),
+  });
+}
+
+async function createCommentNotification(params: {
+  postOwnerUserId: number | null;
+  commenterUserId: number;
+  postId: number;
+}) {
+  const { postOwnerUserId, commenterUserId, postId } = params;
+
+  if (
+    !postOwnerUserId ||
+    !Number.isFinite(postOwnerUserId) ||
+    postOwnerUserId <= 0 ||
+    postOwnerUserId === commenterUserId
+  ) {
+    return;
+  }
+
+  const commenter = await prisma.user.findUnique({
+    where: { id: commenterUserId },
+    select: { id: true, fullName: true, handle: true },
+  });
+
+  const commenterName = displayNameForNotification(commenter);
+  const message = `${commenterName}, gönderine yorum yaptı.`;
+
+  await (prisma as any).notification.create({
+    data: {
+      userId: postOwnerUserId,
+      actorUserId: commenterUserId,
+      postId,
+      type: 'comment',
+      message,
+    },
+  });
+
+  console.log('[Notification][Comment] created', {
+    toUserId: postOwnerUserId,
+    commenterUserId,
+    postId,
+  });
+}
+
+
 function firstPublicImageFromPost(req: express.Request, p: any): string | null {
   const imageUris = Array.isArray(p?.imageUris) ? p.imageUris : [];
   const firstFromArray = imageUris.find((x: any) => typeof x === 'string' && x.trim().length && !isLocalOnlyUri(x));
@@ -2852,6 +2958,20 @@ app.post('/posts', async (req, res) => {
       }
     }
 
+    // Kazım'ın yeni paylaşımı: kayıtlı kullanıcılara uygulama içi bildirim.
+    // Bildirim tarafındaki bir hata, paylaşım oluşturma işlemini bozmaz.
+    try {
+      if (postingUser) {
+        await createNewPostNotifications({
+          actorUser: postingUser,
+          postId: Number((post as any).id),
+          fallbackName: author,
+        });
+      }
+    } catch (notifyErr) {
+      console.warn('[Notification][NewPost] create failed:', notifyErr);
+    }
+
     return res.json({
       ok: true,
       post,
@@ -3097,7 +3217,10 @@ app.post('/posts/:id/like', async (req, res) => {
       return res.status(400).json({ ok: false, error: 'postId-invalid' });
     }
 
-    const post = await prisma.post.findUnique({ where: { id: postId }, select: { id: true } });
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true, userId: true },
+    });
     if (!post) return res.status(404).json({ ok: false, error: 'post-not-found' });
 
     const anyPrisma: any = prisma as any;
@@ -3248,6 +3371,21 @@ const handleCreateComment = async (req: any, res: any) => {
         text,
       },
     });
+
+    // Gönderi sahibine yorum bildirimi.
+    // Bildirim tarafındaki bir hata, yorum oluşturma işlemini bozmaz.
+    try {
+      await createCommentNotification({
+        postOwnerUserId:
+          typeof (post as any).userId === 'number' && Number.isFinite((post as any).userId)
+            ? (post as any).userId
+            : null,
+        commenterUserId: userId,
+        postId,
+      });
+    } catch (notifyErr) {
+      console.warn('[Notification][Comment] create failed:', notifyErr);
+    }
 
     // âœ… FEED 304 kÄ±rmak iÃ§in: Postâ€™u â€œdeÄŸiÅŸtiâ€ saydÄ±r
     // commentCount kolonu olmasa bile updatedAt gÃ¼ncellenirse /feed ETag deÄŸiÅŸir.
