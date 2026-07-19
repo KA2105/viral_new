@@ -1122,6 +1122,15 @@ async function sendPushToUsers(params: {
         .filter((token: string): token is string => token.length > 0),
     ),
   );
+
+  console.log('[FCM DEBUG]', {
+    firebaseAdminReady: !!firebaseAdminApp,
+    userIds,
+    deviceCount: Array.isArray(devices) ? devices.length : 0,
+    tokenCount: tokens.length,
+    tokens,
+  });
+
   if (!tokens.length) return;
 
   const invalidTokens: string[] = [];
