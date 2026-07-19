@@ -13,9 +13,38 @@ import fs from 'fs';
 import multer from 'multer';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import * as admin from 'firebase-admin';
 
 const prisma = new PrismaClient();
 const app = express();
+
+function initializeFirebaseAdmin(): admin.app.App | null {
+  try {
+    if (admin.apps.length) return admin.app();
+
+    const rawJson = String(process.env.FIREBASE_SERVICE_ACCOUNT_JSON ?? '').trim();
+    if (rawJson) {
+      const serviceAccount = JSON.parse(rawJson.replace(/\n/g, '\n'));
+      return admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+    }
+
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      return admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+      });
+    }
+
+    console.log('[FCM] disabled - Firebase credentials are missing');
+    return null;
+  } catch (error) {
+    console.error('[FCM] initialization failed:', error);
+    return null;
+  }
+}
+
+const firebaseAdminApp = initializeFirebaseAdmin();
 
 // âœ… Video sÃ¼re / yetki politikasÄ±
 const NORMAL_VIDEO_LIMIT_SECONDS = 30;
@@ -1064,6 +1093,88 @@ function isBroadcastPostAuthor(user: any): boolean {
   return !!email && email === BROADCAST_POST_AUTHOR_EMAIL;
 }
 
+async function sendPushToUsers(params: {
+  userIds: number[];
+  title: string;
+  body: string;
+  type: string;
+  postId?: number | null;
+}) {
+  const userIds = Array.from(
+    new Set(params.userIds.map(Number).filter(id => Number.isFinite(id) && id > 0)),
+  );
+  if (!firebaseAdminApp || !userIds.length) return;
+
+  const anyPrisma: any = prisma as any;
+  if (!anyPrisma.pushDevice) {
+    console.warn('[FCM] PushDevice model is not available');
+    return;
+  }
+
+  const devices = await anyPrisma.pushDevice.findMany({
+    where: { userId: { in: userIds }, active: true },
+    select: { token: true },
+  });
+  const tokens: string[] = Array.from(
+    new Set<string>(
+      (devices || [])
+        .map((d: any) => String(d.token || '').trim())
+        .filter((token: string): token is string => token.length > 0),
+    ),
+  );
+  if (!tokens.length) return;
+
+  const invalidTokens: string[] = [];
+  for (let i = 0; i < tokens.length; i += 500) {
+    const batch = tokens.slice(i, i + 500);
+    const result = await admin.messaging(firebaseAdminApp).sendEachForMulticast({
+      tokens: batch,
+      notification: { title: params.title, body: params.body },
+      data: {
+        type: params.type,
+        postId: params.postId ? String(params.postId) : '',
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          channelId: 'viral_general',
+          sound: 'default',
+        },
+      },
+      apns: {
+        payload: { aps: { sound: 'default' } },
+      },
+    });
+
+    result.responses.forEach((response, index) => {
+      if (response.success) return;
+      const code = String(response.error?.code ?? '');
+      if (
+        code === 'messaging/registration-token-not-registered' ||
+        code === 'messaging/invalid-registration-token'
+      ) {
+        const invalidToken = batch[index];
+        if (invalidToken) invalidTokens.push(invalidToken);
+      }
+    });
+  }
+
+  if (invalidTokens.length) {
+    await anyPrisma.pushDevice.updateMany({
+      where: { token: { in: invalidTokens } },
+      data: { active: false },
+    });
+  }
+
+  console.log('[FCM] sent', {
+    userCount: userIds.length,
+    tokenCount: tokens.length,
+    invalidTokenCount: invalidTokens.length,
+    type: params.type,
+    postId: params.postId ?? null,
+  });
+}
+
 async function createNewPostNotifications(params: {
   actorUser: any;
   postId: number;
@@ -1104,6 +1215,14 @@ async function createNewPostNotifications(params: {
     postId,
     recipientCount: Number(result?.count ?? recipients.length),
   });
+
+  await sendPushToUsers({
+    userIds: recipients.map(recipient => recipient.id),
+    title: 'Viral',
+    body: message,
+    type: 'new-post',
+    postId,
+  });
 }
 
 async function createCommentNotification(params: {
@@ -1143,6 +1262,14 @@ async function createCommentNotification(params: {
   console.log('[Notification][Comment] created', {
     toUserId: postOwnerUserId,
     commenterUserId,
+    postId,
+  });
+
+  await sendPushToUsers({
+    userIds: [postOwnerUserId],
+    title: 'Viral',
+    body: message,
+    type: 'comment',
     postId,
   });
 }
@@ -2610,6 +2737,50 @@ app.post('/friends/remove', async (req, res) => {
   }
 });
 
+
+// -------------------- Push Device API --------------------
+app.post('/push/register', async (req, res) => {
+  try {
+    const userId = requireUserId(req, res);
+    if (!userId) return;
+
+    const token = typeof req.body?.token === 'string' ? req.body.token.trim() : '';
+    if (!token) return res.status(400).json({ ok: false, error: 'token-required' });
+
+    const deviceId = safeStringOrNull(req.body?.deviceId);
+    const platform = safeStringOrNull(req.body?.platform) ?? 'android';
+    const anyPrisma: any = prisma as any;
+
+    if (!anyPrisma.pushDevice) {
+      return res.status(503).json({ ok: false, error: 'push-device-model-not-ready' });
+    }
+
+    const device = await anyPrisma.pushDevice.upsert({
+      where: { token },
+      update: {
+        userId,
+        deviceId,
+        platform,
+        active: true,
+        lastSeenAt: new Date(),
+      },
+      create: {
+        userId,
+        token,
+        deviceId,
+        platform,
+        active: true,
+        lastSeenAt: new Date(),
+      },
+    });
+
+    console.log('[FCM] device registered', { userId, deviceId, platform, pushDeviceId: device.id });
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error('[POST /push/register] error:', error);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
 
 // -------------------- Notifications API --------------------
 
