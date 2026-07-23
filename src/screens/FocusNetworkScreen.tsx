@@ -38,22 +38,8 @@ type Props = {
   onClose?: () => void;
 };
 
-const INITIAL_MY_NETWORK: FocusProfile[] = [
-  { id: 'friend_focus_buddy', name: 'Odak Arkadaşın', handle: '@odak_arkadas', summary: 'Bugün 3 görev tamamladı.' },
-  { id: 'friend_morning_routine', name: 'Sabah Rutini', handle: '@sabah_rutini', summary: 'Son 7 günde 5 gün aktif.' },
-  { id: 'friend_gandalf', name: 'Gandalf', handle: '@gandalf', summary: 'Uzun vadeli görevleri sakin sakin planlar.' },
-  { id: 'friend_aragorn', name: 'Aragorn', handle: '@aragorn', summary: 'Zor görevlerde bile liderliği bırakmaz.' },
-  { id: 'friend_theoden', name: 'Kral Théoden', handle: '@kral_theoden', summary: 'Uyuyan görevleri yeniden canlandırmayı sever.' },
-  { id: 'friend_sauron', name: 'Sauron', handle: '@sauron', summary: 'Tek hedefe odaklanıp asla vazgeçmez.' },
-  { id: 'friend_gimli', name: 'Gimli', handle: '@gimli', summary: 'Kısa ama yoğun görevleri tercih eder.' },
-  { id: 'friend_gollum', name: 'Gollum', handle: '@gollum', summary: '“Kıymetli” hedeflerine takılı kalır.' },
-];
+// Gerçek kullanıcı verisi dışında örnek/hayali profil gösterilmez.
 
-const INITIAL_SUGGESTIONS: FocusProfile[] = [
-  { id: 'suggest_daily_planner', name: 'Günlük Planlayıcı', handle: '@gunluk_plan', summary: 'Her gün 1 görev paylaşır.' },
-  { id: 'suggest_pomodoro_master', name: 'Pomodoro Ustası', handle: '@pomodoro', summary: 'Kısa odak blokları ile çalışır.' },
-  { id: 'suggest_habit_builder', name: 'Alışkanlık İnşaatçısı', handle: '@habit_builder', summary: 'Mini görev zincirleriyle ilerler.' },
-];
 
 // 🔒 AsyncStorage key’i (UI state: son sekme vs.)
 const FOCUS_NETWORK_STORAGE_KEY = '@focus_network_state_v2';
@@ -138,6 +124,23 @@ function sortFocusProfilesByName(items: FocusProfile[]): FocusProfile[] {
     const an = String(a?.name || a?.handle || '').trim();
     const bn = String(b?.name || b?.handle || '').trim();
     return an.localeCompare(bn, 'tr', { sensitivity: 'base' });
+  });
+}
+
+function sortFocusProfilesByNewest(items: FocusProfile[]): FocusProfile[] {
+  const arr = Array.isArray(items) ? [...items] : [];
+  return arr.sort((a: any, b: any) => {
+    const at = Date.parse(String(a?.createdAt ?? a?.updatedAt ?? ''));
+    const bt = Date.parse(String(b?.createdAt ?? b?.updatedAt ?? ''));
+    const av = Number.isFinite(at) ? at : 0;
+    const bv = Number.isFinite(bt) ? bt : 0;
+    if (bv !== av) return bv - av;
+
+    const aid = Number(a?.id ?? 0);
+    const bid = Number(b?.id ?? 0);
+    if (Number.isFinite(aid) && Number.isFinite(bid) && bid !== aid) return bid - aid;
+
+    return 0;
   });
 }
 
@@ -238,6 +241,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
   const [manualDiscover, setManualDiscover] = useState<any[] | null>(null);
   const [manualIncoming, setManualIncoming] = useState<any[] | null>(null);
   const [netHint, setNetHint] = useState<string>('');
+  const [focusLoading, setFocusLoading] = useState(true);
 
   const seenKey = useMemo(() => {
     if (!userId) return `${FOCUS_NETWORK_SEEN_REQUESTS_KEY}:guest`;
@@ -303,10 +307,12 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
         if (!base || !/^https?:\/\//i.test(base)) {
           setNetHint(t('focusNetwork.net.invalidBaseUrl', 'API_BASE_URL geçersiz görünüyor.'));
+          setFocusLoading(false);
           return;
         }
 
-        setNetHint(`API: ${base}`);
+        setNetHint('');
+        setFocusLoading(true);
 
         const uid = userId ?? undefined;
 
@@ -338,6 +344,8 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         setNetHint(
           `${t('focusNetwork.net.onlineFetchError', 'Focus Ağı online fetch hata')}: ${e?.message || String(e)}`,
         );
+      } finally {
+        setFocusLoading(false);
       }
     };
 
@@ -440,13 +448,14 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
   // ✅ UI listelerine FocusProfile mapping
   const myNetworkProfiles: FocusProfile[] = useMemo(() => {
     const sourceFriends =
-      hydrated && !hydrateError && Array.isArray(friends)
-        ? friends
-        : Array.isArray(manualFriends)
+      Array.isArray(manualFriends)
         ? manualFriends
+        : hydrated && !hydrateError && Array.isArray(friends)
+        ? friends
         : null;
 
-    if (!sourceFriends) return sortFocusProfilesByName(INITIAL_MY_NETWORK);
+    // Sahte/örnek kullanıcı gösterme. Gerçek veri gelene kadar boş liste + yükleme metni.
+    if (!sourceFriends) return [];
 
     return sortFocusProfilesByName(sourceFriends.map((u: any) => {
       const handle = u?.handle ? `@${String(u.handle).replace(/^@+/, '')}` : '@viral_user';
@@ -480,9 +489,10 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
       friendMarkedStore,
     );
 
-    if (sourceDiscover.length === 0) return sortFocusProfilesByName(INITIAL_SUGGESTIONS);
+    // Backend/store henüz hazır değilken hayali kullanıcıları gösterme.
+    if (sourceDiscover.length === 0) return [];
 
-    return sortFocusProfilesByName(sourceDiscover.map((u: any) => {
+    return sortFocusProfilesByNewest(sourceDiscover.map((u: any) => {
       const handle = u?.handle ? `@${String(u.handle).replace(/^@+/, '')}` : '@viral_user';
       const name = u?.fullName || u?.displayName || 'Viral user';
 
@@ -507,7 +517,9 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         summary,
         relationship: rel,
         avatarUri,
-      };
+        createdAt: u?.createdAt,
+        updatedAt: u?.updatedAt,
+      } as any;
     }));
   }, [discover, friends, hydrated, hydrateError, manualDiscover, manualFriends, t]);
 
@@ -544,8 +556,8 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
   }, [myNetworkProfiles, normalizedQuery]);
 
   const filteredDiscover = useMemo(() => {
-    if (!normalizedQuery) return sortFocusProfilesByName(discoverProfiles);
-    return sortFocusProfilesByName(discoverProfiles.filter(p => (p.name + ' ' + p.handle).toLowerCase().includes(normalizedQuery)));
+    if (!normalizedQuery) return discoverProfiles;
+    return sortFocusProfilesByNewest(discoverProfiles.filter(p => (p.name + ' ' + p.handle).toLowerCase().includes(normalizedQuery)));
   }, [discoverProfiles, normalizedQuery]);
 
   const filteredIncoming = useMemo(() => {
@@ -927,7 +939,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         </View>
       </View>
 
-      {!!netHint && (
+      {false && !!netHint && (
         <View style={{ paddingHorizontal: 16, paddingBottom: 4 }}>
           <Text style={{ fontSize: 10, color: '#999' }}>{netHint}</Text>
         </View>
@@ -1033,7 +1045,9 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
             {filteredMyNetwork.length === 0 ? (
               <Text style={styles.emptyText}>
-                {t('focusNetwork.empty.noSearchMatch', 'Aramana uygun kişi bulunamadı.')}
+                {focusLoading
+                  ? t('focusNetwork.loading', 'Yükleniyor...')
+                  : t('focusNetwork.empty.noSearchMatch', 'Aramana uygun kişi bulunamadı.')}
               </Text>
             ) : (
               filteredMyNetwork.map(profile => renderProfileRow(profile, { inNetwork: true, showQuickAdd: false }))
@@ -1055,20 +1069,24 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
             {filteredDiscover.length === 0 ? (
               <Text style={styles.emptyText}>
-                {t('focusNetwork.empty.noResults', 'Şu anda sonuç yok.')}
+                {focusLoading
+                  ? t('focusNetwork.loading', 'Yükleniyor...')
+                  : t('focusNetwork.empty.noResults', 'Şu anda sonuç yok.')}
               </Text>
             ) : (
               filteredDiscover.map(profile => renderProfileRow(profile, { inNetwork: false, showQuickAdd: true }))
             )}
 
-            <View style={{ marginTop: 10 }}>
-              <Text style={{ fontSize: 11, color: '#999' }}>
-                {t(
-                  'focusNetwork.note.backendDiscover',
-                  'Not: Keşfet listesi backend’den gelir. Bağlantı yoksa sonuçlar güncellenmeyebilir.',
-                )}
-              </Text>
-            </View>
+            {false && (
+              <View style={{ marginTop: 10 }}>
+                <Text style={{ fontSize: 11, color: '#999' }}>
+                  {t(
+                    'focusNetwork.note.backendDiscover',
+                    'Not: Keşfet listesi backend’den gelir. Bağlantı yoksa sonuçlar güncellenmeyebilir.',
+                  )}
+                </Text>
+              </View>
+            )}
           </View>
         )}
 

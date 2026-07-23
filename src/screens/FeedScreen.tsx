@@ -24,6 +24,7 @@ import {
   Easing,
   Linking,
   AppState,
+  StatusBar,
 
   // ✅ EK: Native -> RN event dinlemek için
   DeviceEventEmitter,
@@ -119,6 +120,7 @@ const MAX_EXTERNAL_POSTS = 50;
 // ✅ NEW: görsel limiti
 const MAX_POST_IMAGES_PREVIEW = 10;
 const IMAGE_VIEWER_ZOOM_SCALE = 2.2;
+
 
 // 👍 Animasyonlu beğeni butonu (gönderi için)
 const AnimatedLikeButton: React.FC<{
@@ -312,6 +314,36 @@ type ActiveVideoState = {
   listItemId: string;
   uri: string;
   paused: boolean;
+};
+
+type LandscapeFullscreenState = {
+  instanceId: string;
+  listItemId: string;
+  uri: string;
+  startAt: number;
+};
+
+const INLINE_VIDEO_CONTROLS_STYLES = {
+  hidePosition: false,
+  hidePlayPause: false,
+  hideForward: false,
+  hideRewind: false,
+  hideNext: true,
+  hidePrevious: true,
+  hideFullscreen: true,
+  hideSeekBar: false,
+  hideDuration: false,
+  hideNavigationBarOnFullScreenMode: true,
+  hideNotificationBarOnFullScreenMode: true,
+  hideSettingButton: true,
+  seekIncrementMS: 10000,
+};
+
+const formatVideoClock = (rawSeconds: number) => {
+  const safe = Number.isFinite(rawSeconds) && rawSeconds > 0 ? Math.floor(rawSeconds) : 0;
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
 export default function FeedScreen({ go }: Props) {
@@ -1274,6 +1306,20 @@ export default function FeedScreen({ go }: Props) {
   const listRef = useRef<any>(null);
   const pendingScrollPostIdRef = useRef<string | null>(null);
   const [highlightedPostId, setHighlightedPostId] = useState<string | null>(null);
+
+
+  // Push/in-app notification tap -> open the related post in the feed.
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('viral_feed_open_post', (payload: any) => {
+      const postId = payload?.postId != null ? String(payload.postId).trim() : '';
+      if (!postId) return;
+      pendingScrollPostIdRef.current = postId;
+      setFilter('all');
+      void safeHydrate({ silent: true });
+    });
+
+    return () => sub.remove();
+  }, []);
   const [blockedUserKeys, setBlockedUserKeys] = useState<string[]>([]);
   const [blockedUsersHydrated, setBlockedUsersHydrated] = useState(false);
 
@@ -1544,16 +1590,33 @@ export default function FeedScreen({ go }: Props) {
   const [videoVisible, setVideoVisible] = useState(false);
 
   const [activeVideo, setActiveVideo] = useState<ActiveVideoState | null>(null);
+  const [landscapeFullscreen, setLandscapeFullscreen] = useState<LandscapeFullscreenState | null>(null);
 
   const activeVideoRef = useRef<ActiveVideoState | null>(null);
+  const landscapeFullscreenRef = useRef<LandscapeFullscreenState | null>(null);
+  const inlineActiveVideoRef = useRef<any>(null);
+  const fullscreenVideoRef = useRef<any>(null);
+  const activeVideoPositionRef = useRef(0);
+  const pendingInlineSeekRef = useRef<number | null>(null);
+  const [fullscreenPaused, setFullscreenPaused] = useState(false);
+  const [fullscreenCurrentTime, setFullscreenCurrentTime] = useState(0);
+  const [fullscreenDuration, setFullscreenDuration] = useState(0);
+  const [fullscreenProgressWidth, setFullscreenProgressWidth] = useState(0);
+  const [fullscreenControlsVisible, setFullscreenControlsVisible] = useState(true);
 
   useEffect(() => {
     activeVideoRef.current = activeVideo;
   }, [activeVideo]);
 
+  useEffect(() => {
+    landscapeFullscreenRef.current = landscapeFullscreen;
+  }, [landscapeFullscreen]);
+
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 70 }).current;
 
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    if (landscapeFullscreenRef.current) return;
+
     const av = activeVideoRef.current;
     if (!av?.listItemId) return;
 
@@ -1878,6 +1941,12 @@ export default function FeedScreen({ go }: Props) {
 
   // ✅ TEK NOKTADAN TÜM VİDEOLARI KAPAT
   const stopAllVideos = () => {
+    landscapeFullscreenRef.current = null;
+    setLandscapeFullscreen(null);
+    activeVideoPositionRef.current = 0;
+    pendingInlineSeekRef.current = null;
+    inlineActiveVideoRef.current = null;
+    fullscreenVideoRef.current = null;
     setActiveVideo(null);
     setVideoVisible(false);
     setVideoPost(null);
@@ -2687,6 +2756,92 @@ const closeImageViewer = () => {
     }
   };
 
+  const openLandscapeFullscreen = async (instanceId: string, listItemId: string, uri: string) => {
+    let startAt = activeVideoRef.current?.instanceId === instanceId ? activeVideoPositionRef.current : 0;
+
+    try {
+      const currentPosition = await inlineActiveVideoRef.current?.getCurrentPosition?.();
+      if (typeof currentPosition === 'number' && Number.isFinite(currentPosition) && currentPosition >= 0) {
+        startAt = currentPosition;
+      }
+    } catch {
+      // onProgress değeri yeterli
+    }
+
+    const nextFullscreen = {
+      instanceId,
+      listItemId,
+      uri,
+      startAt: Math.max(0, startAt || 0),
+    };
+
+    landscapeFullscreenRef.current = nextFullscreen;
+    setFullscreenControlsVisible(true);
+    setFullscreenPaused(false);
+    setFullscreenCurrentTime(nextFullscreen.startAt);
+    setFullscreenDuration(0);
+    setActiveVideo({ instanceId, listItemId, uri, paused: true });
+    setLandscapeFullscreen(nextFullscreen);
+  };
+
+  const closeLandscapeFullscreen = async (resumeInline: boolean = true) => {
+    const currentFullscreen = landscapeFullscreenRef.current;
+    if (!currentFullscreen) return;
+
+    let currentPosition = activeVideoPositionRef.current;
+
+    try {
+      const refPosition = await fullscreenVideoRef.current?.getCurrentPosition?.();
+      if (typeof refPosition === 'number' && Number.isFinite(refPosition) && refPosition >= 0) {
+        currentPosition = refPosition;
+      }
+    } catch {
+      // onProgress değeri yeterli
+    }
+
+    pendingInlineSeekRef.current = Math.max(0, currentPosition || 0);
+    landscapeFullscreenRef.current = null;
+    fullscreenVideoRef.current = null;
+    setFullscreenControlsVisible(true);
+    setFullscreenPaused(true);
+    setLandscapeFullscreen(null);
+    setActiveVideo({
+      instanceId: currentFullscreen.instanceId,
+      listItemId: currentFullscreen.listItemId,
+      uri: currentFullscreen.uri,
+      paused: !resumeInline,
+    });
+  };
+
+  const seekFullscreenTo = (seconds: number) => {
+    const maxDuration = fullscreenDuration > 0 ? fullscreenDuration : Number.MAX_SAFE_INTEGER;
+    const next = Math.max(0, Math.min(maxDuration, Number.isFinite(seconds) ? seconds : 0));
+
+    try {
+      fullscreenVideoRef.current?.seek?.(next);
+    } catch {}
+
+    activeVideoPositionRef.current = next;
+    setFullscreenCurrentTime(next);
+  };
+
+  const seekFullscreenBy = (deltaSeconds: number) => {
+    seekFullscreenTo(fullscreenCurrentTime + deltaSeconds);
+  };
+
+  const handleFullscreenProgressPress = (event: any) => {
+    if (!fullscreenProgressWidth || fullscreenDuration <= 0) return;
+    const locationX = Number(event?.nativeEvent?.locationX);
+    if (!Number.isFinite(locationX)) return;
+    const ratio = Math.max(0, Math.min(1, locationX / fullscreenProgressWidth));
+    seekFullscreenTo(fullscreenDuration * ratio);
+  };
+
+  const handleFeedScrollStart = () => {
+    if (landscapeFullscreenRef.current) return;
+    setActiveVideo(null);
+  };
+
   const openInlineVideo = (instanceId: string, listItemId: string, uri: string) => {
     setVideoVisible(false);
     setVideoPost(null);
@@ -2958,23 +3113,58 @@ const renderFullPostCard = (
           }}
         >
           <View style={styles.freeVideoPlayer} pointerEvents={isThisVideoActive ? 'auto' : 'none'}>
-            <Video
-              source={{ uri: videoUri }}
-              style={{ width: '100%', height: '100%' }}
-              controls={isThisVideoActive}
-              resizeMode="cover"
-              paused={!isThisVideoActive || isThisVideoPaused}
-              repeat={false}
-              playInBackground={false}
-              playWhenInactive={false}
-              useTextureView={true}
-              onError={e => {
-                console.warn('[Feed] inline video error:', e);
-                stopInlineVideo();
-              }}
-              onEnd={() => finishInlineVideo(instanceId)}
-            />
+            {landscapeFullscreen?.instanceId !== instanceId && (
+              <Video
+                ref={(node: any) => {
+                  if (isThisVideoActive) inlineActiveVideoRef.current = node;
+                }}
+                source={{ uri: videoUri }}
+                style={{ width: '100%', height: '100%' }}
+                controls={isThisVideoActive}
+                controlsStyles={INLINE_VIDEO_CONTROLS_STYLES}
+                resizeMode="contain"
+                paused={!isThisVideoActive || isThisVideoPaused}
+                repeat={false}
+                playInBackground={false}
+                playWhenInactive={false}
+                useTextureView={true}
+                onLoad={() => {
+                  if (!isThisVideoActive) return;
+                  const pendingSeek = pendingInlineSeekRef.current;
+                  if (typeof pendingSeek === 'number' && Number.isFinite(pendingSeek) && pendingSeek > 0) {
+                    try {
+                      inlineActiveVideoRef.current?.seek?.(pendingSeek);
+                    } catch {}
+                  }
+                  pendingInlineSeekRef.current = null;
+                }}
+                onProgress={(event: any) => {
+                  if (!isThisVideoActive) return;
+                  const currentTime = Number(event?.currentTime);
+                  if (Number.isFinite(currentTime) && currentTime >= 0) {
+                    activeVideoPositionRef.current = currentTime;
+                  }
+                }}
+                onError={e => {
+                  console.warn('[Feed] inline video error:', e);
+                  stopInlineVideo();
+                }}
+                onEnd={() => finishInlineVideo(instanceId)}
+              />
+            )}
           </View>
+
+          <Pressable
+            style={({ pressed }) => [styles.inlineFullscreenButton, pressed && styles.inlineFullscreenButtonPressed]}
+            hitSlop={10}
+            onPress={(e: any) => {
+              e?.stopPropagation?.();
+              if (!videoUri) return;
+              void openLandscapeFullscreen(instanceId, listItemId, videoUri);
+            }}
+          >
+            <Text style={styles.inlineFullscreenButtonText}>⛶</Text>
+          </Pressable>
 
           <View style={styles.videoWatermark}>
             <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
@@ -3296,23 +3486,58 @@ const renderFullPostCard = (
             }}
           >
             <View style={styles.freeVideoPlayer} pointerEvents={isThisVideoActive ? 'auto' : 'none'}>
-              <Video
-                source={{ uri: videoUri }}
-                style={{ width: '100%', height: '100%' }}
-                controls={isThisVideoActive}
-                resizeMode="cover"
-                paused={!isThisVideoActive || isThisVideoPaused}
-                repeat={false}
-                playInBackground={false}
-                playWhenInactive={false}
-                useTextureView={true}
-                onError={e => {
-                  console.warn('[Feed] inline task video error:', e);
-                  stopInlineVideo();
-                }}
-                onEnd={() => finishInlineVideo(instanceId)}
-              />
+              {landscapeFullscreen?.instanceId !== instanceId && (
+                <Video
+                  ref={(node: any) => {
+                    if (isThisVideoActive) inlineActiveVideoRef.current = node;
+                  }}
+                  source={{ uri: videoUri }}
+                  style={{ width: '100%', height: '100%' }}
+                  controls={isThisVideoActive}
+                  controlsStyles={INLINE_VIDEO_CONTROLS_STYLES}
+                  resizeMode="contain"
+                  paused={!isThisVideoActive || isThisVideoPaused}
+                  repeat={false}
+                  playInBackground={false}
+                  playWhenInactive={false}
+                  useTextureView={true}
+                  onLoad={() => {
+                    if (!isThisVideoActive) return;
+                    const pendingSeek = pendingInlineSeekRef.current;
+                    if (typeof pendingSeek === 'number' && Number.isFinite(pendingSeek) && pendingSeek > 0) {
+                      try {
+                        inlineActiveVideoRef.current?.seek?.(pendingSeek);
+                      } catch {}
+                    }
+                    pendingInlineSeekRef.current = null;
+                  }}
+                  onProgress={(event: any) => {
+                    if (!isThisVideoActive) return;
+                    const currentTime = Number(event?.currentTime);
+                    if (Number.isFinite(currentTime) && currentTime >= 0) {
+                      activeVideoPositionRef.current = currentTime;
+                    }
+                  }}
+                  onError={e => {
+                    console.warn('[Feed] inline task video error:', e);
+                    stopInlineVideo();
+                  }}
+                  onEnd={() => finishInlineVideo(instanceId)}
+                />
+              )}
             </View>
+
+            <Pressable
+              style={({ pressed }) => [styles.inlineFullscreenButton, pressed && styles.inlineFullscreenButtonPressed]}
+              hitSlop={10}
+              onPress={(e: any) => {
+                e?.stopPropagation?.();
+                if (!videoUri) return;
+                void openLandscapeFullscreen(instanceId, listItemId, videoUri);
+              }}
+            >
+              <Text style={styles.inlineFullscreenButtonText}>⛶</Text>
+            </Pressable>
 
             <View style={styles.videoWatermark}>
               <Image source={VIRAL_LOGO} style={styles.videoWatermarkLogo} />
@@ -3652,10 +3877,10 @@ return (
     <View style={styles.focusNetworkBar}>
       <Pressable
         style={({ pressed }) => [styles.focusNetworkButton, pressed && { opacity: 0.9 }]}
-        onPress={async () => {
-          await markFocusRequestsSeen();
+        onPress={() => {
           setActiveVideo(null);
           go('FocusNetwork');
+          void markFocusRequestsSeen();
         }}
       >
         <View style={styles.focusNetworkBtnInner}>
@@ -3761,8 +3986,8 @@ return (
       updateCellsBatchingPeriod={50}
       viewabilityConfig={viewabilityConfig}
       onViewableItemsChanged={onViewableItemsChanged}
-      onScrollBeginDrag={() => setActiveVideo(null)}
-      onMomentumScrollBegin={() => setActiveVideo(null)}
+      onScrollBeginDrag={handleFeedScrollStart}
+      onMomentumScrollBegin={handleFeedScrollStart}
     />
 
     {/* FAB */}
@@ -3776,6 +4001,215 @@ return (
     >
       <Text style={styles.fabIcon}>＋</Text>
     </Pressable>
+
+    {/* Dikeyde 16:9, yatayda ekranı dolduran tek video player */}
+    {landscapeFullscreen && (
+      <Modal
+        visible
+        transparent={false}
+        animationType="fade"
+        hardwareAccelerated
+        statusBarTranslucent
+        navigationBarTranslucent
+        presentationStyle="fullScreen"
+        supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
+        onRequestClose={() => {
+          void closeLandscapeFullscreen(true);
+        }}
+      >
+        <View style={styles.landscapeFullscreenRoot}>
+          <StatusBar hidden />
+
+          <View
+            style={[
+              styles.landscapeFullscreenFrame,
+              windowSize.width > windowSize.height
+                ? {
+                    width: windowSize.width,
+                    height: windowSize.height,
+                  }
+                : {
+                    width: windowSize.width,
+                    height: Math.min(windowSize.height, (windowSize.width * 9) / 16),
+                  },
+            ]}
+          >
+            <Video
+              ref={fullscreenVideoRef}
+              source={{ uri: landscapeFullscreen.uri }}
+              style={styles.landscapeFullscreenVideo}
+              controls={false}
+              resizeMode="contain"
+              paused={fullscreenPaused}
+              repeat={false}
+              playInBackground={false}
+              playWhenInactive={false}
+              preventsDisplaySleepDuringVideoPlayback
+              useTextureView={true}
+              onLoad={(event: any) => {
+                const loadedDuration = Number(event?.duration);
+                if (Number.isFinite(loadedDuration) && loadedDuration > 0) {
+                  setFullscreenDuration(loadedDuration);
+                }
+
+                const startAt = landscapeFullscreenRef.current?.startAt ?? 0;
+                setFullscreenCurrentTime(Math.max(0, startAt));
+                if (startAt > 0) {
+                  try {
+                    fullscreenVideoRef.current?.seek?.(startAt);
+                  } catch {}
+                }
+              }}
+              onProgress={(event: any) => {
+                const currentTime = Number(event?.currentTime);
+                if (Number.isFinite(currentTime) && currentTime >= 0) {
+                  activeVideoPositionRef.current = currentTime;
+                  setFullscreenCurrentTime(currentTime);
+                }
+              }}
+              onError={(error: any) => {
+                console.warn('[Feed] landscape fullscreen video error:', error);
+                void closeLandscapeFullscreen(false);
+              }}
+              onEnd={() => {
+                activeVideoPositionRef.current = 0;
+                setFullscreenCurrentTime(0);
+                void closeLandscapeFullscreen(false);
+              }}
+            />
+
+            <Pressable
+              style={styles.fullscreenTapSurface}
+              onPress={() => setFullscreenControlsVisible(visible => !visible)}
+              accessibilityRole="button"
+              accessibilityLabel={fullscreenControlsVisible ? 'Video kontrollerini gizle' : 'Video kontrollerini göster'}
+            />
+
+            {fullscreenControlsVisible && (
+              <>
+                <View style={styles.fullscreenControlsOverlay} pointerEvents="box-none">
+                  <View
+                    style={[
+                      styles.fullscreenCenterControls,
+                      !isLandscape && styles.fullscreenCenterControlsPortrait,
+                    ]}
+                  >
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.fullscreenControlButton,
+                        !isLandscape && styles.fullscreenControlButtonPortrait,
+                        pressed && styles.fullscreenControlButtonPressed,
+                      ]}
+                      hitSlop={10}
+                      onPress={() => seekFullscreenBy(-10)}
+                    >
+                      <Text
+                        style={[
+                          styles.fullscreenControlButtonText,
+                          !isLandscape && styles.fullscreenControlButtonTextPortrait,
+                        ]}
+                      >
+                        ↺10
+                      </Text>
+                    </Pressable>
+
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.fullscreenMainControlButton,
+                        !isLandscape && styles.fullscreenMainControlButtonPortrait,
+                        pressed && styles.fullscreenControlButtonPressed,
+                      ]}
+                      hitSlop={10}
+                      onPress={() => setFullscreenPaused(prev => !prev)}
+                    >
+                      <Text
+                        style={[
+                          styles.fullscreenMainControlButtonText,
+                          !isLandscape && styles.fullscreenMainControlButtonTextPortrait,
+                        ]}
+                      >
+                        {fullscreenPaused ? '▶' : 'Ⅱ'}
+                      </Text>
+                    </Pressable>
+
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.fullscreenControlButton,
+                        !isLandscape && styles.fullscreenControlButtonPortrait,
+                        pressed && styles.fullscreenControlButtonPressed,
+                      ]}
+                      hitSlop={10}
+                      onPress={() => seekFullscreenBy(10)}
+                    >
+                      <Text
+                        style={[
+                          styles.fullscreenControlButtonText,
+                          !isLandscape && styles.fullscreenControlButtonTextPortrait,
+                        ]}
+                      >
+                        10↻
+                      </Text>
+                    </Pressable>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.fullscreenBottomControls,
+                      !isLandscape && styles.fullscreenBottomControlsPortrait,
+                    ]}
+                  >
+                    <Pressable
+                      style={[
+                        styles.fullscreenProgressTrack,
+                        !isLandscape && styles.fullscreenProgressTrackPortrait,
+                      ]}
+                      onLayout={(event: any) => {
+                        const width = Number(event?.nativeEvent?.layout?.width);
+                        if (Number.isFinite(width) && width > 0) setFullscreenProgressWidth(width);
+                      }}
+                      onPress={handleFullscreenProgressPress}
+                    >
+                      <View
+                        style={[
+                          styles.fullscreenProgressFill,
+                          {
+                            width: `${
+                              fullscreenDuration > 0
+                                ? Math.max(0, Math.min(100, (fullscreenCurrentTime / fullscreenDuration) * 100))
+                                : 0
+                            }%`,
+                          },
+                        ]}
+                      />
+                    </Pressable>
+
+                    <View style={[styles.fullscreenTimeRow, !isLandscape && styles.fullscreenTimeRowPortrait]}>
+                      <Text style={[styles.fullscreenTimeText, !isLandscape && styles.fullscreenTimeTextPortrait]}>
+                        {formatVideoClock(fullscreenCurrentTime)} · {formatVideoClock(fullscreenDuration)}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <Pressable
+                  style={({ pressed }) => [styles.landscapeMinimizeButton, pressed && styles.landscapeMinimizeButtonPressed]}
+                  hitSlop={12}
+                  onPress={() => {
+                    void closeLandscapeFullscreen(true);
+                  }}
+                >
+                  <Text style={styles.landscapeMinimizeButtonText}>⤡</Text>
+                </Pressable>
+              </>
+            )}
+
+            <View style={styles.landscapeVideoWatermark}>
+              <Image source={VIRAL_LOGO} style={styles.landscapeVideoWatermarkLogo} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    )}
 
     {/* Detay modal */}
     {selectedPost && (
@@ -4749,15 +5183,221 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#000000',
     marginBottom: 6,
-    height: 330,
+    // ✅ Dikey ekranda X/Twitter gibi 16:9 alan; video contain ile kırpılmadan görünür.
+    height: Math.round((Dimensions.get('window').width - 32) * 9 / 16),
   },
   freeVideoPlayerWrapperLandscape: {
+    // ✅ Yatay ekranda alan büyür ama player contain kaldığı için görüntü kaybı olmaz.
     height: Math.max(260, Dimensions.get('window').height - 96),
   },
   freeVideoPlayer: {
     width: '100%',
     height: '100%',
     backgroundColor: '#000000',
+  },
+  inlineFullscreenButton: {
+    position: 'absolute',
+    right: 10,
+    bottom: 54,
+    zIndex: 40,
+    elevation: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.70)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.45)',
+  },
+  inlineFullscreenButtonPressed: {
+    opacity: 0.75,
+    transform: [{ scale: 0.96 }],
+  },
+  inlineFullscreenButtonText: {
+    color: '#FFFFFF',
+    fontSize: 25,
+    lineHeight: 28,
+    fontWeight: '700',
+  },
+  landscapeFullscreenRoot: {
+    flex: 1,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  landscapeFullscreenFrame: {
+    position: 'relative',
+    backgroundColor: '#000000',
+    overflow: 'hidden',
+  },
+  landscapeFullscreenVideo: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000000',
+  },
+  fullscreenTapSurface: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 20,
+  },
+  fullscreenControlsOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 45,
+    elevation: 15,
+  },
+  fullscreenCenterControls: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: '40%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fullscreenCenterControlsPortrait: {
+    top: '24%',
+  },
+  fullscreenControlButton: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    marginHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.58)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.55)',
+  },
+  fullscreenControlButtonPortrait: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    marginHorizontal: 7,
+  },
+  fullscreenMainControlButton: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    marginHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.92)',
+  },
+  fullscreenMainControlButtonPortrait: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    marginHorizontal: 7,
+  },
+  fullscreenControlButtonPressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.95 }],
+  },
+  fullscreenControlButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  fullscreenControlButtonTextPortrait: {
+    fontSize: 15,
+  },
+  fullscreenMainControlButtonText: {
+    color: '#111111',
+    fontSize: 30,
+    lineHeight: 34,
+    fontWeight: '900',
+  },
+  fullscreenMainControlButtonTextPortrait: {
+    fontSize: 24,
+    lineHeight: 28,
+  },
+  fullscreenBottomControls: {
+    position: 'absolute',
+    left: 22,
+    right: 22,
+    bottom: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.62)',
+  },
+  fullscreenBottomControlsPortrait: {
+    left: 12,
+    right: 12,
+    bottom: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 9,
+  },
+  fullscreenProgressTrack: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.30)',
+  },
+  fullscreenProgressTrackPortrait: {
+    height: 6,
+    borderRadius: 3,
+  },
+  fullscreenProgressFill: {
+    height: '100%',
+    borderRadius: 4,
+    backgroundColor: '#FFFFFF',
+  },
+  fullscreenTimeRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  fullscreenTimeRowPortrait: {
+    marginTop: 5,
+  },
+  fullscreenTimeText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  fullscreenTimeTextPortrait: {
+    fontSize: 13,
+  },
+  landscapeMinimizeButton: {
+    position: 'absolute',
+    right: 14,
+    top: 14,
+    zIndex: 60,
+    elevation: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.55)',
+  },
+  landscapeMinimizeButtonPressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.95 }],
+  },
+  landscapeMinimizeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    lineHeight: 31,
+    fontWeight: '700',
+  },
+  landscapeVideoWatermark: {
+    position: 'absolute',
+    left: 14,
+    top: 14,
+    zIndex: 50,
+    elevation: 16,
+    backgroundColor: 'rgba(0,0,0,0.52)',
+    borderRadius: 8,
+    padding: 4,
+  },
+  landscapeVideoWatermarkLogo: {
+    width: 24,
+    height: 24,
   },
 
   // ✅ NEW: çoklu foto galeri

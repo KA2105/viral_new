@@ -31,6 +31,11 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 import InstagramLogsScreen from './src/screens/InstagramLogsScreen';
 import FocusNetworkScreen from './src/screens/FocusNetworkScreen';
 import AgeGateScreen from './src/screens/AgeGateScreen';
+import {
+  consumePendingPushOpen,
+  installPushOpenHandlers,
+  registerPushDevice,
+} from './src/services/pushNotifications';
 
 // ✅ EK: API health-check + forgot/reset password için
 import {
@@ -976,7 +981,7 @@ const TERMS_ACCEPTED_KEY = 'viral.termsAccepted.v1'; // "1" | ""
 const PENDING_SHARE_TO_FEED_KEY = 'viral.pendingShareToFeed';
 
 
-const CURRENT_APP_VERSION = '1.0.17';
+const CURRENT_APP_VERSION = '1.0.18';
 const DEFAULT_ANDROID_STORE_URL = 'https://play.google.com/store/apps/details?id=com.viral_new';
 const DEFAULT_IOS_STORE_URL = 'https://apps.apple.com/';
 
@@ -1018,6 +1023,26 @@ async function fetchWithTimeout(url: string, opts: any = {}, timeoutMs = 3500) {
 
 const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>('Feed');
+  const [pendingPushPostId, setPendingPushPostId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = installPushOpenHandlers();
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const openPayload = (payload: any) => {
+      const postId = payload?.postId != null ? String(payload.postId).trim() : '';
+      if (!postId) return;
+      setPendingPushPostId(postId);
+      setCurrentScreen('Feed');
+    };
+
+    const sub = DeviceEventEmitter.addListener('viral_push_open', openPayload);
+    void consumePendingPushOpen().then(openPayload);
+
+    return () => sub.remove();
+  }, []);
 
   const auth = useAuth() as any;
 
@@ -1033,6 +1058,45 @@ const App: React.FC = () => {
 
   const profile = auth?.profile ?? null;
   const userId = auth?.userId ?? auth?.id ?? null;
+
+  useEffect(() => {
+    if (!sessionActive) return;
+
+    const backendUserId = Number(auth?.backendUserId ?? auth?.user?.id ?? userId);
+    if (!Number.isFinite(backendUserId) || backendUserId <= 0) return;
+
+    let unsubscribeRefresh: (() => void) | null = null;
+    let cancelled = false;
+
+    void registerPushDevice({
+      userId: backendUserId,
+      deviceId: auth?.deviceId ?? null,
+    })
+      .then(unsubscribe => {
+        if (cancelled) {
+          unsubscribe?.();
+          return;
+        }
+        unsubscribeRefresh = unsubscribe;
+      })
+      .catch(error => console.warn('[App] push registration failed:', error));
+
+    return () => {
+      cancelled = true;
+      unsubscribeRefresh?.();
+    };
+  }, [sessionActive, auth?.backendUserId, auth?.user?.id, auth?.deviceId, userId]);
+
+  useEffect(() => {
+    if (!sessionActive || currentScreen !== 'Feed' || !pendingPushPostId) return;
+
+    const timer = setTimeout(() => {
+      DeviceEventEmitter.emit('viral_feed_open_post', { postId: pendingPushPostId });
+      setPendingPushPostId(null);
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [sessionActive, currentScreen, pendingPushPostId]);
 
   const signOut =
     auth?.signOut ??
