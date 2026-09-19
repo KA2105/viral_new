@@ -30,6 +30,7 @@ import { API_BASE_URL } from '../config/api';
 // ✅ Remote auto-sync (diğer kullanıcıların ekranında güncellenmesi için)
 // ================================
 const REMOTE_SYNC_INTERVAL_MS = 9000;
+const REMOTE_FEED_PAGE_SIZE = 200; // Feed endpoint server tarafında 200 kayda kadar destekliyor; ilk yüklemede 50/30 sınırına takılma.
 let _remoteSyncTimer: any = null;
 let _remoteSyncInFlight = false;
 let _remoteSyncLastHash = '';
@@ -209,9 +210,23 @@ const normalizePost = (raw: any): Post => {
   } as any as Post;
 };
 
-async function tryRemoteFeed(): Promise<Post[] | null> {
+async function tryRemoteFeed(params?: {
+  beforeCreatedAt?: string | null;
+  beforeId?: string | number | null;
+}): Promise<Post[] | null> {
   try {
-    const url = withNoCache(`${API_BASE_URL}/feed`);
+    const beforeCreatedAt =
+      params?.beforeCreatedAt === undefined || params?.beforeCreatedAt === null
+        ? ''
+        : String(params.beforeCreatedAt).trim();
+    const beforeId =
+      params?.beforeId === undefined || params?.beforeId === null ? '' : String(params.beforeId).trim();
+
+    const queryParts = [`limit=${encodeURIComponent(String(REMOTE_FEED_PAGE_SIZE))}`];
+    if (beforeCreatedAt) queryParts.push(`beforeCreatedAt=${encodeURIComponent(beforeCreatedAt)}`);
+    if (beforeId) queryParts.push(`beforeId=${encodeURIComponent(beforeId)}`);
+
+    const url = withNoCache(`${API_BASE_URL}/feed?${queryParts.join('&')}`);
 
     const res = await fetch(url, {
       method: 'GET',
@@ -252,6 +267,62 @@ async function tryRemoteFeed(): Promise<Post[] | null> {
     console.log('[Feed] remote hydrate error:', err);
     return null;
   }
+}
+
+function getRemotePageCursor(posts: Post[]): { beforeCreatedAt: string; beforeId: string } | null {
+  if (!Array.isArray(posts) || posts.length === 0) return null;
+
+  for (let i = posts.length - 1; i >= 0; i -= 1) {
+    const p: any = posts[i] as any;
+    const id = safeId(p?.id);
+    const rawCreatedAt = p?.createdAt;
+
+    if (!id || !rawCreatedAt) continue;
+
+    const parsed = new Date(rawCreatedAt);
+    if (Number.isNaN(parsed.getTime())) continue;
+
+    return {
+      beforeCreatedAt: parsed.toISOString(),
+      beforeId: id,
+    };
+  }
+
+  return null;
+}
+
+function mergeRemoteBatchWithExisting(params: {
+  freshRemote: Post[];
+  existingPosts: Post[];
+  localPosts: Post[];
+}): Post[] {
+  const { freshRemote, existingPosts, localPosts } = params;
+  const out: Post[] = [];
+  const seenIds = new Set<string>();
+
+  const isStoredLocal = (p: Post) => {
+    const id = safeId((p as any)?.id);
+    if (id && localPosts.some(lp => safeId((lp as any)?.id) === id)) return true;
+    return localPosts.some(lp => looksSamePost(lp as any, p as any));
+  };
+
+  const pushIfNew = (p: Post) => {
+    if (!p || isStoredLocal(p)) return;
+
+    const id = safeId((p as any)?.id);
+    if (id && seenIds.has(id)) return;
+
+    const duplicateByContent = out.some(existing => looksSamePost(existing as any, p as any));
+    if (duplicateByContent) return;
+
+    if (id) seenIds.add(id);
+    out.push(p);
+  };
+
+  freshRemote.forEach(pushIfNew);
+  existingPosts.forEach(pushIfNew);
+
+  return out;
 }
 
 type LikeOverrides = Record<string, number>;
@@ -1167,9 +1238,14 @@ async function performRemoteSync(set: any, get: any) {
     const likedByMe = (await storage.loadJson<LikedByMe>(STORAGE_LIKED_BY_ME_KEY)) || {};
 
     const normalizedRemote = remote.map(normalizePost);
+    const existingRemote = mergeRemoteBatchWithExisting({
+      freshRemote: normalizedRemote,
+      existingPosts: get().posts,
+      localPosts,
+    });
 
     const migrated = migrateLocalIdsToRemote({
-      remotePosts: normalizedRemote,
+      remotePosts: existingRemote,
       localPosts,
       likeOverrides,
       reshareOverrides,
@@ -1178,7 +1254,7 @@ async function performRemoteSync(set: any, get: any) {
     });
 
     const merged = applyOverridesAndMerge({
-      basePosts: normalizedRemote,
+      basePosts: existingRemote,
       likeOverrides: migrated.likeOverrides,
       reshareOverrides: migrated.reshareOverrides,
       commentOverrides: migrated.commentOverrides,
@@ -1261,8 +1337,11 @@ type AddTaskCardParams = {
 type FeedState = {
   posts: Post[];
   hydrated: boolean;
+  hasMore: boolean;
+  loadingMore: boolean;
 
   hydrate: () => Promise<void>;
+  loadMore: () => Promise<void>;
   likePost: (id: string) => void;
 
   addCommentToPost: (params: { postId: string; text: string; parentId?: string | null }) => void;
@@ -1284,6 +1363,8 @@ type FeedState = {
 export const useFeed = create<FeedState>((set, get) => ({
   posts: [],
   hydrated: false,
+  hasMore: true,
+  loadingMore: false,
 
   hydrate: async () => {
     try {
@@ -1300,9 +1381,14 @@ export const useFeed = create<FeedState>((set, get) => ({
 
       if (remote && remote.length > 0) {
         const normalizedRemote = remote.map(normalizePost);
+        const existingRemote = mergeRemoteBatchWithExisting({
+          freshRemote: normalizedRemote,
+          existingPosts: get().posts,
+          localPosts,
+        });
 
         const migrated = migrateLocalIdsToRemote({
-          remotePosts: normalizedRemote,
+          remotePosts: existingRemote,
           localPosts,
           likeOverrides,
           reshareOverrides,
@@ -1311,14 +1397,18 @@ export const useFeed = create<FeedState>((set, get) => ({
         });
 
         const merged = applyOverridesAndMerge({
-          basePosts: normalizedRemote,
+          basePosts: existingRemote,
           likeOverrides: migrated.likeOverrides,
           reshareOverrides: migrated.reshareOverrides,
           commentOverrides: migrated.commentOverrides,
           localPosts: migrated.localPosts,
         });
 
-        set({ posts: merged, hydrated: true });
+        set({
+          posts: merged,
+          hydrated: true,
+          hasMore: get().hasMore && normalizedRemote.length >= REMOTE_FEED_PAGE_SIZE,
+        });
 
         storage.saveJson(STORAGE_KEY, merged);
 
@@ -1414,6 +1504,75 @@ export const useFeed = create<FeedState>((set, get) => ({
       storage.saveJson(STORAGE_LIKED_BY_ME_KEY, likedByMe);
 
       startRemoteAutoSync(set, get);
+    }
+  },
+
+
+  loadMore: async () => {
+    console.log('[Feed][Pagination DEBUG] loadMore called', { loadingMore: get().loadingMore, hasMore: get().hasMore, postsCount: Array.isArray(get().posts) ? get().posts.length : 0 });
+    if (get().loadingMore || !get().hasMore) return;
+
+    const currentPosts = Array.isArray(get().posts) ? get().posts : [];
+    const localPosts = (await storage.loadJson<Post[]>(STORAGE_LOCAL_POSTS_KEY)) || [];
+
+    const currentRemote = mergeRemoteBatchWithExisting({
+      freshRemote: [],
+      existingPosts: currentPosts,
+      localPosts,
+    });
+
+    const cursor = getRemotePageCursor(currentRemote);
+    console.log('[Feed][Pagination DEBUG] cursor', { currentPostsCount: currentPosts.length, currentRemoteCount: currentRemote.length, cursor });
+    if (!cursor) {
+      set({ hasMore: false });
+      return;
+    }
+
+    set({ loadingMore: true });
+
+    try {
+      const remote = await tryRemoteFeed(cursor);
+      console.log('[Feed][Pagination DEBUG] page received', { cursor, remoteCount: Array.isArray(remote) ? remote.length : null });
+      if (!remote) return;
+
+      const normalizedRemote = remote.map(normalizePost);
+
+      if (normalizedRemote.length === 0) {
+        set({ hasMore: false });
+        return;
+      }
+
+      const likeOverrides = (await storage.loadJson<LikeOverrides>(STORAGE_LIKES_KEY)) || {};
+      const reshareOverrides = (await storage.loadJson<ReshareOverrides>(STORAGE_RESHARES_KEY)) || {};
+      const commentOverrides = (await storage.loadJson<CommentCountOverrides>(STORAGE_COMMENTCOUNTS_KEY)) || {};
+
+      const combinedRemote = mergeRemoteBatchWithExisting({
+        freshRemote: currentRemote,
+        existingPosts: normalizedRemote,
+        localPosts,
+      });
+
+      const merged = applyOverridesAndMerge({
+        basePosts: combinedRemote,
+        likeOverrides,
+        reshareOverrides,
+        commentOverrides,
+        localPosts,
+      });
+
+      console.log('[Feed][Pagination DEBUG] merge result', { normalizedRemoteCount: normalizedRemote.length, combinedRemoteCount: combinedRemote.length, mergedCount: merged.length, nextHasMore: normalizedRemote.length >= REMOTE_FEED_PAGE_SIZE });
+
+      set({
+        posts: merged,
+        hydrated: true,
+        hasMore: normalizedRemote.length >= REMOTE_FEED_PAGE_SIZE,
+      });
+
+      storage.saveJson(STORAGE_KEY, merged);
+    } catch (e) {
+      console.log('[Feed] loadMore failed:', e);
+    } finally {
+      set({ loadingMore: false });
     }
   },
 
@@ -1559,7 +1718,7 @@ export const useFeed = create<FeedState>((set, get) => ({
   },
 
   clearAll: () => {
-    set({ posts: [] });
+    set({ posts: [], hasMore: true, loadingMore: false });
     storage.saveJson(STORAGE_KEY, []);
 
     storage.saveJson(STORAGE_LIKES_KEY, {});

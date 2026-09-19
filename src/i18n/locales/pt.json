@@ -639,6 +639,31 @@
       "successTitle": "User blocked",
       "successMessage": "Posts from this user will no longer appear in your feed.",
       "errorMessage": "User could not be blocked. Please try again."
+    },
+    "cinema": {
+      "title": "Feed contínuo",
+      "titleWithDate": "Feed contínuo • {{date}}",
+      "newest": "Mais recentes",
+      "resume": "Continuar de onde parei",
+      "sinceLastSeen": "Desde a última visualização",
+      "selectDate": "Selecionar data",
+      "viewContent": "Ver conteúdo",
+      "previous": "Anterior",
+      "continue": "Continuar",
+      "pause": "Pausar",
+      "next": "Próximo",
+      "datePickerTitle": "Iniciar a partir da data",
+      "dateExample": "Exemplo: {{date}}",
+      "datePlaceholder": "AAAA-MM-DD",
+      "start": "Iniciar",
+      "noSavedPoint": "Não há um ponto de visualização salvo anteriormente. O feed começará pela publicação mais recente.",
+      "invalidDateFormat": "Digite a data no formato AAAA-MM-DD.",
+      "invalidDate": "Digite uma data válida.",
+      "dateNotFound": "Nenhuma publicação pôde ser carregada para esta data.",
+      "emptySinceLastSeen": "Não há novas publicações desde a última que você viu.",
+      "emptyDate": "Não há publicações para mostrar nesta data.",
+      "empty": "Não há publicações para mostrar.",
+      "loadingOlder": "Carregando publicações antigas..."
     }
   },
   "common__dup": {

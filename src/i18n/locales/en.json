@@ -639,6 +639,31 @@
       "successTitle": "User blocked",
       "successMessage": "Posts from this user will no longer appear in your feed.",
       "errorMessage": "User could not be blocked. Please try again."
+    },
+    "cinema": {
+      "title": "Flowing Feed",
+      "titleWithDate": "Flowing Feed • {{date}}",
+      "newest": "Newest",
+      "resume": "Resume",
+      "sinceLastSeen": "Since I Last Viewed",
+      "selectDate": "Select Date",
+      "viewContent": "View Content",
+      "previous": "Previous",
+      "continue": "Continue",
+      "pause": "Pause",
+      "next": "Next",
+      "datePickerTitle": "Start from Date",
+      "dateExample": "Example: {{date}}",
+      "datePlaceholder": "YYYY-MM-DD",
+      "start": "Start",
+      "noSavedPoint": "There is no previously saved viewing point. Starting from the newest post.",
+      "invalidDateFormat": "Enter the date in YYYY-MM-DD format.",
+      "invalidDate": "Enter a valid date.",
+      "dateNotFound": "No post could be loaded for this date.",
+      "emptySinceLastSeen": "There are no new posts since the last post you viewed.",
+      "emptyDate": "There are no posts to show for this date.",
+      "empty": "There are no posts to show.",
+      "loadingOlder": "Loading older posts..."
     }
   },
   "common__dup": {

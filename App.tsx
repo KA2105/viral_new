@@ -943,7 +943,14 @@ function TopBar({ current, username, onNavigate, onLogout }: TopBarProps) {
         onPress={() => onNavigate(screen)}
         style={[styles.topTab, active && styles.topTabActive]}
       >
-        <Text style={[styles.topTabText, active && styles.topTabTextActive]}>{label}</Text>
+        <Text
+          style={[styles.topTabText, active && styles.topTabTextActive]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          maxFontSizeMultiplier={1.15}
+        >
+          {label}
+        </Text>
       </TouchableOpacity>
     );
   };
@@ -1352,35 +1359,6 @@ const App: React.FC = () => {
     return () => sub.remove();
   }, []);
 
-  // ✅ EK: FocusNetwork’e girince API ping (server log düşmeli)
-  useEffect(() => {
-    if (currentScreen !== 'FocusNetwork') return;
-
-    const uid =
-      typeof userId === 'number'
-        ? userId
-        : typeof userId === 'string'
-        ? Number(userId)
-        : null;
-
-    const safeUid = Number.isFinite(uid as any) ? (uid as number) : null;
-
-    (async () => {
-      try {
-        const url = `${API_BASE_URL}/users/search?limit=1${safeUid ? `&userId=${safeUid}` : ''}`;
-        console.log('[FocusNetwork] ping ->', url);
-
-        const res = await fetchWithTimeout(url, { method: 'GET' }, 3500);
-        console.log('[FocusNetwork] ping status ->', res.status);
-
-        // bu satır önemli değil; sadece request’in tamamlandığını gösterir
-        await res.text().catch(() => '');
-      } catch (e) {
-        console.warn('[FocusNetwork] ping failed:', e);
-      }
-    })();
-  }, [currentScreen, userId]);
-
   if (!authBooted || !onboardingHydrated || !ageHydrated || !forceAuthHydrated || !termsHydrated) {
     return (
       <View style={styles.loadingRoot}>
@@ -1743,13 +1721,18 @@ const styles = StyleSheet.create({
   },
   topTabsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
+    width: '100%',
   },
   topTab: {
-    paddingHorizontal: 14,
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: 6,
     paddingVertical: 6,
     borderRadius: 999,
     backgroundColor: '#151824',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   topTabActive: {
     backgroundColor: '#E50914',
@@ -1758,6 +1741,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#D0D4E4',
+    flexShrink: 1,
+    textAlign: 'center',
   },
   topTabTextActive: {
     color: '#FFFFFF',

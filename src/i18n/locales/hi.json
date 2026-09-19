@@ -608,8 +608,7 @@
     "freeVideo": {
       "title": "वीडियो",
       "message": "आप इस वीडियो के साथ क्या करना चाहते हैं?",
-      "delete": "वीडियो हटाएँ",
-      "noPermission": "यह कार्ड आपका नहीं है। आप इसे 삭제 नहीं कर सकते।"
+      "delete": "वीडियो हटाएँ"
     },
     "postActions": {
       "title": "पोस्ट विकल्प",
@@ -640,6 +639,31 @@
       "successTitle": "User blocked",
       "successMessage": "Posts from this user will no longer appear in your feed.",
       "errorMessage": "User could not be blocked. Please try again."
+    },
+    "cinema": {
+      "title": "चलता फ़ीड",
+      "titleWithDate": "चलता फ़ीड • {{date}}",
+      "newest": "सबसे नया",
+      "resume": "जहाँ छोड़ा था",
+      "sinceLastSeen": "पिछली बार देखने के बाद से",
+      "selectDate": "तारीख चुनें",
+      "viewContent": "सामग्री देखें",
+      "previous": "पिछला",
+      "continue": "जारी रखें",
+      "pause": "रोकें",
+      "next": "अगला",
+      "datePickerTitle": "तारीख से शुरू करें",
+      "dateExample": "उदाहरण: {{date}}",
+      "datePlaceholder": "YYYY-MM-DD",
+      "start": "शुरू करें",
+      "noSavedPoint": "पहले से सहेजा गया देखने का बिंदु नहीं है। सबसे नई पोस्ट से शुरू किया जाएगा।",
+      "invalidDateFormat": "तारीख YYYY-MM-DD प्रारूप में लिखें।",
+      "invalidDate": "मान्य तारीख दर्ज करें।",
+      "dateNotFound": "इस तारीख के लिए कोई पोस्ट लोड नहीं की जा सकी।",
+      "emptySinceLastSeen": "आपकी पिछली देखी गई पोस्ट के बाद कोई नई पोस्ट नहीं है।",
+      "emptyDate": "इस तारीख के लिए दिखाने हेतु कोई पोस्ट नहीं है।",
+      "empty": "दिखाने के लिए कोई पोस्ट नहीं है।",
+      "loadingOlder": "पुरानी पोस्ट लोड हो रही हैं..."
     }
   },
   "common__dup": {

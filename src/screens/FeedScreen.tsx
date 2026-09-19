@@ -10,6 +10,7 @@ import {
   Pressable,
   ListRenderItemInfo,
   Alert,
+  ActivityIndicator,
   Modal,
   TouchableWithoutFeedback,
   Animated,
@@ -242,6 +243,8 @@ const EXTERNAL_POSTS_KEY = '@feed_external_posts_v1';
 const LOCAL_REPOSTS_KEY = '@feed_local_reposts_v1';
 const BLOCKED_USERS_KEY = '@feed_blocked_users_v1';
 const REPORTED_POSTS_KEY = '@feed_reported_posts_v1';
+const CINEMA_FEED_STATE_KEY = '@feed_cinema_state_v1';
+const CINEMA_FEED_LAST_SEEN_KEY = '@feed_cinema_last_seen_v1';
 
 // ✅ useAuth içinden userId’yi sağlam çöz
 function resolveUserId(auth: any): number | null {
@@ -597,6 +600,9 @@ export default function FeedScreen({ go }: Props) {
     likePost,
     hydrate,
     hydrated,
+    hasMore,
+    loadingMore,
+    loadMore,
     archivePost,
     removePost,
     markPostShared,
@@ -2142,6 +2148,342 @@ export default function FeedScreen({ go }: Props) {
     arr.sort((a, b) => getPostSortTs(b as any) - getPostSortTs(a as any));
     return arr;
   }, [filteredPosts, createdAtByPost]);
+
+  // 🎬 Akan / Sinema Feed: mevcut kronolojik akışı kullanan alternatif izleme modu.
+  // Normal feed verisine/sıralamasına müdahale etmez.
+  type CinemaMode = 'all' | 'sinceLastSeen' | 'date';
+
+  const cinemaPosts = useMemo(() => {
+    const arr = Array.isArray(dedupedVisiblePosts) ? [...dedupedVisiblePosts] : [];
+    arr.sort((a, b) => getPostSortTs(b as any) - getPostSortTs(a as any));
+    return arr;
+  }, [dedupedVisiblePosts, createdAtByPost]);
+
+  const [cinemaVisible, setCinemaVisible] = useState(false);
+  const [cinemaIndex, setCinemaIndex] = useState(0);
+  const [cinemaPaused, setCinemaPaused] = useState(false);
+  const [cinemaMode, setCinemaMode] = useState<CinemaMode>('all');
+  const [cinemaSinceAnchorId, setCinemaSinceAnchorId] = useState<string | null>(null);
+  const [cinemaSelectedDate, setCinemaSelectedDate] = useState<string>('');
+  const [cinemaDatePickerVisible, setCinemaDatePickerVisible] = useState(false);
+  const [cinemaDateInput, setCinemaDateInput] = useState('');
+  const [cinemaDateError, setCinemaDateError] = useState('');
+  const [cinemaDateLoading, setCinemaDateLoading] = useState(false);
+  // Akan Akış'tan gerçek akış kartını açarken oynatma konumunu koru.
+  const [cinemaDetailPost, setCinemaDetailPost] = useState<Post | null>(null);
+
+  const toCinemaDateKey = (rawTs: number): string => {
+    if (!Number.isFinite(rawTs) || rawTs <= 0) return '';
+    const d = new Date(rawTs);
+    if (Number.isNaN(d.getTime())) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const cinemaPlaybackPosts = useMemo(() => {
+    if (cinemaMode === 'date' && cinemaSelectedDate) {
+      // Seçilen gün içinde eskiden yeniye doğru oynat.
+      return cinemaPosts
+        .filter(p => toCinemaDateKey(getPostSortTs(p as any)) === cinemaSelectedDate)
+        .reverse();
+    }
+
+    if (cinemaMode === 'sinceLastSeen' && cinemaSinceAnchorId) {
+      const anchorIndex = cinemaPosts.findIndex(
+        p => String((p as any)?.id ?? '') === cinemaSinceAnchorId,
+      );
+
+      if (anchorIndex > 0) {
+        // Son görülen gönderiden sonra gelenleri eskiden yeniye doğru oynat.
+        return cinemaPosts.slice(0, anchorIndex).reverse();
+      }
+
+      if (anchorIndex === 0) return [];
+    }
+
+    // Normal / kaldığım yerden modunda en yeni -> eski.
+    return cinemaPosts;
+  }, [cinemaPosts, cinemaMode, cinemaSelectedDate, cinemaSinceAnchorId]);
+
+  const cinemaCurrentPost: Post | null =
+    cinemaPlaybackPosts.length > 0 &&
+    cinemaIndex >= 0 &&
+    cinemaIndex < cinemaPlaybackPosts.length
+      ? cinemaPlaybackPosts[cinemaIndex]
+      : null;
+
+  const saveCinemaResume = async (post: Post | null) => {
+    if (!post) return;
+    const postId = String((post as any)?.id ?? '');
+    if (!postId) return;
+
+    try {
+      await AsyncStorage.setItem(
+        CINEMA_FEED_STATE_KEY,
+        JSON.stringify({ postId, ts: Date.now() }),
+      );
+    } catch {}
+  };
+
+  const saveCinemaLastSeen = async (post: Post | null) => {
+    if (!post) return;
+    const postId = String((post as any)?.id ?? '');
+    if (!postId) return;
+
+    try {
+      await AsyncStorage.setItem(
+        CINEMA_FEED_LAST_SEEN_KEY,
+        JSON.stringify({ postId, ts: Date.now() }),
+      );
+    } catch {}
+  };
+
+  const cinemaGoPrevious = () => {
+    setCinemaIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const cinemaGoNext = () => {
+    if (cinemaIndex < cinemaPlaybackPosts.length - 1) {
+      setCinemaIndex(prev => Math.min(cinemaPlaybackPosts.length - 1, prev + 1));
+      return;
+    }
+
+    if (cinemaMode === 'all' && hasMore && !loadingMore) {
+      void loadMore();
+      return;
+    }
+
+    setCinemaPaused(true);
+  };
+
+  const startCinema = (mode: CinemaMode, index: number = 0) => {
+    stopAllVideos();
+    setCinemaMode(mode);
+    setCinemaIndex(Math.max(0, index));
+    setCinemaPaused(false);
+    setCinemaVisible(true);
+  };
+
+
+  const openCinemaDetailCard = () => {
+    if (!cinemaCurrentPost) return;
+    void saveCinemaResume(cinemaCurrentPost);
+    setCinemaPaused(true);
+    setCinemaDetailPost(cinemaCurrentPost);
+  };
+
+  const closeCinemaDetailCard = () => {
+    stopAllVideos();
+    setCinemaDetailPost(null);
+    // Kart kapanınca aynı gönderide kal; kullanıcı isterse ▶ ile devam eder.
+    setCinemaPaused(true);
+  };
+
+  const openCinemaNewest = () => {
+    setCinemaSinceAnchorId(null);
+    setCinemaSelectedDate('');
+    startCinema('all', 0);
+  };
+
+  const openCinemaResume = async () => {
+    let nextIndex = 0;
+
+    try {
+      const raw = await AsyncStorage.getItem(CINEMA_FEED_STATE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const savedPostId = parsed?.postId != null ? String(parsed.postId) : '';
+        if (savedPostId) {
+          const found = cinemaPosts.findIndex(
+            p => String((p as any)?.id ?? '') === savedPostId,
+          );
+          if (found >= 0) nextIndex = found;
+        }
+      }
+    } catch {}
+
+    setCinemaSinceAnchorId(null);
+    setCinemaSelectedDate('');
+    startCinema('all', nextIndex);
+  };
+
+  const openCinemaSinceLastSeen = async () => {
+    let savedPostId = '';
+
+    try {
+      const raw = await AsyncStorage.getItem(CINEMA_FEED_LAST_SEEN_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        savedPostId = parsed?.postId != null ? String(parsed.postId) : '';
+      }
+    } catch {}
+
+    if (!savedPostId) {
+      Alert.alert(
+        t('feed.cinema.title', 'Akan Akış'),
+        t(
+          'feed.cinema.noSavedPoint',
+          'Daha önce kaydedilmiş bir son izleme noktası yok. En yeni gönderiden başlanacak.',
+        ),
+      );
+      openCinemaNewest();
+      return;
+    }
+
+    // Anchor henüz yüklenmemişse pagination üzerinden bulmaya çalış.
+    let safety = 0;
+    while (safety < 40) {
+      const currentPosts = (useFeed.getState() as any)?.posts;
+      const currentList = Array.isArray(currentPosts) ? currentPosts : [];
+
+      const foundInStore = currentList.some(
+        (p: any) => String(p?.id ?? '') === savedPostId,
+      );
+      const foundInVisible = cinemaPosts.some(
+        p => String((p as any)?.id ?? '') === savedPostId,
+      );
+
+      if (foundInStore || foundInVisible) break;
+
+      const state: any = useFeed.getState();
+      if (!state?.hasMore || state?.loadingMore || typeof state?.loadMore !== 'function') break;
+
+      await state.loadMore();
+      safety += 1;
+    }
+
+    setCinemaSelectedDate('');
+    setCinemaSinceAnchorId(savedPostId);
+    startCinema('sinceLastSeen', 0);
+  };
+
+  const openCinemaDatePicker = () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+
+    setCinemaDateInput(`${y}-${m}-${d}`);
+    setCinemaDateError('');
+    setCinemaDatePickerVisible(true);
+  };
+
+  const openCinemaByDate = async () => {
+    const value = cinemaDateInput.trim();
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      setCinemaDateError(t('feed.cinema.invalidDateFormat', 'Tarihi YYYY-AA-GG biçiminde yaz.'));
+      return;
+    }
+
+    const targetStart = new Date(`${value}T00:00:00`);
+    const targetEnd = new Date(`${value}T23:59:59.999`);
+
+    if (Number.isNaN(targetStart.getTime()) || Number.isNaN(targetEnd.getTime())) {
+      setCinemaDateError(t('feed.cinema.invalidDate', 'Geçerli bir tarih yaz.'));
+      return;
+    }
+
+    setCinemaDateLoading(true);
+    setCinemaDateError('');
+
+    try {
+      // Hedef tarih mevcut sayfalardan daha eskiyse gerektiği kadar eski sayfa yükle.
+      let safety = 0;
+
+      while (safety < 40) {
+        const state: any = useFeed.getState();
+        const currentPosts = Array.isArray(state?.posts) ? state.posts : [];
+
+        const hasTarget = currentPosts.some((p: any) => {
+          const ts = getPostSortTs(p);
+          return ts >= targetStart.getTime() && ts <= targetEnd.getTime();
+        });
+
+        if (hasTarget) break;
+
+        const validTimes = currentPosts
+          .map((p: any) => getPostSortTs(p))
+          .filter((ts: number) => Number.isFinite(ts) && ts > 0);
+
+        const oldestLoaded = validTimes.length ? Math.min(...validTimes) : 0;
+
+        if (oldestLoaded && oldestLoaded < targetStart.getTime()) break;
+        if (!state?.hasMore || state?.loadingMore || typeof state?.loadMore !== 'function') break;
+
+        await state.loadMore();
+        safety += 1;
+      }
+
+      const stateAfter: any = useFeed.getState();
+      const loadedPosts = Array.isArray(stateAfter?.posts) ? stateAfter.posts : [];
+      const found = loadedPosts.some((p: any) => {
+        const ts = getPostSortTs(p);
+        return ts >= targetStart.getTime() && ts <= targetEnd.getTime();
+      });
+
+      if (!found) {
+        setCinemaDateError(t('feed.cinema.dateNotFound', 'Bu tarihte yüklenecek bir gönderi bulunamadı.'));
+        return;
+      }
+
+      setCinemaSinceAnchorId(null);
+      setCinemaSelectedDate(value);
+      setCinemaDatePickerVisible(false);
+      startCinema('date', 0);
+    } finally {
+      setCinemaDateLoading(false);
+    }
+  };
+
+  const closeCinemaFeed = () => {
+    const seenPost = cinemaCurrentPost;
+    void saveCinemaResume(seenPost);
+    void saveCinemaLastSeen(seenPost);
+    setCinemaVisible(false);
+    setCinemaPaused(false);
+  };
+
+  useEffect(() => {
+    if (!cinemaVisible || !cinemaCurrentPost) return;
+    void saveCinemaResume(cinemaCurrentPost);
+  }, [cinemaVisible, cinemaCurrentPost]);
+
+  useEffect(() => {
+    if (!cinemaVisible || cinemaPaused || !cinemaCurrentPost) return;
+
+    const timer = setTimeout(() => {
+      cinemaGoNext();
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [
+    cinemaVisible,
+    cinemaPaused,
+    cinemaIndex,
+    cinemaCurrentPost,
+    cinemaPlaybackPosts.length,
+    cinemaMode,
+    hasMore,
+    loadingMore,
+  ]);
+
+  // Son karta varmadan bir sonraki sayfayı iste; böylece 50'lik sayfa sınırında
+  // Akan Akış beklemeden devam edebilir. Asıl hasMore/cursor kararı useFeed store'undadır.
+  useEffect(() => {
+    if (!cinemaVisible || cinemaMode !== 'all') return;
+    if (!hasMore || loadingMore) return;
+    if (cinemaPlaybackPosts.length === 0) return;
+    if (cinemaIndex < Math.max(0, cinemaPlaybackPosts.length - 5)) return;
+    void loadMore();
+  }, [cinemaVisible, cinemaMode, cinemaIndex, cinemaPlaybackPosts.length, hasMore, loadingMore, loadMore]);
+
+  useEffect(() => {
+    if (cinemaIndex < cinemaPlaybackPosts.length) return;
+    setCinemaIndex(Math.max(0, cinemaPlaybackPosts.length - 1));
+  }, [cinemaIndex, cinemaPlaybackPosts.length]);
 
   const markAllNotificationsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
@@ -3910,6 +4252,16 @@ return (
       </Pressable>
     </View>
 
+    {/* 🎬 Akan / Sinema Feed — ana akışta yalnızca kompakt giriş */}
+    <View style={styles.cinemaEntryBar}>
+      <Pressable
+        style={({ pressed }) => [styles.cinemaEntryCompactButton, pressed && styles.cinemaEntryButtonPressed]}
+        onPress={openCinemaNewest}
+      >
+        <Text style={styles.cinemaEntryCompactText}>▶ {t('feed.cinema.title', 'Akan Akış')}</Text>
+      </Pressable>
+    </View>
+
     <View style={styles.filterRow}>
       {renderFilterChip(t('feed.filters.all', 'Tümü'), 'all')}
       {renderFilterChip(t('feed.filters.mine', 'Benim '), 'mine')}
@@ -3968,6 +4320,19 @@ return (
         </View>
       }
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+      onEndReached={() => {
+        if (!loadingMore && hasMore) {
+          void loadMore();
+        }
+      }}
+      onEndReachedThreshold={0.8}
+      ListFooterComponent={
+        loadingMore ? (
+          <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+            <ActivityIndicator />
+          </View>
+        ) : null
+      }
       onScrollToIndexFailed={info => {
         try {
           const offset = (info.averageItemLength || 80) * (info.index || 0);
@@ -3989,6 +4354,294 @@ return (
       onScrollBeginDrag={handleFeedScrollStart}
       onMomentumScrollBegin={handleFeedScrollStart}
     />
+
+    {/* 🎬 Tarih seçici */}
+    <Modal
+      visible={cinemaDatePickerVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setCinemaDatePickerVisible(false)}
+    >
+      <View style={styles.cinemaDateOverlay}>
+        <View style={styles.cinemaDateCard}>
+          <Text style={styles.cinemaDateTitle}>{t('feed.cinema.datePickerTitle', 'Tarihten Başlat')}</Text>
+          <Text style={styles.cinemaDateHelp}>{t('feed.cinema.dateExample', 'Örnek: {{date}}', { date: '2026-08-28' })}</Text>
+
+          <TextInput
+            value={cinemaDateInput}
+            onChangeText={value => {
+              setCinemaDateInput(value);
+              if (cinemaDateError) setCinemaDateError('');
+            }}
+            placeholder={t('feed.cinema.datePlaceholder', 'YYYY-AA-GG')}
+            placeholderTextColor="#72798F"
+            style={styles.cinemaDateInput}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
+          {!!cinemaDateError && (
+            <Text style={styles.cinemaDateError}>{cinemaDateError}</Text>
+          )}
+
+          <View style={styles.cinemaDateActions}>
+            <Pressable
+              disabled={cinemaDateLoading}
+              style={({ pressed }) => [
+                styles.cinemaDateCancel,
+                pressed && !cinemaDateLoading && styles.cinemaControlPressed,
+              ]}
+              onPress={() => setCinemaDatePickerVisible(false)}
+            >
+              <Text style={styles.cinemaDateCancelText}>{t('common.cancel', 'Vazgeç')}</Text>
+            </Pressable>
+
+            <Pressable
+              disabled={cinemaDateLoading}
+              style={({ pressed }) => [
+                styles.cinemaDateGo,
+                pressed && !cinemaDateLoading && styles.cinemaControlPressed,
+              ]}
+              onPress={() => {
+                void openCinemaByDate();
+              }}
+            >
+              {cinemaDateLoading ? (
+                <ActivityIndicator />
+              ) : (
+                <Text style={styles.cinemaDateGoText}>{t('feed.cinema.start', 'Başlat')}</Text>
+              )}
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+
+    {/* 🎬 Akan / Sinema Feed modal */}
+    <Modal
+      visible={cinemaVisible}
+      transparent={false}
+      animationType="fade"
+      onRequestClose={closeCinemaFeed}
+      statusBarTranslucent={false}
+    >
+      <SafeAreaView style={styles.cinemaRoot}>
+        <View style={styles.cinemaTopBar}>
+          <Pressable
+            style={({ pressed }) => [styles.cinemaTopButton, pressed && styles.cinemaControlPressed]}
+            onPress={closeCinemaFeed}
+          >
+            <Text style={styles.cinemaTopButtonText}>✕</Text>
+          </Pressable>
+
+          <View style={styles.cinemaTopCenter}>
+            <Text style={styles.cinemaTopTitle}>
+              {cinemaMode === 'date'
+                ? t('feed.cinema.titleWithDate', 'Akan Akış • {{date}}', { date: cinemaSelectedDate })
+                : cinemaMode === 'sinceLastSeen'
+                ? t('feed.cinema.sinceLastSeen', 'Son Gördüğümden Beri')
+                : t('feed.cinema.title', 'Akan Akış')}
+            </Text>
+            <Text style={styles.cinemaCounter}>
+              {cinemaPlaybackPosts.length > 0
+                ? `${cinemaIndex + 1} / ${cinemaPlaybackPosts.length}`
+                : '0 / 0'}
+            </Text>
+          </View>
+
+          <Pressable
+            style={({ pressed }) => [styles.cinemaTopButton, pressed && styles.cinemaControlPressed]}
+            onPress={() => setCinemaPaused(prev => !prev)}
+          >
+            <Text style={styles.cinemaTopButtonText}>{cinemaPaused ? '▶' : 'Ⅱ'}</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.cinemaModeBar}>
+          <Pressable
+            style={({ pressed }) => [styles.cinemaModeButton, pressed && styles.cinemaControlPressed]}
+            onPress={openCinemaNewest}
+          >
+            <Text style={styles.cinemaModeButtonText}>▶ {t('feed.cinema.newest', 'En Yeni')}</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.cinemaModeButton, pressed && styles.cinemaControlPressed]}
+            onPress={() => { void openCinemaResume(); }}
+          >
+            <Text style={styles.cinemaModeButtonText}>↺ {t('feed.cinema.resume', 'Kaldığım Yer')}</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.cinemaModeButton, pressed && styles.cinemaControlPressed]}
+            onPress={() => { void openCinemaSinceLastSeen(); }}
+          >
+            <Text style={styles.cinemaModeButtonText}>● {t('feed.cinema.sinceLastSeen', 'Son Gördüğümden Beri')}</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.cinemaModeButton, pressed && styles.cinemaControlPressed]}
+            onPress={openCinemaDatePicker}
+          >
+            <Text style={styles.cinemaModeButtonText}>▣ {t('feed.cinema.selectDate', 'Tarih Seç')}</Text>
+          </Pressable>
+        </View>
+
+        {cinemaCurrentPost ? (() => {
+          const cp: any = cinemaCurrentPost as any;
+          const cinemaImages = getSafeImageUris(cp);
+          const cinemaVideoUri =
+            typeof cp?.videoUri === 'string' && cp.videoUri.trim().length ? cp.videoUri.trim() : null;
+          const cinemaTitle = String(cp?.title ?? '').trim();
+          const cinemaBody = String(cp?.note ?? cp?.body ?? cp?.text ?? cp?.content ?? '').trim();
+          const cinemaAuthor = String(cp?.author ?? 'Viral').trim() || 'Viral';
+
+          return (
+            <View style={styles.cinemaStage}>
+              <View style={styles.cinemaMetaRow}>
+                <Text style={styles.cinemaAuthor} numberOfLines={1}>{cinemaAuthor}</Text>
+                <Text style={styles.cinemaTime}>{getTimeLabel(cinemaCurrentPost)}</Text>
+              </View>
+
+              {!!cinemaTitle && (
+                <Text style={styles.cinemaPostTitle} numberOfLines={2}>
+                  {cinemaTitle}
+                </Text>
+              )}
+
+              <View style={styles.cinemaMediaFrame}>
+                {cinemaImages.length > 0 ? (
+                  <Image
+                    source={{ uri: cinemaImages[0] }}
+                    style={styles.cinemaMedia}
+                    resizeMode="contain"
+                  />
+                ) : cinemaVideoUri ? (
+                  <Video
+                    key={`cinema_${String(cp?.id ?? cinemaIndex)}`}
+                    source={{ uri: cinemaVideoUri }}
+                    style={styles.cinemaMedia}
+                    resizeMode="contain"
+                    muted
+                    controls={false}
+                    paused={cinemaPaused}
+                    repeat
+                    playInBackground={false}
+                    playWhenInactive={false}
+                  />
+                ) : (
+                  <View style={styles.cinemaTextOnlyFrame}>
+                    <Image source={VIRAL_LOGO} style={styles.cinemaTextLogo} />
+                  </View>
+                )}
+              </View>
+
+              {!!cinemaBody && (
+                <Text style={styles.cinemaBody} numberOfLines={7}>
+                  {cinemaBody}
+                </Text>
+              )}
+
+              <View style={styles.cinemaProgressTrack}>
+                <Animated.View
+                  key={`cinema_progress_${cinemaIndex}_${cinemaPaused ? 'paused' : 'playing'}`}
+                  style={[
+                    styles.cinemaProgressFill,
+                    cinemaPaused ? { width: '50%' } : { width: '100%' },
+                  ]}
+                />
+              </View>
+
+              <Pressable
+                style={({ pressed }) => [styles.cinemaOpenButton, pressed && styles.cinemaControlPressed]}
+                onPress={openCinemaDetailCard}
+              >
+                <Text style={styles.cinemaOpenButtonText}>{t('feed.cinema.viewContent', 'İçeriği Gör')}</Text>
+              </Pressable>
+            </View>
+          );
+        })() : (
+          <View style={styles.cinemaEmpty}>
+            <Text style={styles.cinemaEmptyText}>
+              {cinemaMode === 'sinceLastSeen'
+                ? t('feed.cinema.emptySinceLastSeen', 'Son gördüğün gönderiden sonra yeni paylaşım yok.')
+                : cinemaMode === 'date'
+                ? t('feed.cinema.emptyDate', 'Bu tarihte gösterilecek gönderi yok.')
+                : t('feed.cinema.empty', 'Gösterilecek gönderi yok.')}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.cinemaControls}>
+          <Pressable
+            disabled={cinemaIndex <= 0}
+            style={({ pressed }) => [
+              styles.cinemaControlButton,
+              cinemaIndex <= 0 && styles.cinemaControlButtonDisabled,
+              pressed && cinemaIndex > 0 && styles.cinemaControlPressed,
+            ]}
+            onPress={cinemaGoPrevious}
+          >
+            <Text style={styles.cinemaControlText}>‹ {t('feed.cinema.previous', 'Önceki')}</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.cinemaPauseButton, pressed && styles.cinemaControlPressed]}
+            onPress={() => setCinemaPaused(prev => !prev)}
+          >
+            <Text style={styles.cinemaPauseText}>{cinemaPaused ? `▶ ${t('feed.cinema.continue', 'Devam')}` : `Ⅱ ${t('feed.cinema.pause', 'Duraklat')}`}</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.cinemaControlButton,
+              pressed && styles.cinemaControlPressed,
+            ]}
+            onPress={cinemaGoNext}
+          >
+            <Text style={styles.cinemaControlText}>{t('feed.cinema.next', 'Sonraki')} ›</Text>
+          </Pressable>
+        </View>
+
+        {loadingMore && (
+          <View style={styles.cinemaLoadingMore}>
+            <ActivityIndicator />
+            <Text style={styles.cinemaLoadingMoreText}>{t('feed.cinema.loadingOlder', 'Eski gönderiler yükleniyor...')}</Text>
+          </View>
+        )}
+      </SafeAreaView>
+    </Modal>
+
+    {/* Akan Akış -> normal Akış'taki gerçek paylaşım kartı */}
+    <Modal
+      visible={!!cinemaDetailPost}
+      transparent={false}
+      animationType="slide"
+      onRequestClose={closeCinemaDetailCard}
+    >
+      <SafeAreaView style={styles.cinemaDetailRoot}>
+        <View style={styles.cinemaDetailTopBar}>
+          <Pressable
+            style={({ pressed }) => [styles.cinemaTopButton, pressed && styles.cinemaControlPressed]}
+            onPress={closeCinemaDetailCard}
+          >
+            <Text style={styles.cinemaTopButtonText}>‹</Text>
+          </Pressable>
+          <Text style={styles.cinemaDetailTitle}>Paylaşım</Text>
+          <View style={{ width: 38 }} />
+        </View>
+        <ScrollView
+          style={styles.cinemaDetailScroll}
+          contentContainerStyle={styles.cinemaDetailContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {cinemaDetailPost
+            ? renderFullPostCard(cinemaDetailPost, {
+                instanceId: `cinema-detail:${String((cinemaDetailPost as any)?.id ?? '')}`,
+                listItemId: String((cinemaDetailPost as any)?.id ?? ''),
+                onPressCard: () => {},
+              })
+            : null}
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
 
     {/* FAB */}
     <Pressable
@@ -6448,6 +7101,384 @@ modalShare: {
     fontSize: 18,
     color: '#C2C7E2',
     marginVertical: 2,
+  },
+
+  // 🎬 AKAN / SİNEMA FEED
+  cinemaEntryBar: {
+    marginHorizontal: 12,
+    marginBottom: 8,
+    borderRadius: 14,
+    backgroundColor: '#151824',
+    borderWidth: 1,
+    borderColor: '#2C3148',
+    padding: 10,
+  },
+  cinemaEntryHeader: {
+    marginBottom: 8,
+  },
+  cinemaEntryButtonPressed: {
+    opacity: 0.84,
+  },
+  cinemaEntryTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  cinemaEntrySub: {
+    color: '#9CA3C7',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  cinemaEntryActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  cinemaEntryAction: {
+    minHeight: 34,
+    borderRadius: 999,
+    backgroundColor: '#222638',
+    borderWidth: 1,
+    borderColor: '#30364E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  cinemaEntryActionText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  cinemaEntryCompactButton: {
+    minHeight: 38,
+    borderRadius: 12,
+    backgroundColor: '#222638',
+    borderWidth: 1,
+    borderColor: '#30364E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  cinemaEntryCompactText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  cinemaRoot: {
+    flex: 1,
+    backgroundColor: '#08090D',
+  },
+  cinemaTopBar: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1D2130',
+  },
+  cinemaTopCenter: {
+    alignItems: 'center',
+  },
+  cinemaTopTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  cinemaCounter: {
+    color: '#8F96AA',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  cinemaModeBar: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1D2130',
+  },
+  cinemaModeButton: {
+    minHeight: 32,
+    borderRadius: 999,
+    backgroundColor: '#181B25',
+    borderWidth: 1,
+    borderColor: '#2B3042',
+    justifyContent: 'center',
+    paddingHorizontal: 9,
+  },
+  cinemaModeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  cinemaDetailRoot: {
+    flex: 1,
+    backgroundColor: '#08090D',
+  },
+  cinemaDetailTopBar: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1D2130',
+  },
+  cinemaDetailTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  cinemaDetailScroll: {
+    flex: 1,
+  },
+  cinemaDetailContent: {
+    paddingTop: 12,
+    paddingBottom: 28,
+  },
+  cinemaTopButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#181B25',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cinemaTopButtonText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  cinemaStage: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 10,
+  },
+  cinemaMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  cinemaAuthor: {
+    flex: 1,
+    marginRight: 12,
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  cinemaTime: {
+    color: '#8F96AA',
+    fontSize: 11,
+  },
+  cinemaPostTitle: {
+    color: '#FFFFFF',
+    fontSize: 21,
+    lineHeight: 27,
+    fontWeight: '800',
+    marginBottom: 12,
+  },
+  cinemaMediaFrame: {
+    flex: 1,
+    minHeight: 180,
+    maxHeight: '58%',
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: '#101219',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cinemaMedia: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#101219',
+  },
+  cinemaTextOnlyFrame: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#101219',
+  },
+  cinemaTextLogo: {
+    width: 72,
+    height: 72,
+    resizeMode: 'contain',
+    opacity: 0.9,
+  },
+  cinemaBody: {
+    color: '#D6DAE8',
+    fontSize: 15,
+    lineHeight: 21,
+    marginTop: 12,
+  },
+  cinemaProgressTrack: {
+    height: 3,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: '#262A36',
+    marginTop: 14,
+  },
+  cinemaProgressFill: {
+    height: 3,
+    borderRadius: 999,
+    backgroundColor: '#E50914',
+  },
+  cinemaOpenButton: {
+    marginTop: 12,
+    minHeight: 42,
+    borderRadius: 999,
+    backgroundColor: '#E50914',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  cinemaOpenButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  cinemaControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#1D2130',
+  },
+  cinemaControlButton: {
+    flex: 1,
+    minHeight: 42,
+    borderRadius: 12,
+    backgroundColor: '#181B25',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  cinemaControlButtonDisabled: {
+    opacity: 0.35,
+  },
+  cinemaPauseButton: {
+    flex: 1.2,
+    minHeight: 42,
+    borderRadius: 12,
+    backgroundColor: '#252A38',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  cinemaControlPressed: {
+    opacity: 0.75,
+  },
+  cinemaControlText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  cinemaPauseText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  cinemaLoadingMore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 8,
+  },
+  cinemaLoadingMoreText: {
+    color: '#8F96AA',
+    fontSize: 11,
+    marginLeft: 8,
+  },
+  cinemaEmpty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cinemaEmptyText: {
+    color: '#9CA3C7',
+    fontSize: 14,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+  },
+  cinemaDateOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 22,
+  },
+  cinemaDateCard: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: 18,
+    backgroundColor: '#151824',
+    borderWidth: 1,
+    borderColor: '#2C3148',
+    padding: 18,
+  },
+  cinemaDateTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  cinemaDateHelp: {
+    color: '#9CA3C7',
+    fontSize: 12,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  cinemaDateInput: {
+    minHeight: 46,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#343A52',
+    backgroundColor: '#0F1118',
+    color: '#FFFFFF',
+    paddingHorizontal: 14,
+    fontSize: 15,
+  },
+  cinemaDateError: {
+    color: '#FF8A8A',
+    fontSize: 12,
+    marginTop: 8,
+  },
+  cinemaDateActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 14,
+  },
+  cinemaDateCancel: {
+    flex: 1,
+    minHeight: 42,
+    borderRadius: 12,
+    backgroundColor: '#242837',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cinemaDateCancelText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  cinemaDateGo: {
+    flex: 1,
+    minHeight: 42,
+    borderRadius: 12,
+    backgroundColor: '#E50914',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cinemaDateGoText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
   },
 });
 

@@ -608,8 +608,7 @@
     "freeVideo": {
       "title": "فيديو",
       "message": "ماذا تريد أن تفعل بهذا الفيديو؟",
-      "delete": "حذف الفيديو",
-      "noPermission": "هذه البطاقة ليست لك. لا يمكنك حذفها."
+      "delete": "حذف الفيديو"
     },
     "postActions": {
       "title": "إجراءات المنشور",
@@ -640,6 +639,31 @@
       "successTitle": "User blocked",
       "successMessage": "Posts from this user will no longer appear in your feed.",
       "errorMessage": "User could not be blocked. Please try again."
+    },
+    "cinema": {
+      "title": "التدفق المتتابع",
+      "titleWithDate": "التدفق المتتابع • {{date}}",
+      "newest": "الأحدث",
+      "resume": "المتابعة من حيث توقفت",
+      "sinceLastSeen": "منذ آخر مشاهدة",
+      "selectDate": "اختيار التاريخ",
+      "viewContent": "عرض المحتوى",
+      "previous": "السابق",
+      "continue": "متابعة",
+      "pause": "إيقاف مؤقت",
+      "next": "التالي",
+      "datePickerTitle": "البدء من تاريخ",
+      "dateExample": "مثال: {{date}}",
+      "datePlaceholder": "YYYY-MM-DD",
+      "start": "ابدأ",
+      "noSavedPoint": "لا توجد نقطة مشاهدة محفوظة سابقًا. سيتم البدء من أحدث منشور.",
+      "invalidDateFormat": "أدخل التاريخ بالتنسيق YYYY-MM-DD.",
+      "invalidDate": "أدخل تاريخًا صالحًا.",
+      "dateNotFound": "تعذر تحميل أي منشور لهذا التاريخ.",
+      "emptySinceLastSeen": "لا توجد منشورات جديدة منذ آخر منشور شاهدته.",
+      "emptyDate": "لا توجد منشورات لعرضها في هذا التاريخ.",
+      "empty": "لا توجد منشورات لعرضها.",
+      "loadingOlder": "جارٍ تحميل المنشورات الأقدم..."
     }
   },
   "common__dup": {

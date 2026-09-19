@@ -639,6 +639,31 @@
       "successTitle": "User blocked",
       "successMessage": "Posts from this user will no longer appear in your feed.",
       "errorMessage": "User could not be blocked. Please try again."
+    },
+    "cinema": {
+      "title": "Fil déroulant",
+      "titleWithDate": "Fil déroulant • {{date}}",
+      "newest": "Plus récent",
+      "resume": "Reprendre",
+      "sinceLastSeen": "Depuis ma dernière visite",
+      "selectDate": "Choisir une date",
+      "viewContent": "Voir le contenu",
+      "previous": "Précédent",
+      "continue": "Continuer",
+      "pause": "Pause",
+      "next": "Suivant",
+      "datePickerTitle": "Démarrer à une date",
+      "dateExample": "Exemple : {{date}}",
+      "datePlaceholder": "AAAA-MM-JJ",
+      "start": "Démarrer",
+      "noSavedPoint": "Aucun point de reprise n'a été enregistré. Le fil commencera par la publication la plus récente.",
+      "invalidDateFormat": "Saisis la date au format AAAA-MM-JJ.",
+      "invalidDate": "Saisis une date valide.",
+      "dateNotFound": "Aucune publication n'a pu être chargée pour cette date.",
+      "emptySinceLastSeen": "Aucune nouvelle publication depuis la dernière que tu as vue.",
+      "emptyDate": "Aucune publication à afficher pour cette date.",
+      "empty": "Aucune publication à afficher.",
+      "loadingOlder": "Chargement des anciennes publications..."
     }
   },
   "common__dup": {

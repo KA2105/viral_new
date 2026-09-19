@@ -639,6 +639,31 @@
       "successTitle": "User blocked",
       "successMessage": "Posts from this user will no longer appear in your feed.",
       "errorMessage": "User could not be blocked. Please try again."
+    },
+    "cinema": {
+      "title": "流动动态",
+      "titleWithDate": "流动动态 • {{date}}",
+      "newest": "最新",
+      "resume": "从上次位置继续",
+      "sinceLastSeen": "自上次查看以来",
+      "selectDate": "选择日期",
+      "viewContent": "查看内容",
+      "previous": "上一条",
+      "continue": "继续",
+      "pause": "暂停",
+      "next": "下一条",
+      "datePickerTitle": "从日期开始",
+      "dateExample": "示例：{{date}}",
+      "datePlaceholder": "YYYY-MM-DD",
+      "start": "开始",
+      "noSavedPoint": "没有之前保存的浏览位置。将从最新帖子开始。",
+      "invalidDateFormat": "请按 YYYY-MM-DD 格式输入日期。",
+      "invalidDate": "请输入有效日期。",
+      "dateNotFound": "无法加载该日期的帖子。",
+      "emptySinceLastSeen": "自你上次查看的帖子之后没有新帖子。",
+      "emptyDate": "该日期没有可显示的帖子。",
+      "empty": "没有可显示的帖子。",
+      "loadingOlder": "正在加载更早的帖子..."
     }
   },
   "common__dup": {

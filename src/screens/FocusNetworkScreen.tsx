@@ -299,8 +299,15 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
     hydrateAll({ userId: userId ?? undefined });
   }, [userId, hydrateAll]);
 
-  // ✅ Store hydrate başarısızsa / sessizce çalışmıyorsa: burada doğrudan API'ye vur
+  // ✅ Store hydrate başarısızsa fallback olarak doğrudan API'ye vur
   useEffect(() => {
+    if (!hydrated) return;
+    if (!hydrateError) {
+      setFocusLoading(false);
+      setNetHint('');
+      return;
+    }
+
     const run = async () => {
       try {
         const base = String(API_BASE_URL || '').replace(/\/+$/, '');
@@ -351,7 +358,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, [userId, hydrated, hydrateError]);
 
   // 🔄 Basit “yakın gerçek zamanlı” istek bildirimi için polling (in-app)
   useEffect(() => {
@@ -369,26 +376,6 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
     const q = search.trim();
     const tmr = setTimeout(() => {
       searchUsers({ userId: userId ?? undefined, q });
-
-      const runManualSearch = async () => {
-        try {
-          const base = String(API_BASE_URL || '').replace(/\/+$/, '');
-          if (!base || !/^https?:\/\//i.test(base)) return;
-
-          const params = new URLSearchParams();
-          params.set('limit', '5000');
-          if (userId != null) params.set('userId', String(userId));
-          if (q) params.set('q', q);
-
-          const data = await fetchJson<any>(`${base}/users/search?${params.toString()}`);
-          const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
-          setManualDiscover(items);
-        } catch (e) {
-          console.warn('[FocusNetwork] manual discover search failed:', e);
-        }
-      };
-
-      runManualSearch();
     }, 250);
 
     return () => clearTimeout(tmr);

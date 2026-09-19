@@ -639,6 +639,31 @@
       "successTitle": "Kullanıcı engellendi",
       "successMessage": "Bu kullanıcıya ait gönderiler artık akışında görünmeyecek.",
       "errorMessage": "Kullanıcı engellenemedi. Lütfen tekrar dene."
+    },
+    "cinema": {
+      "title": "Akan Akış",
+      "titleWithDate": "Akan Akış • {{date}}",
+      "newest": "En Yeni",
+      "resume": "Kaldığım Yer",
+      "sinceLastSeen": "Son Gördüğümden Beri",
+      "selectDate": "Tarih Seç",
+      "viewContent": "İçeriği Gör",
+      "previous": "Önceki",
+      "continue": "Devam",
+      "pause": "Duraklat",
+      "next": "Sonraki",
+      "datePickerTitle": "Tarihten Başlat",
+      "dateExample": "Örnek: {{date}}",
+      "datePlaceholder": "YYYY-AA-GG",
+      "start": "Başlat",
+      "noSavedPoint": "Daha önce kaydedilmiş bir son izleme noktası yok. En yeni gönderiden başlanacak.",
+      "invalidDateFormat": "Tarihi YYYY-AA-GG biçiminde yaz.",
+      "invalidDate": "Geçerli bir tarih yaz.",
+      "dateNotFound": "Bu tarihte yüklenecek bir gönderi bulunamadı.",
+      "emptySinceLastSeen": "Son gördüğün gönderiden sonra yeni paylaşım yok.",
+      "emptyDate": "Bu tarihte gösterilecek gönderi yok.",
+      "empty": "Gösterilecek gönderi yok.",
+      "loadingOlder": "Eski gönderiler yükleniyor..."
     }
   },
   "common__dup": {
