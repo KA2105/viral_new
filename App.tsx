@@ -1,5 +1,5 @@
 // App.tsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -30,12 +30,15 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 
 import InstagramLogsScreen from './src/screens/InstagramLogsScreen';
 import FocusNetworkScreen from './src/screens/FocusNetworkScreen';
+import MessagesScreen from './src/screens/MessagesScreen';
 import AgeGateScreen from './src/screens/AgeGateScreen';
 import {
   consumePendingPushOpen,
   installPushOpenHandlers,
   registerPushDevice,
 } from './src/services/pushNotifications';
+import { getDmUnreadCount } from './src/services/dm';
+import { parseViralDeepLink } from './src/services/deepLinks';
 
 // ✅ EK: API health-check + forgot/reset password için
 import {
@@ -52,7 +55,8 @@ type Screen =
   | 'Tasks'
   | 'Profile'
   | 'InstagramLogs'
-  | 'FocusNetwork';
+  | 'FocusNetwork'
+  | 'Messages';
 
 /* ----------------- Giriş / Kayıt Ekranı ----------------- */
 
@@ -922,17 +926,20 @@ function TermsScreen({ onAccept }: { onAccept: () => void }) {
 type TopBarProps = {
   current: Screen;
   username: string;
+  dmUnreadCount: number;
   onNavigate: (screen: Screen) => void;
+  onMessages: () => void;
   onLogout: () => void;
 };
 
-function TopBar({ current, username, onNavigate, onLogout }: TopBarProps) {
+function TopBar({ current, username, dmUnreadCount, onNavigate, onMessages, onLogout }: TopBarProps) {
   const { t } = useTranslation();
 
   const feedLabel = t('nav.feed', 'Akış');
   const uploadLabel = t('nav.upload', 'Yükle');
   const tasksLabel = t('nav.tasks', 'Görevler');
   const profileLabel = t('nav.profile', 'Profil');
+  const messagesLabel = t('nav.messages', 'Mesajlar');
   const logoutLabel = t('nav.logout', 'Çıkış');
 
   const tab = (label: string, screen: Screen) => {
@@ -962,9 +969,20 @@ function TopBar({ current, username, onNavigate, onLogout }: TopBarProps) {
           @{username}
         </Text>
 
-        <TouchableOpacity onPress={onLogout} style={styles.topLogout}>
-          <Text style={styles.topLogoutText}>{logoutLabel}</Text>
-        </TouchableOpacity>
+        <View style={styles.topActions}>
+          <TouchableOpacity onPress={onMessages} style={[styles.topMessages, current === 'Messages' && styles.topMessagesActive]}>
+            <Text style={styles.topLogoutText}>{messagesLabel}</Text>
+            {dmUnreadCount > 0 ? (
+              <View style={styles.topUnreadBadge}>
+                <Text style={styles.topUnreadBadgeText}>{dmUnreadCount > 99 ? '99+' : dmUnreadCount}</Text>
+              </View>
+            ) : null}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={onLogout} style={styles.topLogout}>
+            <Text style={styles.topLogoutText}>{logoutLabel}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.topTabsRow}>
@@ -1031,6 +1049,9 @@ async function fetchWithTimeout(url: string, opts: any = {}, timeoutMs = 3500) {
 const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>('Feed');
   const [pendingPushPostId, setPendingPushPostId] = useState<string | null>(null);
+  const [pendingDmUserId, setPendingDmUserId] = useState<number | null>(null);
+  const [pendingProfileHandle, setPendingProfileHandle] = useState<string | null>(null);
+  const [dmUnreadCount, setDmUnreadCount] = useState(0);
 
   useEffect(() => {
     const unsubscribe = installPushOpenHandlers();
@@ -1039,6 +1060,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const openPayload = (payload: any) => {
+      const type = payload?.type != null ? String(payload.type).trim().toLowerCase() : '';
+      if (type === 'dm') {
+        const senderId = Number(payload?.senderUserId ?? 0);
+        setPendingDmUserId(Number.isFinite(senderId) && senderId > 0 ? senderId : null);
+        setCurrentScreen('Messages');
+        return;
+      }
+
       const postId = payload?.postId != null ? String(payload.postId).trim() : '';
       if (!postId) return;
       setPendingPushPostId(postId);
@@ -1050,6 +1079,34 @@ const App: React.FC = () => {
 
     return () => sub.remove();
   }, []);
+
+  const handleDeepLink = useCallback((url: string | null | undefined) => {
+    const target = parseViralDeepLink(url);
+    if (!target) return;
+
+    if (target.type === 'post') {
+      setPendingPushPostId(target.postId);
+      setCurrentScreen('Feed');
+      return;
+    }
+    if (target.type === 'profile') {
+      setPendingProfileHandle(target.handle);
+      setCurrentScreen('FocusNetwork');
+      return;
+    }
+    if (target.type === 'messages') {
+      setPendingDmUserId(target.userId ?? null);
+      setCurrentScreen('Messages');
+      return;
+    }
+    setCurrentScreen('Feed');
+  }, []);
+
+  useEffect(() => {
+    void Linking.getInitialURL().then(handleDeepLink).catch(() => {});
+    const sub = Linking.addEventListener('url', event => handleDeepLink(event.url));
+    return () => sub.remove();
+  }, [handleDeepLink]);
 
   const auth = useAuth() as any;
 
@@ -1065,6 +1122,37 @@ const App: React.FC = () => {
 
   const profile = auth?.profile ?? null;
   const userId = auth?.userId ?? auth?.id ?? null;
+
+  const refreshDmUnread = useCallback(async () => {
+    if (!sessionActive) {
+      setDmUnreadCount(0);
+      return;
+    }
+    try {
+      const count = await getDmUnreadCount();
+      setDmUnreadCount(count);
+    } catch {}
+  }, [sessionActive]);
+
+  useEffect(() => {
+    if (!sessionActive) {
+      setDmUnreadCount(0);
+      return;
+    }
+
+    void refreshDmUnread();
+    const timer = setInterval(() => void refreshDmUnread(), 15000);
+    const sub = DeviceEventEmitter.addListener('viral_dm_unread_changed', (payload: any) => {
+      const count = Number(payload?.count);
+      if (Number.isFinite(count) && count >= 0) setDmUnreadCount(count);
+      else void refreshDmUnread();
+    });
+
+    return () => {
+      clearInterval(timer);
+      sub.remove();
+    };
+  }, [sessionActive, refreshDmUnread]);
 
   useEffect(() => {
     if (!sessionActive) return;
@@ -1294,6 +1382,17 @@ const App: React.FC = () => {
     }
   }, [sessionActive]);
 
+  useEffect(() => {
+    if (!sessionActive) return;
+    if (pendingDmUserId) {
+      setCurrentScreen('Messages');
+      return;
+    }
+    if (pendingProfileHandle) {
+      setCurrentScreen('FocusNetwork');
+    }
+  }, [sessionActive, pendingDmUserId, pendingProfileHandle]);
+
   const username =
     profile?.fullName ||
     auth?.displayName ||
@@ -1451,7 +1550,28 @@ const App: React.FC = () => {
   } else if (currentScreen === 'InstagramLogs') {
     content = <InstagramLogsScreen onClose={() => setCurrentScreen('Profile')} />;
   } else if (currentScreen === 'FocusNetwork') {
-    content = <FocusNetworkScreen onClose={() => setCurrentScreen('Feed')} />;
+    content = (
+      <FocusNetworkScreen
+        onClose={() => setCurrentScreen('Feed')}
+        initialHandle={pendingProfileHandle}
+        onInitialHandleConsumed={() => setPendingProfileHandle(null)}
+        onMessageUser={user => {
+          setPendingDmUserId(user.id);
+          setCurrentScreen('Messages');
+        }}
+      />
+    );
+  } else if (currentScreen === 'Messages') {
+    content = (
+      <MessagesScreen
+        initialUserId={pendingDmUserId}
+        onClose={() => {
+          setPendingDmUserId(null);
+          setCurrentScreen('Feed');
+        }}
+        onUnreadCountChange={setDmUnreadCount}
+      />
+    );
   }
 
   const isFeed = currentScreen === 'Feed';
@@ -1469,7 +1589,15 @@ const App: React.FC = () => {
       <TopBar
         current={currentScreen}
         username={username}
-        onNavigate={setCurrentScreen}
+        dmUnreadCount={dmUnreadCount}
+        onNavigate={screen => {
+          if (screen !== 'Messages') setPendingDmUserId(null);
+          setCurrentScreen(screen);
+        }}
+        onMessages={() => {
+          setPendingDmUserId(null);
+          setCurrentScreen('Messages');
+        }}
         onLogout={handleLogout}
       />
 
@@ -1706,8 +1834,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
-    maxWidth: '70%',
+    maxWidth: '55%',
   },
+  topActions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  topMessages: {
+    minHeight: 28,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: '#22263A',
+  },
+  topMessagesActive: { backgroundColor: '#E50914' },
+  topUnreadBadge: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    marginLeft: 5,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  topUnreadBadgeText: { fontSize: 9, fontWeight: '800', color: '#E50914' },
   topLogout: {
     paddingHorizontal: 10,
     paddingVertical: 4,

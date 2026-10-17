@@ -59,7 +59,9 @@
       "passwordMismatch": "पासवर्ड और पुष्टि एक जैसे होने चाहिए।",
       "saveFailed": "प्रोफ़ाइल अपडेट नहीं हो सकी।",
       "saveSuccess": "आपकी प्रोफ़ाइल जानकारी अपडेट हो गई है।",
-      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server.",
+      "passwordChangeFailed": "पासवर्ड अपडेट नहीं हो सका।",
+      "passwordChangeSuccess": "आपका पासवर्ड अपडेट हो गया है।"
     },
     "verify": {
       "sectionTitle": "फोन सत्यापन",
@@ -163,7 +165,15 @@
       "success": "Your account has been deleted.",
       "unexpected": "Something went wrong."
     },
-    "notLoggedIn": "No active session found."
+    "notLoggedIn": "No active session found.",
+    "passwordSection": {
+      "title": "पासवर्ड बदलें",
+      "newPassword": "नया पासवर्ड",
+      "newPasswordPlaceholder": "आपका नया पासवर्ड",
+      "confirmPassword": "नया पासवर्ड (फिर से)",
+      "confirmPasswordPlaceholder": "नया पासवर्ड फिर से लिखें",
+      "updateButton": "पासवर्ड अपडेट करें"
+    }
   },
   "upload": {
     "screenTitleTask": "टास्क कार्ड बनाएँ",
@@ -512,7 +522,8 @@
     "upload": "अपलोड",
     "tasks": "टास्क",
     "profile": "प्रोफ़ाइल",
-    "logout": "लॉग आउट"
+    "logout": "लॉग आउट",
+    "messages": "संदेश"
   },
   "feed": {
     "guestName": "मेहमान",
@@ -809,6 +820,22 @@
     "net": {
       "invalidBaseUrl": "API_BASE_URL अमान्य लगता है।",
       "onlineFetchError": "फोकस नेटवर्क ऑनलाइन फ़ेच त्रुटि"
+    }
+  },
+  "messages": {
+    "title": "संदेश",
+    "subtitle": "Viral उपयोगकर्ताओं के साथ निजी एक-से-एक चैट",
+    "loading": "लोड हो रहा है...",
+    "you": "आप",
+    "emptyChat": "अभी कोई संदेश नहीं है। पहला संदेश भेजें।",
+    "placeholder": "संदेश लिखें...",
+    "send": "भेजें",
+    "emptyList": "अभी आपकी कोई चैट नहीं है। Focus Network में किसी प्रोफ़ाइल को खोलें और “संदेश भेजें” दबाएँ।",
+    "start": "संदेश भेजें",
+    "errors": {
+      "list": "संदेश लोड नहीं हो सके।",
+      "chat": "चैट लोड नहीं हो सकी।",
+      "send": "संदेश भेजा नहीं जा सका।"
     }
   }
 }

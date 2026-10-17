@@ -69,6 +69,10 @@ model User {
 
   // 📱 FCM cihazları
   pushDevices PushDevice[]
+
+  // 💬 Birebir mesajlar
+  sentDirectMessages     DirectMessage[] @relation("DirectMessageSender")
+  receivedDirectMessages DirectMessage[] @relation("DirectMessageRecipient")
 }
 
 model Task {
@@ -298,4 +302,19 @@ model PushDevice {
 
   @@index([userId, active])
   @@index([deviceId])
+}
+
+model DirectMessage {
+  id          Int      @id @default(autoincrement())
+  senderId    Int
+  recipientId Int
+  text        String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  sender      User @relation("DirectMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient   User @relation("DirectMessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, recipientId, createdAt])
+  @@index([recipientId, read, createdAt])
 }

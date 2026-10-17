@@ -139,7 +139,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
   const {
     userId,
     profile,
-    saveProfile,
+    updateProfile,
+    changePassword,
     requestPhoneCode,
     verifyPhoneCode,
     setAvatarUri,
@@ -190,7 +191,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
   // Kişisel bilgiler aç/kapa
   const [showPersonalSection, setShowPersonalSection] = useState(false);
 
-  // Telefon doğrulama aç/kapa
+  // Şifre değiştirme ve telefon doğrulama ayrı bölümler
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [showVerifySection, setShowVerifySection] = useState(false);
 
   // Diğer bölümler için aç/kapa
@@ -363,22 +365,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
   };
 
   const handleSaveProfile = async () => {
-    if (!password || !passwordConfirm) {
-      Alert.alert(
-        t('profile.alert.warning', 'Uyarı'),
-        t('profile.alert.passwordRequired', 'Şifre ve şifre tekrarı zorunludur.'),
-      );
-      return;
-    }
-    if (password !== passwordConfirm) {
-      Alert.alert(
-        t('profile.alert.warning', 'Uyarı'),
-        t('profile.alert.passwordMismatch', 'Şifre ve şifre tekrarı aynı olmalı.'),
-      );
-      return;
-    }
-
-    // ✅ handle temizle + validate
+    // ✅ Profil bilgileri artık şifreden tamamen bağımsız kaydedilir.
     const cleanedHandle =
       typeof handle === 'string' ? handle.trim().replace(/^@+/, '') : '';
 
@@ -393,66 +380,63 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
       return;
     }
 
-    const result = saveProfile({
+    const result = await updateProfile({
       fullName,
       email,
       phone,
-      password,
-      // ✅ handle sadece geçerliyse store'a gönder (boşsa undefined)
       handle: cleanedHandle || undefined,
       bio: bio?.trim() || undefined,
       website: website?.trim() || undefined,
     });
 
-    if (!result.ok) {
+    if (!result?.ok) {
       Alert.alert(
         t('profile.alert.error', 'Hata'),
-        result.error || t('profile.alert.saveFailed', 'Profil güncellenemedi.'),
+        result?.error || t('profile.alert.saveFailed', 'Profil güncellenemedi.'),
       );
       return;
     }
 
-    // ✅ Backend’e yaz: PUT /me  (handle sadece valid ise gönder)
-    try {
-      const authState = useAuth.getState() as any;
-      const backendUserId = authState.backendUserId;
-
-      if (backendUserId) {
-        const payload: any = {
-          fullName,
-          bio: (bio || '').trim() ? bio.trim() : null,
-          website: (website || '').trim() ? website.trim() : null,
-          avatarUri: (useAuth.getState() as any)?.profile?.avatarUri ?? null,
-          email,
-          phone,
-        };
-
-        if (cleanedHandle && isValidHandle(cleanedHandle)) {
-          payload.handle = cleanedHandle;
-        } else {
-          // invalid/empty handle -> backend'e hiç göndermiyoruz
-        }
-
-        await putMe(backendUserId, payload);
-      }
-    } catch (e) {
-      console.warn('[Profile] PUT /me failed:', e);
-      Alert.alert(
-        t('profile.alert.warning', 'Uyarı'),
-        t(
-          'profile.alert.savedLocalButBackendFailed',
-          'Profil kaydedildi fakat sunucuya yazılamadı.',
-        ),
-      );
-    }
-
-    // ✅ UX: Şifre alanlarını temizle
-    setPassword('');
-    setPasswordConfirm('');
-
     Alert.alert(
       t('profile.alert.success', 'Başarılı'),
       t('profile.alert.saveSuccess', 'Profil bilgilerin güncellendi.'),
+    );
+  };
+
+  const handleChangePassword = async () => {
+    if (!password || !passwordConfirm) {
+      Alert.alert(
+        t('profile.alert.warning', 'Uyarı'),
+        t('profile.alert.passwordRequired', 'Yeni şifre ve şifre tekrarı zorunludur.'),
+      );
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      Alert.alert(
+        t('profile.alert.warning', 'Uyarı'),
+        t('profile.alert.passwordMismatch', 'Şifre ve şifre tekrarı aynı olmalı.'),
+      );
+      return;
+    }
+
+    const result = await changePassword({ newPassword: password });
+    if (!result?.ok) {
+      Alert.alert(
+        t('profile.alert.error', 'Hata'),
+        result?.error || t('profile.alert.passwordChangeFailed', 'Şifre güncellenemedi.'),
+      );
+      return;
+    }
+
+    setPassword('');
+    setPasswordConfirm('');
+    setShowPassword(false);
+    setShowPasswordConfirm(false);
+
+    Alert.alert(
+      t('profile.alert.success', 'Başarılı'),
+      t('profile.alert.passwordChangeSuccess', 'Şifren güncellendi.'),
     );
   };
 
@@ -730,13 +714,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
     userId ||
     t('profile.invite.defaultUsername', 'Viral kullanıcısı');
 
-  const inviteProfileLink = `https://viral.app/u/${inviteUsername
-    .toString()
-    .replace(/^@+/, '')
-    .replace(/\s+/g, '')
-    .toLowerCase()}`;
-
-  const inviteAppLink = 'https://viral.app/download';
+  const inviteAppLink = `${String(API_BASE_URL).replace(/\/+$/, '')}/download`;
+  const inviteHandle = String(profile?.handle ?? '').trim().replace(/^@+/, '');
+  const inviteProfileLink = inviteHandle
+    ? `${String(API_BASE_URL).replace(/\/+$/, '')}/u/${encodeURIComponent(inviteHandle.toLowerCase())}`
+    : inviteAppLink;
 
   const handleShareInvite = async (platformLabel: string) => {
     try {
@@ -1023,13 +1005,48 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
               )}
             </Text>
 
+            <TouchableOpacity style={styles.primaryBtn} onPress={handleSaveProfile}>
+              <Text style={styles.primaryBtnText}>
+                {t('common.save', 'Kaydet')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Şifre değiştirme – profil kaydetmeden tamamen bağımsız */}
+        <TouchableOpacity
+          style={styles.sectionToggleBtn}
+          onPress={() => setShowPasswordSection(prev => !prev)}
+          activeOpacity={0.85}
+        >
+          <View>
+            <Text style={styles.sectionToggleTitle}>
+              {t('profile.passwordSection.title', 'Şifre Değiştir')}
+            </Text>
+            <Text style={styles.sectionToggleSubtitle}>
+              {showPasswordSection
+                ? t('profile.section.hide', 'Gizle')
+                : t('profile.section.show', 'Göster')}
+            </Text>
+          </View>
+          <Text style={styles.sectionToggleChevron}>
+            {showPasswordSection ? '▲' : '▼'}
+          </Text>
+        </TouchableOpacity>
+
+        {showPasswordSection && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>
+              {t('profile.passwordSection.title', 'Şifre Değiştir')}
+            </Text>
+
             <Text style={styles.inputLabel}>
-              {t('profile.passwordLabel', 'Şifre')}
+              {t('profile.passwordSection.newPassword', 'Yeni şifre')}
             </Text>
             <View style={styles.passwordRow}>
               <TextInput
                 style={[styles.input, styles.passwordInput]}
-                placeholder={t('profile.passwordPlaceholder', 'Şifren')}
+                placeholder={t('profile.passwordSection.newPasswordPlaceholder', 'Yeni şifren')}
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
@@ -1045,12 +1062,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
             </View>
 
             <Text style={styles.inputLabel}>
-              {t('profile.passwordConfirmLabel', 'Şifre (tekrar)')}
+              {t('profile.passwordSection.confirmPassword', 'Yeni şifre (tekrar)')}
             </Text>
             <View style={styles.passwordRow}>
               <TextInput
                 style={[styles.input, styles.passwordInput]}
-                placeholder={t('profile.passwordConfirmPlaceholder', 'Şifre tekrar')}
+                placeholder={t('profile.passwordSection.confirmPasswordPlaceholder', 'Yeni şifreyi tekrar yaz')}
                 secureTextEntry={!showPasswordConfirm}
                 value={passwordConfirm}
                 onChangeText={setPasswordConfirm}
@@ -1072,9 +1089,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
               )}
             </Text>
 
-            <TouchableOpacity style={styles.primaryBtn} onPress={handleSaveProfile}>
+            <TouchableOpacity style={styles.primaryBtn} onPress={handleChangePassword}>
               <Text style={styles.primaryBtnText}>
-                {t('common.save', 'Save')}
+                {t('profile.passwordSection.updateButton', 'Şifreyi Güncelle')}
               </Text>
             </TouchableOpacity>
           </View>

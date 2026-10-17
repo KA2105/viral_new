@@ -59,7 +59,9 @@
       "passwordMismatch": "Şifre ve tekrarı aynı olmalıdır.",
       "saveFailed": "Profil güncellenemedi.",
       "saveSuccess": "Profil bilgileriniz güncellendi.",
-      "savedLocalButBackendFailed": "Profil kaydedildi fakat sunucuya yazılamadı."
+      "savedLocalButBackendFailed": "Profil kaydedildi fakat sunucuya yazılamadı.",
+      "passwordChangeFailed": "Şifre güncellenemedi.",
+      "passwordChangeSuccess": "Şifren güncellendi."
     },
     "verify": {
       "sectionTitle": "Telefon doğrulama",
@@ -163,7 +165,15 @@
       "success": "Hesabın silindi.",
       "unexpected": "Bir sorun oluştu."
     },
-    "notLoggedIn": "Oturum bulunamadı."
+    "notLoggedIn": "Oturum bulunamadı.",
+    "passwordSection": {
+      "title": "Şifre Değiştir",
+      "newPassword": "Yeni şifre",
+      "newPasswordPlaceholder": "Yeni şifren",
+      "confirmPassword": "Yeni şifre (tekrar)",
+      "confirmPasswordPlaceholder": "Yeni şifreyi tekrar yaz",
+      "updateButton": "Şifreyi Güncelle"
+    }
   },
   "upload": {
     "screenTitleTask": "Görev kartı oluştur",
@@ -512,7 +522,8 @@
     "upload": "Yükle",
     "tasks": "Görevler",
     "profile": "Profil",
-    "logout": "Çıkış"
+    "logout": "Çıkış",
+    "messages": "Mesajlar"
   },
   "feed": {
     "guestName": "misafir",
@@ -809,6 +820,22 @@
     "net": {
       "invalidBaseUrl": "API_BASE_URL geçersiz görünüyor.",
       "onlineFetchError": "Focus Ağı online fetch hata"
+    }
+  },
+  "messages": {
+    "title": "Mesajlar",
+    "subtitle": "Viral kullanıcılarıyla birebir sohbet",
+    "loading": "Yükleniyor...",
+    "you": "Sen",
+    "emptyChat": "Henüz mesaj yok. İlk mesajı sen gönder.",
+    "placeholder": "Mesaj yaz...",
+    "send": "Gönder",
+    "emptyList": "Henüz bir sohbetin yok. Focus Ağı’ndan bir profile girip “Mesaj Gönder” diyebilirsin.",
+    "start": "Mesaj Gönder",
+    "errors": {
+      "list": "Mesajlar yüklenemedi.",
+      "chat": "Sohbet yüklenemedi.",
+      "send": "Mesaj gönderilemedi."
     }
   }
 }

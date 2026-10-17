@@ -406,6 +406,15 @@ ensureUploadsDirs();
 // âœ… Static yayÄ±n: /uploads/... artÄ±k tÃ¼m cihazlardan eriÅŸilebilir
 app.use('/uploads', express.static(UPLOADS_ROOT));
 
+// ✅ Dış paylaşım önizlemesi için gerçek PNG asset.
+// SVG, bazı sosyal platformların link önizleme tarayıcılarında desteklenmediği için
+// fallback görselini PNG olarak sunuyoruz.
+const SHARE_ASSETS_ROOT = path.join(__dirname, '..', 'assets');
+app.use('/share-assets', express.static(SHARE_ASSETS_ROOT, {
+  maxAge: '1d',
+  etag: false,
+}));
+
 function isLocalOnlyUri(uri: string): boolean {
   const u = String(uri || '').trim().toLowerCase();
   if (!u) return false;
@@ -1099,6 +1108,7 @@ async function sendPushToUsers(params: {
   body: string;
   type: string;
   postId?: number | null;
+  extraData?: Record<string, string>;
 }) {
   const userIds = Array.from(
     new Set(params.userIds.map(Number).filter(id => Number.isFinite(id) && id > 0)),
@@ -1142,6 +1152,7 @@ async function sendPushToUsers(params: {
       data: {
         type: params.type,
         postId: params.postId ? String(params.postId) : '',
+        ...(params.extraData ?? {}),
       },
       android: {
         priority: 'high',
@@ -1537,7 +1548,7 @@ app.get('/p/:id', async (req, res) => {
       (typeof anyP?.user?.fullName === 'string' && anyP.user.fullName.trim()) ||
       (typeof anyP?.user?.handle === 'string' && anyP.user.handle.trim()) ||
       (typeof anyP?.author === 'string' && anyP.author.trim()) ||
-      'Viral kullanÄ±cÄ±sÄ±';
+      'Viral kullanıcısı';
 
     const rawText =
       (typeof anyP.note === 'string' && anyP.note.trim()) ||
@@ -1545,18 +1556,22 @@ app.get('/p/:id', async (req, res) => {
       (typeof anyP.taskTitle === 'string' && anyP.taskTitle.trim()) ||
       (typeof anyP.description === 'string' && anyP.description.trim()) ||
       (typeof anyP.title === 'string' && anyP.title.trim()) ||
-      'Viral Networkâ€™te yeni bir paylaÅŸÄ±m';
+      'Viral Network’te yeni bir paylaşım';
 
-    const title = `${authorName} Viralâ€™da bir kart paylaÅŸtÄ±`;
+    const title = `${authorName} Viral’da bir kart paylaştı`;
     const desc = rawText.length > 180 ? `${rawText.slice(0, 177)}...` : rawText;
 
     const url = `${getPublicBaseUrl(req)}/p/${encodeURIComponent(id)}`;
-    const fallbackImage = `${getPublicBaseUrl(req)}/p/${encodeURIComponent(id)}/card.svg`;
-    const image = firstPublicImageFromPost(req, anyP) || fallbackImage;
+    const fallbackImage = `${getPublicBaseUrl(req)}/share-assets/viral-share.png`;
+    const publicPostImage = firstPublicImageFromPost(req, anyP);
+    const image = publicPostImage || fallbackImage;
+    const imageIsFallback = !publicPostImage;
+    const appDeepLink = `viral://post/${encodeURIComponent(id)}`;
     const androidStoreUrl =
       (process.env.APP_ANDROID_STORE_URL ?? 'https://play.google.com/store/apps/details?id=com.viral_new').toString();
     const iosStoreUrl =
       (process.env.APP_IOS_STORE_URL ?? 'https://apps.apple.com/tr/app/viral-network/id6761623655').toString();
+    const androidIntentUrl = `intent://post/${encodeURIComponent(id)}#Intent;scheme=viral;package=com.viral_new;S.browser_fallback_url=${encodeURIComponent(androidStoreUrl)};end`;
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -1576,8 +1591,17 @@ app.get('/p/:id', async (req, res) => {
   <meta property="og:description" content="${escapeHtml(desc)}" />
   <meta property="og:url" content="${escapeHtml(url)}" />
   ${image ? `<meta property="og:image" content="${escapeHtml(image)}" />` : ''}
-  ${image ? `<meta property="og:image:width" content="1200" />` : ''}
-  ${image ? `<meta property="og:image:height" content="630" />` : ''}
+  ${image ? `<meta property="og:image:secure_url" content="${escapeHtml(image)}" />` : ''}
+  ${imageIsFallback ? '<meta property="og:image:type" content="image/png" />' : ''}
+  ${imageIsFallback ? '<meta property="og:image:width" content="1200" />' : ''}
+  ${imageIsFallback ? '<meta property="og:image:height" content="630" />' : ''}
+
+  <meta property="al:android:url" content="${escapeHtml(appDeepLink)}" />
+  <meta property="al:android:package" content="com.viral_new" />
+  <meta property="al:android:app_name" content="Viral" />
+  <meta property="al:ios:url" content="${escapeHtml(appDeepLink)}" />
+  <meta property="al:ios:app_name" content="Viral" />
+  <meta property="al:ios:app_store_id" content="6761623655" />
 
   <meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
@@ -1589,19 +1613,160 @@ app.get('/p/:id', async (req, res) => {
     <h1 style="margin-bottom: 12px;">${escapeHtml(title)}</h1>
     <p style="font-size: 18px; line-height: 1.5;">${escapeHtml(desc)}</p>
     ${image ? `<img src="${escapeHtml(image)}" alt="Viral post" style="width: 100%; border-radius: 18px; margin: 18px 0;" />` : ''}
-    <p style="margin-top: 24px;">Viral Network uygulamasÄ±nda gÃ¶r ve paylaÅŸ.</p>
+    <p style="margin-top: 24px;">Viral Network uygulamasında gör ve paylaş.</p>
+    <p>
+      <a id="openViral" href="${escapeHtml(appDeepLink)}" data-android-intent="${escapeHtml(androidIntentUrl)}" style="display:inline-block;background:#E50914;color:#fff;text-decoration:none;padding:12px 18px;border-radius:999px;font-weight:700;">Viral'de Aç</a>
+    </p>
     <p>
       <a href="${escapeHtml(androidStoreUrl)}" style="color: #ff3b3b;">Android indir</a>
       &nbsp;|&nbsp;
       <a href="${escapeHtml(iosStoreUrl)}" style="color: #ff3b3b;">iOS indir</a>
     </p>
   </main>
+  <script>
+    (function () {
+      var hidden = false;
+      var isAndroid = /Android/i.test(navigator.userAgent || '');
+      var openUrl = isAndroid ? ${JSON.stringify(androidIntentUrl)} : ${JSON.stringify(appDeepLink)};
+      var openButton = document.getElementById('openViral');
+      if (openButton && isAndroid) openButton.setAttribute('href', ${JSON.stringify(androidIntentUrl)});
+      document.addEventListener('visibilitychange', function () { hidden = document.hidden; });
+      setTimeout(function () {
+        if (!hidden) window.location.href = openUrl;
+      }, 350);
+    })();
+  </script>
 </body>
 </html>`);
   } catch (e) {
     console.error('[GET /p/:id] error:', e);
     return res.status(500).send('Error');
   }
+});
+
+
+// ✅ Uygulama / profil davet bağlantıları — viral.app alan adı bize ait değildir.
+// Paylaşım linkleri kendi backend alan adımızdan çıkar ve kurulu uygulamayı viral:// ile açmayı dener.
+app.get('/u/:handle', async (req, res) => {
+  try {
+    const handle = String(req.params.handle ?? '').trim().replace(/^@+/, '').toLowerCase();
+    if (!handle) return res.status(400).send('Handle required');
+
+    const user = await prisma.user.findFirst({
+      where: { handle: { equals: handle, mode: 'insensitive' } as any },
+      select: { id: true, fullName: true, handle: true, bio: true },
+    });
+
+    if (!user) return res.status(404).send('User not found');
+
+    const appDeepLink = `viral://profile/${encodeURIComponent(handle)}`;
+    const canonicalUrl = `${getPublicBaseUrl(req)}/u/${encodeURIComponent(handle)}`;
+    const image = `${getPublicBaseUrl(req)}/share-assets/viral-share.png`;
+    const title = `@${user.handle || handle} • Viral Network`;
+    const desc =
+      (typeof user.bio === 'string' && user.bio.trim()) ||
+      (typeof user.fullName === 'string' && user.fullName.trim()) ||
+      'Viral Network profilini görüntüle.';
+    const androidStoreUrl =
+      (process.env.APP_ANDROID_STORE_URL ?? 'https://play.google.com/store/apps/details?id=com.viral_new').toString();
+    const iosStoreUrl =
+      (process.env.APP_IOS_STORE_URL ?? 'https://apps.apple.com/tr/app/viral-network/id6761623655').toString();
+    const androidIntentUrl = `intent://profile/${encodeURIComponent(handle)}#Intent;scheme=viral;package=com.viral_new;S.browser_fallback_url=${encodeURIComponent(androidStoreUrl)};end`;
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
+    return res.send(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>${escapeHtml(title)}</title>
+  <meta name="description" content="${escapeHtml(desc)}" />
+  <meta property="og:type" content="profile" />
+  <meta property="og:site_name" content="Viral Network" />
+  <meta property="og:title" content="${escapeHtml(title)}" />
+  <meta property="og:description" content="${escapeHtml(desc)}" />
+  <meta property="og:url" content="${escapeHtml(canonicalUrl)}" />
+  <meta property="og:image" content="${escapeHtml(image)}" />
+  <meta property="og:image:secure_url" content="${escapeHtml(image)}" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="al:android:url" content="${escapeHtml(appDeepLink)}" />
+  <meta property="al:android:package" content="com.viral_new" />
+  <meta property="al:android:app_name" content="Viral" />
+  <meta property="al:ios:url" content="${escapeHtml(appDeepLink)}" />
+  <meta property="al:ios:app_name" content="Viral" />
+  <meta property="al:ios:app_store_id" content="6761623655" />
+</head>
+<body style="font-family:Arial,sans-serif;margin:0;padding:24px;background:#0b0b12;color:#fff;">
+  <main style="max-width:680px;margin:0 auto;text-align:center;">
+    <img src="${escapeHtml(image)}" alt="Viral" style="max-width:100%;border-radius:18px;" />
+    <h1>${escapeHtml(title)}</h1>
+    <p>${escapeHtml(desc)}</p>
+    <p><a id="openViral" href="${escapeHtml(appDeepLink)}" data-android-intent="${escapeHtml(androidIntentUrl)}" style="display:inline-block;background:#E50914;color:#fff;text-decoration:none;padding:12px 18px;border-radius:999px;font-weight:700;">Viral'de Aç</a></p>
+    <p><a href="${escapeHtml(androidStoreUrl)}" style="color:#ff3b3b;">Android indir</a> &nbsp;|&nbsp; <a href="${escapeHtml(iosStoreUrl)}" style="color:#ff3b3b;">iOS indir</a></p>
+  </main>
+  <script>(function(){var hidden=false;var isAndroid=/Android/i.test(navigator.userAgent||'');var openUrl=isAndroid?${JSON.stringify(androidIntentUrl)}:${JSON.stringify(appDeepLink)};var b=document.getElementById('openViral');if(b&&isAndroid)b.setAttribute('href',${JSON.stringify(androidIntentUrl)});document.addEventListener('visibilitychange',function(){hidden=document.hidden;});setTimeout(function(){if(!hidden)window.location.href=openUrl;},350);})();</script>
+</body>
+</html>`);
+  } catch (e) {
+    console.error('[GET /u/:handle] error:', e);
+    return res.status(500).send('Error');
+  }
+});
+
+app.get('/download', (req, res) => {
+  const appDeepLink = 'viral://home';
+  const image = `${getPublicBaseUrl(req)}/share-assets/viral-share.png`;
+  const androidStoreUrl =
+    (process.env.APP_ANDROID_STORE_URL ?? 'https://play.google.com/store/apps/details?id=com.viral_new').toString();
+  const iosStoreUrl =
+    (process.env.APP_IOS_STORE_URL ?? 'https://apps.apple.com/tr/app/viral-network/id6761623655').toString();
+  const androidIntentUrl = `intent://home#Intent;scheme=viral;package=com.viral_new;S.browser_fallback_url=${encodeURIComponent(androidStoreUrl)};end`;
+
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  return res.send(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Viral Network</title>
+  <meta name="description" content="Viral Network uygulamasını aç veya indir." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Viral Network" />
+  <meta property="og:title" content="Viral Network" />
+  <meta property="og:description" content="Viral Network uygulamasını aç veya indir." />
+  <meta property="og:url" content="${escapeHtml(`${getPublicBaseUrl(req)}/download`)}" />
+  <meta property="og:image" content="${escapeHtml(image)}" />
+  <meta property="og:image:secure_url" content="${escapeHtml(image)}" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="al:android:url" content="${escapeHtml(appDeepLink)}" />
+  <meta property="al:android:package" content="com.viral_new" />
+  <meta property="al:android:app_name" content="Viral" />
+  <meta property="al:ios:url" content="${escapeHtml(appDeepLink)}" />
+  <meta property="al:ios:app_name" content="Viral" />
+  <meta property="al:ios:app_store_id" content="6761623655" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Viral Network" />
+  <meta name="twitter:description" content="Viral Network uygulamasını aç veya indir." />
+  <meta name="twitter:image" content="${escapeHtml(image)}" />
+</head>
+<body style="font-family:Arial,sans-serif;margin:0;padding:24px;background:#0b0b12;color:#fff;">
+  <main style="max-width:680px;margin:0 auto;text-align:center;">
+    <img src="${escapeHtml(image)}" alt="Viral" style="max-width:100%;border-radius:18px;" />
+    <h1>Viral Network</h1>
+    <p>Uygulama cihazında yüklüyse Viral'i aç; değilse mağazadan indirebilirsin.</p>
+    <p><a id="openViral" href="${escapeHtml(appDeepLink)}" data-android-intent="${escapeHtml(androidIntentUrl)}" style="display:inline-block;background:#E50914;color:#fff;text-decoration:none;padding:12px 18px;border-radius:999px;font-weight:700;">Viral'i Aç</a></p>
+    <p><a href="${escapeHtml(androidStoreUrl)}" style="color:#ff3b3b;">Android indir</a> &nbsp;|&nbsp; <a href="${escapeHtml(iosStoreUrl)}" style="color:#ff3b3b;">iOS indir</a></p>
+  </main>
+  <script>(function(){var hidden=false;var isAndroid=/Android/i.test(navigator.userAgent||'');var openUrl=isAndroid?${JSON.stringify(androidIntentUrl)}:${JSON.stringify(appDeepLink)};var b=document.getElementById('openViral');if(b&&isAndroid)b.setAttribute('href',${JSON.stringify(androidIntentUrl)});document.addEventListener('visibilitychange',function(){hidden=document.hidden;});setTimeout(function(){if(!hidden)window.location.href=openUrl;},350);})();</script>
+</body>
+</html>`);
 });
 
 
@@ -2130,6 +2295,57 @@ app.post('/auth/reset-password', async (req, res) => {
       ok: false,
       error: 'server-error',
     });
+  }
+});
+
+// 🔐 CHANGE PASSWORD — profil güncellemesinden bağımsız.
+// Güvenlik için bu endpoint x-user-id/body fallback kullanmaz; geçerli JWT zorunludur.
+app.post('/auth/change-password', async (req, res) => {
+  try {
+    const userId =
+      typeof req.authUserId === 'number' && Number.isFinite(req.authUserId) && req.authUserId > 0
+        ? req.authUserId
+        : null;
+
+    if (!userId) {
+      return res.status(401).json({
+        ok: false,
+        error: 'auth-required',
+        message: 'Oturum doğrulanamadı. Lütfen tekrar giriş yap.',
+      });
+    }
+
+    const newPassword = typeof req.body?.newPassword === 'string' ? req.body.newPassword : '';
+
+    const strongEnough =
+      newPassword.length >= 8 &&
+      /[a-z]/.test(newPassword) &&
+      /[A-Z]/.test(newPassword) &&
+      /[0-9]/.test(newPassword) &&
+      /[^A-Za-z0-9]/.test(newPassword);
+
+    if (!strongEnough) {
+      return res.status(400).json({
+        ok: false,
+        error: 'weak-password',
+        message: 'Şifre en az 8 karakter olmalı; büyük/küçük harf, rakam ve işaret içermeli.',
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    return res.json({
+      ok: true,
+      message: 'Şifren başarıyla güncellendi.',
+    });
+  } catch (err) {
+    console.error('[POST /auth/change-password] error:', err);
+    return res.status(500).json({ ok: false, error: 'server-error' });
   }
 });
 
@@ -2905,6 +3121,299 @@ app.post('/push/register', async (req, res) => {
     return res.json({ ok: true });
   } catch (error) {
     console.error('[POST /push/register] error:', error);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+// -------------------- Direct Messages (1:1) --------------------
+// Ayrı tablo kullanılır; mevcut feed/friend tablolarına dokunmaz.
+// İlk DM isteğinde tablo ve indeksler güvenli biçimde oluşturulur.
+let directMessageTableReady = false;
+let directMessageTableInitPromise: Promise<void> | null = null;
+
+async function ensureDirectMessageTable(): Promise<void> {
+  if (directMessageTableReady) return;
+  if (directMessageTableInitPromise) return directMessageTableInitPromise;
+
+  directMessageTableInitPromise = (async () => {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "DirectMessage" (
+        "id" SERIAL PRIMARY KEY,
+        "senderId" INTEGER NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+        "recipientId" INTEGER NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+        "text" TEXT NOT NULL,
+        "read" BOOLEAN NOT NULL DEFAULT FALSE,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "DirectMessage_senderId_recipientId_createdAt_idx"
+      ON "DirectMessage" ("senderId", "recipientId", "createdAt")
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "DirectMessage_recipientId_read_createdAt_idx"
+      ON "DirectMessage" ("recipientId", "read", "createdAt")
+    `);
+    directMessageTableReady = true;
+  })();
+
+  try {
+    await directMessageTableInitPromise;
+  } finally {
+    directMessageTableInitPromise = null;
+  }
+}
+
+function jwtUserId(req: express.Request): number | null {
+  const id = req.authUserId;
+  return typeof id === 'number' && Number.isFinite(id) && id > 0 ? id : null;
+}
+
+function normalizeDmRow(row: any) {
+  return {
+    id: Number(row?.id),
+    senderId: Number(row?.senderId),
+    recipientId: Number(row?.recipientId),
+    text: String(row?.text ?? ''),
+    read: row?.read === true,
+    createdAt:
+      row?.createdAt instanceof Date
+        ? row.createdAt.toISOString()
+        : new Date(row?.createdAt ?? Date.now()).toISOString(),
+  };
+}
+
+app.get('/dm/conversations', async (req, res) => {
+  try {
+    const meId = jwtUserId(req);
+    if (!meId) return res.status(401).json({ ok: false, error: 'auth-required' });
+
+    await ensureDirectMessageTable();
+
+    const rows = await prisma.$queryRawUnsafe<any[]>(
+      `SELECT "id", "senderId", "recipientId", "text", "read", "createdAt"
+       FROM "DirectMessage"
+       WHERE "senderId" = $1 OR "recipientId" = $1
+       ORDER BY "createdAt" DESC, "id" DESC
+       LIMIT 1500`,
+      meId,
+    );
+
+    const unreadRows = await prisma.$queryRawUnsafe<any[]>(
+      `SELECT "senderId" AS "otherUserId", COUNT(*)::int AS "count"
+       FROM "DirectMessage"
+       WHERE "recipientId" = $1 AND "read" = FALSE
+       GROUP BY "senderId"`,
+      meId,
+    );
+    const unreadByUser = new Map<number, number>(
+      (unreadRows || []).map(row => [Number(row.otherUserId), Number(row.count ?? 0)]),
+    );
+
+    const latestByUser = new Map<number, any>();
+    for (const row of rows || []) {
+      const senderId = Number(row.senderId);
+      const recipientId = Number(row.recipientId);
+      const otherUserId = senderId === meId ? recipientId : senderId;
+      if (!Number.isFinite(otherUserId) || otherUserId <= 0 || latestByUser.has(otherUserId)) continue;
+      latestByUser.set(otherUserId, row);
+    }
+
+    const otherIds = Array.from(latestByUser.keys());
+    const users = otherIds.length
+      ? await prisma.user.findMany({ where: { id: { in: otherIds } } })
+      : [];
+    const userMap = new Map(users.map(user => [Number(user.id), user]));
+
+    const items = otherIds
+      .map(otherUserId => {
+        const user = userMap.get(otherUserId);
+        const row = latestByUser.get(otherUserId);
+        if (!user || !row) return null;
+        return {
+          otherUser: toPublicUser(user, req),
+          lastMessage: normalizeDmRow(row),
+          unreadCount: Math.max(0, Number(unreadByUser.get(otherUserId) ?? 0)),
+        };
+      })
+      .filter(Boolean);
+
+    return res.json({ ok: true, items });
+  } catch (e) {
+    console.error('[GET /dm/conversations] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+app.get('/dm/messages/:otherUserId', async (req, res) => {
+  try {
+    const meId = jwtUserId(req);
+    if (!meId) return res.status(401).json({ ok: false, error: 'auth-required' });
+
+    const otherUserId = Number(req.params.otherUserId);
+    if (!Number.isFinite(otherUserId) || otherUserId <= 0 || otherUserId === meId) {
+      return res.status(400).json({ ok: false, error: 'invalid-user' });
+    }
+
+    const otherUser = await prisma.user.findUnique({ where: { id: otherUserId } });
+    if (!otherUser) return res.status(404).json({ ok: false, error: 'user-not-found' });
+
+    await ensureDirectMessageTable();
+
+    const limitRaw = Number(req.query.limit ?? 80);
+    const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(100, Math.floor(limitRaw))) : 80;
+    const beforeIdRaw = Number(req.query.beforeId ?? 0);
+    const beforeId = Number.isFinite(beforeIdRaw) && beforeIdRaw > 0 ? Math.floor(beforeIdRaw) : null;
+
+    const rows = beforeId
+      ? await prisma.$queryRawUnsafe<any[]>(
+          `SELECT "id", "senderId", "recipientId", "text", "read", "createdAt"
+           FROM "DirectMessage"
+           WHERE (("senderId" = $1 AND "recipientId" = $2) OR ("senderId" = $2 AND "recipientId" = $1))
+             AND "id" < $3
+           ORDER BY "id" DESC
+           LIMIT $4`,
+          meId,
+          otherUserId,
+          beforeId,
+          limit,
+        )
+      : await prisma.$queryRawUnsafe<any[]>(
+          `SELECT "id", "senderId", "recipientId", "text", "read", "createdAt"
+           FROM "DirectMessage"
+           WHERE ("senderId" = $1 AND "recipientId" = $2) OR ("senderId" = $2 AND "recipientId" = $1)
+           ORDER BY "id" DESC
+           LIMIT $3`,
+          meId,
+          otherUserId,
+          limit,
+        );
+
+    const ordered = [...(rows || [])].reverse().map(normalizeDmRow);
+    return res.json({
+      ok: true,
+      otherUser: toPublicUser(otherUser, req),
+      items: ordered,
+      hasMore: (rows || []).length >= limit,
+      nextBeforeId: ordered.length ? Number(ordered[0].id) : null,
+    });
+  } catch (e) {
+    console.error('[GET /dm/messages/:otherUserId] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+app.post('/dm/messages/:otherUserId', async (req, res) => {
+  try {
+    const meId = jwtUserId(req);
+    if (!meId) return res.status(401).json({ ok: false, error: 'auth-required' });
+
+    const otherUserId = Number(req.params.otherUserId);
+    if (!Number.isFinite(otherUserId) || otherUserId <= 0 || otherUserId === meId) {
+      return res.status(400).json({ ok: false, error: 'invalid-user' });
+    }
+
+    const text = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
+    if (!text) return res.status(400).json({ ok: false, error: 'message-required' });
+    if (text.length > 2000) return res.status(400).json({ ok: false, error: 'message-too-long' });
+
+    const [sender, recipient] = await Promise.all([
+      prisma.user.findUnique({ where: { id: meId } }),
+      prisma.user.findUnique({ where: { id: otherUserId } }),
+    ]);
+    if (!sender || !recipient) return res.status(404).json({ ok: false, error: 'user-not-found' });
+
+    await ensureDirectMessageTable();
+
+    const inserted = await prisma.$queryRawUnsafe<any[]>(
+      `INSERT INTO "DirectMessage" ("senderId", "recipientId", "text", "read", "createdAt")
+       VALUES ($1, $2, $3, FALSE, CURRENT_TIMESTAMP)
+       RETURNING "id", "senderId", "recipientId", "text", "read", "createdAt"`,
+      meId,
+      otherUserId,
+      text,
+    );
+    const message = normalizeDmRow(inserted?.[0]);
+
+    const senderName = displayNameForNotification(sender, 'Viral kullanıcısı');
+    const preview = text.length > 120 ? `${text.slice(0, 117)}...` : text;
+
+    try {
+      await (prisma as any).notification.create({
+        data: {
+          userId: otherUserId,
+          actorUserId: meId,
+          postId: null,
+          type: 'dm',
+          message: `${senderName}: ${preview}`,
+        },
+      });
+    } catch (notifyError) {
+      console.warn('[DM] notification create failed:', notifyError);
+    }
+
+    try {
+      await sendPushToUsers({
+        userIds: [otherUserId],
+        title: 'Yeni mesaj',
+        body: `${senderName}: ${preview}`,
+        type: 'dm',
+        postId: null,
+        extraData: { senderUserId: String(meId) },
+      });
+    } catch (pushError) {
+      console.warn('[DM] push failed:', pushError);
+    }
+
+    return res.json({ ok: true, message });
+  } catch (e) {
+    console.error('[POST /dm/messages/:otherUserId] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+app.post('/dm/messages/:otherUserId/read', async (req, res) => {
+  try {
+    const meId = jwtUserId(req);
+    if (!meId) return res.status(401).json({ ok: false, error: 'auth-required' });
+
+    const otherUserId = Number(req.params.otherUserId);
+    if (!Number.isFinite(otherUserId) || otherUserId <= 0 || otherUserId === meId) {
+      return res.status(400).json({ ok: false, error: 'invalid-user' });
+    }
+
+    await ensureDirectMessageTable();
+    await prisma.$executeRawUnsafe(
+      `UPDATE "DirectMessage"
+       SET "read" = TRUE
+       WHERE "senderId" = $1 AND "recipientId" = $2 AND "read" = FALSE`,
+      otherUserId,
+      meId,
+    );
+
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('[POST /dm/messages/:otherUserId/read] error:', e);
+    return res.status(500).json({ ok: false, error: 'server-error' });
+  }
+});
+
+app.get('/dm/unread-count', async (req, res) => {
+  try {
+    const meId = jwtUserId(req);
+    if (!meId) return res.status(401).json({ ok: false, error: 'auth-required' });
+
+    await ensureDirectMessageTable();
+    const rows = await prisma.$queryRawUnsafe<any[]>(
+      `SELECT COUNT(*)::int AS "count"
+       FROM "DirectMessage"
+       WHERE "recipientId" = $1 AND "read" = FALSE`,
+      meId,
+    );
+    const count = Math.max(0, Number(rows?.[0]?.count ?? 0));
+    return res.json({ ok: true, count });
+  } catch (e) {
+    console.error('[GET /dm/unread-count] error:', e);
     return res.status(500).json({ ok: false, error: 'server-error' });
   }
 });

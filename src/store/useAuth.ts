@@ -8,6 +8,7 @@ import {
   postLogin,
   getMe,
   putMe,
+  postChangePassword,
   setAuthToken, // ✅ token header için
 } from '../config/api';
 
@@ -123,6 +124,21 @@ type AuthState = {
     bio?: string;
     website?: string;
   }) => Promise<{ ok: boolean; error?: string; field?: UiErrorField }>;
+
+  // ✅ Giriş yapmış kullanıcının profilini günceller; kayıt/şifre akışından bağımsızdır.
+  updateProfile: (params: {
+    fullName: string;
+    email: string;
+    phone: string;
+    handle?: string;
+    bio?: string;
+    website?: string;
+  }) => Promise<{ ok: boolean; error?: string; field?: UiErrorField }>;
+
+  // ✅ Şifre değiştirme ayrı akış.
+  changePassword: (params: {
+    newPassword: string;
+  }) => Promise<{ ok: boolean; error?: string }>;
 
   loginWithCredentials: (params: {
     identifier: string;
@@ -867,6 +883,199 @@ export const useAuth = create<AuthState>((set, get) => ({
       });
 
       return { ok: false, error: 'Kayıt oluşturulamadı. Lütfen tekrar dene.', field: null };
+    } finally {
+      set({ isSyncing: false });
+    }
+  },
+
+  // ✅ PROFİL GÜNCELLEME — kayıt akışına ve şifreye dokunmaz.
+  updateProfile: async ({ fullName, email, phone, handle, bio, website }) => {
+    const trimmedName = fullName.trim();
+    const normalizedEmail = normalizeEmail(email);
+    const cleanedPhone = cleanPhone(phone);
+    const normalizedPhone = cleanedPhone.length ? cleanedPhone : '';
+    const cleanedHandle = normalizeHandle(handle);
+    const trimmedBio = bio?.trim() ?? '';
+    const trimmedWebsite = website?.trim() ?? '';
+
+    set({ uiError: null, uiErrorField: null, lastError: null });
+
+    if (!trimmedName) return { ok: false, error: 'Ad Soyad boş olamaz.', field: null };
+    if (!validateEmail(normalizedEmail)) {
+      return { ok: false, error: 'Geçerli bir e-posta adresi gir.', field: 'email' };
+    }
+    if (cleanedPhone.length > 0 && cleanedPhone.length < 10) {
+      return { ok: false, error: 'Geçerli bir telefon numarası gir.', field: 'phone' };
+    }
+    if (!isValidHandle(cleanedHandle)) {
+      return {
+        ok: false,
+        error: 'Kullanıcı adı en az 3, en fazla 24 karakter olmalı; harf, rakam, alt çizgi veya nokta içerebilir.',
+        field: null,
+      };
+    }
+
+    const backendUserId = get().backendUserId;
+    if (!(typeof backendUserId === 'number' && Number.isFinite(backendUserId) && backendUserId > 0)) {
+      return { ok: false, error: 'Aktif kullanıcı bulunamadı.', field: null };
+    }
+
+    try {
+      set({ isSyncing: true });
+
+      const backend = await putMe(backendUserId, {
+        fullName: trimmedName,
+        handle: cleanedHandle || null,
+        bio: trimmedBio || null,
+        website: trimmedWebsite || null,
+        email: normalizedEmail,
+        phone: normalizedPhone || null,
+      });
+
+      const current = get().profile;
+      const updatedProfile: UserProfile = {
+        fullName: backend.fullName || trimmedName,
+        email: backend.email || normalizedEmail,
+        phone: backend.phone || normalizedPhone,
+        createdAt: current?.createdAt ?? Date.now(),
+        isPhoneVerified:
+          typeof backend.isPhoneVerified === 'boolean'
+            ? backend.isPhoneVerified
+            : !!current?.isPhoneVerified,
+        avatarUri:
+          typeof backend.avatarUri === 'string' || backend.avatarUri === null
+            ? backend.avatarUri
+            : current?.avatarUri ?? null,
+        displayName: backend.displayName || backend.fullName || trimmedName,
+        handle:
+          typeof backend.handle === 'string' && backend.handle.trim().length
+            ? backend.handle.replace(/^@+/, '')
+            : null,
+        bio: typeof backend.bio === 'string' && backend.bio.trim().length ? backend.bio : null,
+        website:
+          typeof backend.website === 'string' && backend.website.trim().length
+            ? backend.website
+            : null,
+      };
+
+      const oldActiveId = get().activeIdentifier;
+      const oldActiveNorm = String(oldActiveId ?? '').trim().toLowerCase();
+      const oldEmailNorm = normalizeEmail(current?.email ?? '');
+      const oldPhoneNorm = cleanPhone(current?.phone ?? '');
+
+      // Kullanıcı hangi kimlikle giriş yaptıysa onu koru. Sadece o e-posta/telefon
+      // gerçekten değiştiyse yerel hesap anahtarını yeni değerle taşı.
+      let nextIdentifier = oldActiveId || '';
+      if (oldActiveNorm && oldEmailNorm && oldActiveNorm === oldEmailNorm.toLowerCase()) {
+        nextIdentifier = updatedProfile.email || oldActiveId || '';
+      } else if (oldActiveNorm && oldPhoneNorm && oldActiveNorm === oldPhoneNorm.toLowerCase()) {
+        nextIdentifier = updatedProfile.phone || oldActiveId || '';
+      } else if (!oldActiveId) {
+        nextIdentifier = updatedProfile.email || updatedProfile.phone || '';
+      }
+
+      let accounts = get().accounts;
+
+      const oldAcc =
+        (oldActiveId
+          ? accounts.find(a => a.identifier.trim().toLowerCase() === oldActiveId.trim().toLowerCase())
+          : null) ??
+        accounts.find(a => Number(a.backendUserId) === backendUserId) ??
+        null;
+
+      if (oldAcc) {
+        const oldIdentifierNorm = oldAcc.identifier.trim().toLowerCase();
+        const withoutOld = accounts.filter(
+          a => a.identifier.trim().toLowerCase() !== oldIdentifierNorm,
+        );
+        accounts = upsertAccount(withoutOld, {
+          ...oldAcc,
+          identifier: nextIdentifier || oldAcc.identifier,
+          profile: updatedProfile,
+        });
+      }
+
+      const finalActiveIdentifier = nextIdentifier || oldActiveId;
+      const compatUser = buildCompatUser(backendUserId, updatedProfile);
+
+      set({
+        accounts,
+        activeIdentifier: finalActiveIdentifier,
+        profile: updatedProfile,
+        user: compatUser,
+        userId: updatedProfile.displayName || updatedProfile.fullName || updatedProfile.email || null,
+        isSyncing: false,
+        lastError: null,
+        uiError: null,
+        uiErrorField: null,
+      });
+
+      const nextStore: StoredAuthV2 = {
+        version: 2,
+        accounts,
+        activeIdentifier: finalActiveIdentifier,
+        deviceId: get().deviceId,
+        sessionActive: get().sessionActive,
+        prefillRegister: get().prefillRegister,
+      };
+      storage.saveJson(STORAGE_KEY, nextStore);
+
+      return { ok: true };
+    } catch (e: any) {
+      const parsed = parseBackendTakenError(e);
+      const message = parsed.message || 'Profil güncellenemedi. Lütfen tekrar dene.';
+      set({
+        isSyncing: false,
+        lastError: String(e?.message ?? e),
+        uiError: parsed.message,
+        uiErrorField: parsed.field,
+      });
+      return { ok: false, error: message, field: parsed.field };
+    } finally {
+      set({ isSyncing: false });
+    }
+  },
+
+  // ✅ ŞİFRE DEĞİŞTİRME — profil bilgilerinden tamamen bağımsız.
+  changePassword: async ({ newPassword }) => {
+    if (!isStrongPassword(newPassword)) {
+      return {
+        ok: false,
+        error: 'Şifre en az 8 karakter olmalı; büyük harf, küçük harf, rakam ve işaret içermeli.',
+      };
+    }
+
+    try {
+      set({ isSyncing: true, lastError: null });
+      await postChangePassword({ newPassword });
+
+      const activeId = get().activeIdentifier;
+      let accounts = get().accounts;
+      if (activeId) {
+        const acc = accounts.find(
+          a => a.identifier.trim().toLowerCase() === activeId.trim().toLowerCase(),
+        );
+        if (acc) {
+          accounts = upsertAccount(accounts, { ...acc, password: newPassword });
+        }
+      }
+
+      set({ accounts, password: newPassword, isSyncing: false, lastError: null });
+
+      const nextStore: StoredAuthV2 = {
+        version: 2,
+        accounts,
+        activeIdentifier: activeId,
+        deviceId: get().deviceId,
+        sessionActive: get().sessionActive,
+        prefillRegister: get().prefillRegister,
+      };
+      storage.saveJson(STORAGE_KEY, nextStore);
+
+      return { ok: true };
+    } catch (e: any) {
+      set({ isSyncing: false, lastError: String(e?.message ?? e) });
+      return { ok: false, error: 'Şifre güncellenemedi. Lütfen tekrar dene.' };
     } finally {
       set({ isSyncing: false });
     }

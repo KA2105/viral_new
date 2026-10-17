@@ -59,7 +59,9 @@
       "passwordMismatch": "Password and confirmation must match.",
       "saveFailed": "Profile could not be updated.",
       "saveSuccess": "Your profile information has been updated.",
-      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server.",
+      "passwordChangeFailed": "Password could not be updated.",
+      "passwordChangeSuccess": "Your password has been updated."
     },
     "verify": {
       "sectionTitle": "Phone verification",
@@ -163,7 +165,15 @@
       "success": "Your account has been deleted.",
       "unexpected": "Something went wrong."
     },
-    "notLoggedIn": "No active session found."
+    "notLoggedIn": "No active session found.",
+    "passwordSection": {
+      "title": "Change Password",
+      "newPassword": "New password",
+      "newPasswordPlaceholder": "Your new password",
+      "confirmPassword": "New password (again)",
+      "confirmPasswordPlaceholder": "Type the new password again",
+      "updateButton": "Update Password"
+    }
   },
   "upload": {
     "screenTitleTask": "Create task card",
@@ -512,7 +522,8 @@
     "upload": "Upload",
     "tasks": "Tasks",
     "profile": "Profile",
-    "logout": "Log out"
+    "logout": "Log out",
+    "messages": "Messages"
   },
   "feed": {
     "guestName": "guest",
@@ -809,6 +820,22 @@
     "net": {
       "invalidBaseUrl": "API_BASE_URL seems invalid.",
       "onlineFetchError": "Focus Network online fetch error"
+    }
+  },
+  "messages": {
+    "title": "Messages",
+    "subtitle": "Private one-to-one chats with Viral users",
+    "loading": "Loading...",
+    "you": "You",
+    "emptyChat": "No messages yet. Send the first message.",
+    "placeholder": "Write a message...",
+    "send": "Send",
+    "emptyList": "You do not have any chats yet. Open a profile in Focus Network and tap “Send Message”.",
+    "start": "Send Message",
+    "errors": {
+      "list": "Messages could not be loaded.",
+      "chat": "Chat could not be loaded.",
+      "send": "Message could not be sent."
     }
   }
 }

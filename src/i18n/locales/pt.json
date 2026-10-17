@@ -59,7 +59,9 @@
       "passwordMismatch": "Senha e confirmação devem coincidir.",
       "saveFailed": "Não foi possível atualizar o perfil.",
       "saveSuccess": "Suas informações de perfil foram atualizadas.",
-      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server.",
+      "passwordChangeFailed": "Não foi possível atualizar a senha.",
+      "passwordChangeSuccess": "Sua senha foi atualizada."
     },
     "verify": {
       "sectionTitle": "Verificação de telefone",
@@ -163,7 +165,15 @@
       "success": "Your account has been deleted.",
       "unexpected": "Something went wrong."
     },
-    "notLoggedIn": "No active session found."
+    "notLoggedIn": "No active session found.",
+    "passwordSection": {
+      "title": "Alterar senha",
+      "newPassword": "Nova senha",
+      "newPasswordPlaceholder": "Sua nova senha",
+      "confirmPassword": "Nova senha (novamente)",
+      "confirmPasswordPlaceholder": "Digite a nova senha novamente",
+      "updateButton": "Atualizar senha"
+    }
   },
   "upload": {
     "screenTitleTask": "Criar cartão de tarefa",
@@ -512,7 +522,8 @@
     "upload": "Enviar",
     "tasks": "Tarefas",
     "profile": "Perfil",
-    "logout": "Sair"
+    "logout": "Sair",
+    "messages": "Mensagens"
   },
   "feed": {
     "guestName": "convidado",
@@ -809,6 +820,22 @@
     "net": {
       "invalidBaseUrl": "API_BASE_URL parece inválido.",
       "onlineFetchError": "Erro de busca online da Rede Focus"
+    }
+  },
+  "messages": {
+    "title": "Mensagens",
+    "subtitle": "Conversas privadas individuais com usuários do Viral",
+    "loading": "Carregando...",
+    "you": "Você",
+    "emptyChat": "Ainda não há mensagens. Envie a primeira.",
+    "placeholder": "Escreva uma mensagem...",
+    "send": "Enviar",
+    "emptyList": "Você ainda não tem conversas. Abra um perfil na Focus Network e toque em “Enviar mensagem”.",
+    "start": "Enviar mensagem",
+    "errors": {
+      "list": "Não foi possível carregar as mensagens.",
+      "chat": "Não foi possível carregar a conversa.",
+      "send": "Não foi possível enviar a mensagem."
     }
   }
 }

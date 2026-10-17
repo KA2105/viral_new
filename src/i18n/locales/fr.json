@@ -59,7 +59,9 @@
       "passwordMismatch": "Le mot de passe et sa confirmation doivent correspondre.",
       "saveFailed": "Le profil n’a pas pu être mis à jour.",
       "saveSuccess": "Les informations de ton profil ont été mises à jour.",
-      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server.",
+      "passwordChangeFailed": "Impossible de mettre à jour le mot de passe.",
+      "passwordChangeSuccess": "Votre mot de passe a été mis à jour."
     },
     "verify": {
       "sectionTitle": "Vérification du téléphone",
@@ -163,7 +165,15 @@
       "success": "Your account has been deleted.",
       "unexpected": "Something went wrong."
     },
-    "notLoggedIn": "No active session found."
+    "notLoggedIn": "No active session found.",
+    "passwordSection": {
+      "title": "Changer le mot de passe",
+      "newPassword": "Nouveau mot de passe",
+      "newPasswordPlaceholder": "Votre nouveau mot de passe",
+      "confirmPassword": "Nouveau mot de passe (à nouveau)",
+      "confirmPasswordPlaceholder": "Saisissez à nouveau le mot de passe",
+      "updateButton": "Mettre à jour le mot de passe"
+    }
   },
   "upload": {
     "screenTitleTask": "Créer une carte de tâche",
@@ -512,7 +522,8 @@
     "upload": "Publier",
     "tasks": "Tâches",
     "profile": "Profil",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "messages": "Messages"
   },
   "feed": {
     "guestName": "invité",
@@ -809,6 +820,22 @@
     "net": {
       "invalidBaseUrl": "API_BASE_URL semble invalide.",
       "onlineFetchError": "Erreur de récupération en ligne du Réseau Focus"
+    }
+  },
+  "messages": {
+    "title": "Messages",
+    "subtitle": "Discussions privées avec les utilisateurs de Viral",
+    "loading": "Chargement...",
+    "you": "Vous",
+    "emptyChat": "Aucun message pour le moment. Envoyez le premier message.",
+    "placeholder": "Écrire un message...",
+    "send": "Envoyer",
+    "emptyList": "Vous n’avez encore aucune discussion. Ouvrez un profil dans Focus Network et appuyez sur « Envoyer un message ».",
+    "start": "Envoyer un message",
+    "errors": {
+      "list": "Impossible de charger les messages.",
+      "chat": "Impossible de charger la discussion.",
+      "send": "Impossible d’envoyer le message."
     }
   }
 }

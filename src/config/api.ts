@@ -495,6 +495,28 @@ export async function postResetPassword(
   };
 }
 
+export type ChangePasswordPayload = {
+  newPassword: string;
+};
+
+// ✅ Aktif oturumdaki kullanıcının şifresini değiştirir.
+// Bu endpoint yalnızca JWT ile çalışır; profil bilgisi güncellemesinden bağımsızdır.
+export async function postChangePassword(
+  payload: ChangePasswordPayload,
+): Promise<{ ok: boolean; message: string }> {
+  const json = await apiFetch<any>('/auth/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newPassword: payload.newPassword }),
+    timeoutMs: 20000,
+  });
+
+  return {
+    ok: !!json?.ok,
+    message: String(json?.message ?? 'Şifren başarıyla güncellendi.'),
+  };
+}
+
 // ✅ GET ME
 export async function getMe(userId?: number | null): Promise<BackendUser> {
   // Token varsa zaten /me token ile çalışır; yine de compat için query+header tutuyorum.

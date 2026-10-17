@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSocialAccounts } from '../store/useSocialAccounts';
+import { API_BASE_URL } from '../config/api';
 
 // Dış paylaşım paneli
 type SharePanelProps = {
@@ -125,7 +126,8 @@ const SharePanel: React.FC<SharePanelProps> = ({
           ? shareText.trim()
           : t('feed.share.defaultText', 'Shared from Viral')) + '';
 
-      const promo = '\n\nCreated on Viral 🎯\n\nDiscover Viral:\nhttps://viral.app';
+      const viralDownloadUrl = `${String(API_BASE_URL).replace(/\/+$/, '')}/download`;
+      const promo = `\n\nCreated on Viral 🎯\n\nDiscover Viral:\n${viralDownloadUrl}`;
 
       const message = platformLabel
         ? t('feed.share.shareText', {

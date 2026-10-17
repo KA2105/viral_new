@@ -23,6 +23,8 @@ import { useFocusNetwork } from '../store/useFocusNetwork';
 
 type FocusProfile = {
   id: string;
+  // requests sekmesinde id, FriendRequest id'sidir; DM için gerçek kullanıcı id'sini ayrıca tutarız.
+  userId?: string;
   name: string;
   handle: string;
   summary: string;
@@ -36,6 +38,9 @@ type FocusProfile = {
 
 type Props = {
   onClose?: () => void;
+  onMessageUser?: (user: { id: number; name: string; handle: string; avatarUri?: string | null }) => void;
+  initialHandle?: string | null;
+  onInitialHandleConsumed?: () => void;
 };
 
 // Gerçek kullanıcı verisi dışında örnek/hayali profil gösterilmez.
@@ -196,7 +201,7 @@ function mergeFocusUsersByKey(...lists: any[][]): any[] {
   return Array.from(map.values());
 }
 
-const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
+const FocusNetworkScreen: React.FC<Props> = ({ onClose, onMessageUser, initialHandle, onInitialHandleConsumed }) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
@@ -231,6 +236,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
   // 🔄 Scroll & “Kişi ekle” için ref / offset
   const scrollRef = useRef<ScrollView | null>(null);
   const [suggestionsOffset, setSuggestionsOffset] = useState(0);
+  const initialHandleOpenedRef = useRef<string>('');
 
   // 🔔 Seen request ids + new badge count
   const [seenRequestIds, setSeenRequestIds] = useState<Set<string>>(new Set());
@@ -450,6 +456,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
       const avatarUri = resolveAvatarUri(u);
       return {
         id: String(u.id),
+        userId: String(u.id),
         name,
         handle,
         summary: u?.bio ? String(u.bio) : t('focusNetwork.summary.inNetwork', 'Focus ağında.'),
@@ -499,6 +506,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
 
       return {
         id: String(u.id),
+        userId: String(u.id),
         name,
         handle,
         summary,
@@ -529,6 +537,7 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
         const avatarUri = resolveAvatarUri(u);
         return {
           id: String(r.id),
+          userId: String(u?.id ?? ''),
           name,
           handle,
           summary: t('focusNetwork.summary.requestPending', 'Arkadaşlık isteği bekliyor.'),
@@ -565,6 +574,55 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
     setDetailVisible(false);
     setSelectedProfile(null);
   };
+
+  // Profil davet linkinden gelindiyse ilgili gerçek Viral profilini aç.
+  useEffect(() => {
+    const target = String(initialHandle ?? '').trim().replace(/^@+/, '').toLowerCase();
+    if (!target || initialHandleOpenedRef.current === target) return;
+    initialHandleOpenedRef.current = target;
+
+    const openInitialProfile = async () => {
+      try {
+        const fromLoaded = [...discoverProfiles, ...myNetworkProfiles].find(
+          p => String(p.handle || '').replace(/^@+/, '').toLowerCase() === target,
+        );
+        if (fromLoaded) {
+          setActiveTab('discover');
+          openDetail(fromLoaded);
+          return;
+        }
+
+        const base = String(API_BASE_URL || '').replace(/\/+$/, '');
+        const uidPart = userId ? `&userId=${encodeURIComponent(String(userId))}` : '';
+        const result = await fetchJson<any>(
+          `${base}/users/search?q=${encodeURIComponent(target)}&limit=500${uidPart}`,
+        );
+        const items = Array.isArray(result?.items) ? result.items : [];
+        const u = items.find(
+          (item: any) => String(item?.handle ?? '').replace(/^@+/, '').toLowerCase() === target,
+        );
+        if (!u) return;
+
+        const profile: FocusProfile = {
+          id: String(u.id),
+          userId: String(u.id),
+          name: u?.fullName || u?.displayName || 'Viral user',
+          handle: u?.handle ? `@${String(u.handle).replace(/^@+/, '')}` : `@${target}`,
+          summary: u?.bio ? String(u.bio) : t('focusNetwork.summary.discoverFallback', 'Keşfet listesinden ekle.'),
+          avatarUri: resolveAvatarUri(u),
+          relationship: String(u?.relationship ?? 'none') as any,
+        };
+        setActiveTab('discover');
+        openDetail(profile);
+      } catch (e) {
+        console.warn('[FocusNetwork] initial profile open failed:', e);
+      } finally {
+        onInitialHandleConsumed?.();
+      }
+    };
+
+    void openInitialProfile();
+  }, [initialHandle, userId, discoverProfiles, myNetworkProfiles, onInitialHandleConsumed, t]);
 
   const detailContext = useMemo(() => {
     if (!selectedProfile) return { mode: 'none' as const };
@@ -1151,6 +1209,26 @@ const FocusNetworkScreen: React.FC<Props> = ({ onClose }) => {
               <Text style={styles.detailInfoText}>• API: {API_BASE_URL}</Text>
             </View>
 
+            {onMessageUser && Number(selectedProfile.userId ?? selectedProfile.id) > 0 ? (
+              <Pressable
+                style={({ pressed }) => [styles.messageBtn, pressed && styles.messageBtnPressed]}
+                onPress={() => {
+                  const targetId = Number(selectedProfile.userId ?? selectedProfile.id);
+                  if (!Number.isFinite(targetId) || targetId <= 0) return;
+                  const target = {
+                    id: targetId,
+                    name: selectedProfile.name,
+                    handle: selectedProfile.handle,
+                    avatarUri: selectedProfile.avatarUri ?? null,
+                  };
+                  closeDetail();
+                  onMessageUser(target);
+                }}
+              >
+                <Text style={styles.messageBtnText}>{t('messages.start', 'Mesaj Gönder')}</Text>
+              </Pressable>
+            ) : null}
+
             <View style={styles.detailActionsRow}>
               <Pressable style={({ pressed }) => [styles.detailSecondaryBtn, pressed && styles.detailSecondaryBtnPressed]} onPress={handleSecondaryActionInDetail}>
                 <Text style={styles.detailSecondaryText}>
@@ -1328,7 +1406,10 @@ const styles = StyleSheet.create({
   detailInfoBox: { marginTop: 10, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#f5f5f5' },
   detailInfoText: { fontSize: 12, color: '#555', marginBottom: 4 },
 
-  detailActionsRow: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: 14, gap: 8 },
+  messageBtn: { marginTop: 14, backgroundColor: '#111827', borderRadius: 999, paddingVertical: 11, alignItems: 'center', justifyContent: 'center' },
+  messageBtnPressed: { opacity: 0.82 },
+  messageBtnText: { color: '#fff', fontSize: 13, fontWeight: '800' },
+  detailActionsRow: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: 10, gap: 8 },
   detailSecondaryBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: '#eeeeee' },
   detailSecondaryBtnPressed: { backgroundColor: '#e0e0e0' },
   detailSecondaryText: { fontSize: 12, fontWeight: '600', color: '#444' },

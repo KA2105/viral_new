@@ -9,6 +9,7 @@ const PENDING_PUSH_OPEN_KEY = 'viral.pendingPushOpen.v1';
 type PushOpenPayload = {
   postId?: string | null;
   type?: string | null;
+  senderUserId?: string | null;
 };
 
 type RegisterPushDeviceParams = {
@@ -22,8 +23,10 @@ function normalizePushOpen(remoteMessage: FirebaseMessagingTypes.RemoteMessage |
   const postIdRaw = data.postId ?? null;
   const postId = postIdRaw == null ? null : String(postIdRaw).trim();
   const type = data.type == null ? null : String(data.type).trim();
-  if (!postId && !type) return null;
-  return { postId: postId || null, type: type || null };
+  const senderUserIdRaw = data.senderUserId ?? null;
+  const senderUserId = senderUserIdRaw == null ? null : String(senderUserIdRaw).trim();
+  if (!postId && !type && !senderUserId) return null;
+  return { postId: postId || null, type: type || null, senderUserId: senderUserId || null };
 }
 
 async function storePendingPushOpen(payload: PushOpenPayload | null) {
@@ -100,6 +103,14 @@ export function installPushOpenHandlers(): () => void {
     DeviceEventEmitter.emit('viral_push_open', payload);
   });
 
+  // Uygulama açıkken sistem tepsisi bildirimi görünmese bile DM rozetini hemen yenile.
+  const foregroundUnsubscribe = messaging().onMessage(remoteMessage => {
+    const payload = normalizePushOpen(remoteMessage);
+    if (String(payload?.type ?? '').toLowerCase() === 'dm') {
+      DeviceEventEmitter.emit('viral_dm_unread_changed', {});
+    }
+  });
+
   void messaging()
     .getInitialNotification()
     .then(async remoteMessage => {
@@ -110,7 +121,10 @@ export function installPushOpenHandlers(): () => void {
     })
     .catch(error => console.warn('[PUSH] initial notification read failed:', error));
 
-  return openedUnsubscribe;
+  return () => {
+    openedUnsubscribe();
+    foregroundUnsubscribe();
+  };
 }
 
 export async function consumePendingPushOpen(): Promise<PushOpenPayload | null> {

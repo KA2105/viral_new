@@ -63,7 +63,7 @@ const ICON_NEXTSOSYAL = require('../assets/icons/nextsosyal.png');
 import SharePanel from '../components/SharePanel';
 
 type Props = {
-  go: (screen: 'Feed' | 'Upload' | 'Tasks' | 'FocusNetwork') => void;
+  go: (screen: 'Feed' | 'Upload' | 'Tasks' | 'FocusNetwork' | 'Messages') => void;
 };
 
 // 💬 Yorum tipi – kalıcı olacak
@@ -2456,7 +2456,7 @@ export default function FeedScreen({ go }: Props) {
 
     const timer = setTimeout(() => {
       cinemaGoNext();
-    }, 4000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [
@@ -2520,6 +2520,12 @@ export default function FeedScreen({ go }: Props) {
     setNotifications(prev => prev.map(x => (x.id === n.id ? { ...x, read: true } : x)));
     if (n.serverId) markRemoteNotificationRead(n.serverId);
     setNotificationsVisible(false);
+
+    // DM bildirimi gönderiye bağlı değildir; Mesajlar ekranını aç.
+    if (String(n.type ?? '').trim().toLowerCase() === 'dm') {
+      go('Messages');
+      return;
+    }
 
     if (!n.postId) return;
 

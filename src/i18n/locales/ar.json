@@ -59,7 +59,9 @@
       "passwordMismatch": "يجب أن تتطابق كلمة المرور مع التأكيد.",
       "saveFailed": "تعذر تحديث الملف الشخصي.",
       "saveSuccess": "تم تحديث معلومات ملفك الشخصي.",
-      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server.",
+      "passwordChangeFailed": "تعذر تحديث كلمة المرور.",
+      "passwordChangeSuccess": "تم تحديث كلمة المرور."
     },
     "verify": {
       "sectionTitle": "التحقق من الهاتف",
@@ -163,7 +165,15 @@
       "success": "Your account has been deleted.",
       "unexpected": "Something went wrong."
     },
-    "notLoggedIn": "No active session found."
+    "notLoggedIn": "No active session found.",
+    "passwordSection": {
+      "title": "تغيير كلمة المرور",
+      "newPassword": "كلمة مرور جديدة",
+      "newPasswordPlaceholder": "كلمة المرور الجديدة",
+      "confirmPassword": "كلمة المرور الجديدة (مرة أخرى)",
+      "confirmPasswordPlaceholder": "أدخل كلمة المرور الجديدة مرة أخرى",
+      "updateButton": "تحديث كلمة المرور"
+    }
   },
   "upload": {
     "screenTitleTask": "إنشاء بطاقة مهمة",
@@ -512,7 +522,8 @@
     "upload": "إضافة",
     "tasks": "المهام",
     "profile": "الملف الشخصي",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "messages": "الرسائل"
   },
   "feed": {
     "guestName": "زائر",
@@ -809,6 +820,22 @@
     "net": {
       "invalidBaseUrl": "يبدو أن API_BASE_URL غير صالح.",
       "onlineFetchError": "خطأ في الجلب عبر الإنترنت لشبكة التركيز"
+    }
+  },
+  "messages": {
+    "title": "الرسائل",
+    "subtitle": "محادثات خاصة فردية مع مستخدمي Viral",
+    "loading": "جارٍ التحميل...",
+    "you": "أنت",
+    "emptyChat": "لا توجد رسائل بعد. أرسل الرسالة الأولى.",
+    "placeholder": "اكتب رسالة...",
+    "send": "إرسال",
+    "emptyList": "لا توجد لديك محادثات بعد. افتح ملفًا شخصيًا في Focus Network واضغط «إرسال رسالة».",
+    "start": "إرسال رسالة",
+    "errors": {
+      "list": "تعذر تحميل الرسائل.",
+      "chat": "تعذر تحميل المحادثة.",
+      "send": "تعذر إرسال الرسالة."
     }
   }
 }

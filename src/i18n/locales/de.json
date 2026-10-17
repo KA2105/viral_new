@@ -59,7 +59,9 @@
       "passwordMismatch": "Passwort und Bestätigung müssen übereinstimmen.",
       "saveFailed": "Profil konnte nicht aktualisiert werden.",
       "saveSuccess": "Deine Profilinformationen wurden aktualisiert.",
-      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server."
+      "savedLocalButBackendFailed": "Profile was saved, but it could not be written to the server.",
+      "passwordChangeFailed": "Passwort konnte nicht aktualisiert werden.",
+      "passwordChangeSuccess": "Dein Passwort wurde aktualisiert."
     },
     "verify": {
       "sectionTitle": "Telefonverifizierung",
@@ -163,7 +165,15 @@
       "success": "Your account has been deleted.",
       "unexpected": "Something went wrong."
     },
-    "notLoggedIn": "No active session found."
+    "notLoggedIn": "No active session found.",
+    "passwordSection": {
+      "title": "Passwort ändern",
+      "newPassword": "Neues Passwort",
+      "newPasswordPlaceholder": "Dein neues Passwort",
+      "confirmPassword": "Neues Passwort (erneut)",
+      "confirmPasswordPlaceholder": "Neues Passwort erneut eingeben",
+      "updateButton": "Passwort aktualisieren"
+    }
   },
   "upload": {
     "screenTitleTask": "Aufgabenkarte erstellen",
@@ -512,7 +522,8 @@
     "upload": "Upload",
     "tasks": "Aufgaben",
     "profile": "Profil",
-    "logout": "Abmelden"
+    "logout": "Abmelden",
+    "messages": "Nachrichten"
   },
   "feed": {
     "guestName": "gast",
@@ -809,6 +820,22 @@
     "net": {
       "invalidBaseUrl": "API_BASE_URL scheint ungültig zu sein.",
       "onlineFetchError": "Focus-Netzwerk Online-Abruffehler"
+    }
+  },
+  "messages": {
+    "title": "Nachrichten",
+    "subtitle": "Private Einzelchats mit Viral-Nutzern",
+    "loading": "Wird geladen...",
+    "you": "Du",
+    "emptyChat": "Noch keine Nachrichten. Sende die erste Nachricht.",
+    "placeholder": "Nachricht schreiben...",
+    "send": "Senden",
+    "emptyList": "Du hast noch keine Chats. Öffne ein Profil im Focus Network und tippe auf „Nachricht senden“.",
+    "start": "Nachricht senden",
+    "errors": {
+      "list": "Nachrichten konnten nicht geladen werden.",
+      "chat": "Chat konnte nicht geladen werden.",
+      "send": "Nachricht konnte nicht gesendet werden."
     }
   }
 }
