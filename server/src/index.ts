@@ -106,6 +106,26 @@ app.get('/', (_req, res) => {
   res.json({ ok: true, name: 'viral-server', time: new Date().toISOString() });
 });
 
+// Android Verified App Links association.
+// Release APK ve Google Play App Signing sertifikalarının ikisi de tanımlıdır.
+app.get('/.well-known/assetlinks.json', (_req, res) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  return res.status(200).json([
+    {
+      relation: ['delegate_permission/common.handle_all_urls'],
+      target: {
+        namespace: 'android_app',
+        package_name: 'com.viral_new',
+        sha256_cert_fingerprints: [
+          '43:2C:BA:60:71:68:72:AD:65:4F:5D:39:EB:95:FE:E9:28:81:82:92:49:E0:AB:A1:38:8E:A6:31:0B:9A:89:7C',
+          '32:06:19:D6:BC:3C:44:B0:82:BF:D9:C2:C2:1D:37:A2:40:4B:11:E0:D2:A6:D0:AA:7C:E7:72:99:73:07:22:16',
+        ],
+      },
+    },
+  ]);
+});
+
 // -------------------- JWT (Token) --------------------
 // âœ… Prodâ€™da ENVâ€™den ver: JWT_SECRET
 // Not: TS overload sapmasÄ±n diye tipe netlik veriyoruz.
@@ -1571,7 +1591,7 @@ app.get('/p/:id', async (req, res) => {
       (process.env.APP_ANDROID_STORE_URL ?? 'https://play.google.com/store/apps/details?id=com.viral_new').toString();
     const iosStoreUrl =
       (process.env.APP_IOS_STORE_URL ?? 'https://apps.apple.com/tr/app/viral-network/id6761623655').toString();
-    const androidIntentUrl = `intent://post/${encodeURIComponent(id)}#Intent;scheme=viral;package=com.viral_new;S.browser_fallback_url=${encodeURIComponent(androidStoreUrl)};end`;
+    const androidIntentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.viral_new;S.browser_fallback_url=${encodeURIComponent(androidStoreUrl)};end`;
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -1625,15 +1645,9 @@ app.get('/p/:id', async (req, res) => {
   </main>
   <script>
     (function () {
-      var hidden = false;
       var isAndroid = /Android/i.test(navigator.userAgent || '');
-      var openUrl = isAndroid ? ${JSON.stringify(androidIntentUrl)} : ${JSON.stringify(appDeepLink)};
       var openButton = document.getElementById('openViral');
       if (openButton && isAndroid) openButton.setAttribute('href', ${JSON.stringify(androidIntentUrl)});
-      document.addEventListener('visibilitychange', function () { hidden = document.hidden; });
-      setTimeout(function () {
-        if (!hidden) window.location.href = openUrl;
-      }, 350);
     })();
   </script>
 </body>
@@ -1671,7 +1685,7 @@ app.get('/u/:handle', async (req, res) => {
       (process.env.APP_ANDROID_STORE_URL ?? 'https://play.google.com/store/apps/details?id=com.viral_new').toString();
     const iosStoreUrl =
       (process.env.APP_IOS_STORE_URL ?? 'https://apps.apple.com/tr/app/viral-network/id6761623655').toString();
-    const androidIntentUrl = `intent://profile/${encodeURIComponent(handle)}#Intent;scheme=viral;package=com.viral_new;S.browser_fallback_url=${encodeURIComponent(androidStoreUrl)};end`;
+    const androidIntentUrl = `intent://${canonicalUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.viral_new;S.browser_fallback_url=${encodeURIComponent(androidStoreUrl)};end`;
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -1708,7 +1722,7 @@ app.get('/u/:handle', async (req, res) => {
     <p><a id="openViral" href="${escapeHtml(appDeepLink)}" data-android-intent="${escapeHtml(androidIntentUrl)}" style="display:inline-block;background:#E50914;color:#fff;text-decoration:none;padding:12px 18px;border-radius:999px;font-weight:700;">Viral'de Aç</a></p>
     <p><a href="${escapeHtml(androidStoreUrl)}" style="color:#ff3b3b;">Android indir</a> &nbsp;|&nbsp; <a href="${escapeHtml(iosStoreUrl)}" style="color:#ff3b3b;">iOS indir</a></p>
   </main>
-  <script>(function(){var hidden=false;var isAndroid=/Android/i.test(navigator.userAgent||'');var openUrl=isAndroid?${JSON.stringify(androidIntentUrl)}:${JSON.stringify(appDeepLink)};var b=document.getElementById('openViral');if(b&&isAndroid)b.setAttribute('href',${JSON.stringify(androidIntentUrl)});document.addEventListener('visibilitychange',function(){hidden=document.hidden;});setTimeout(function(){if(!hidden)window.location.href=openUrl;},350);})();</script>
+  <script>(function(){var isAndroid=/Android/i.test(navigator.userAgent||'');var b=document.getElementById('openViral');if(b&&isAndroid)b.setAttribute('href',${JSON.stringify(androidIntentUrl)});})();</script>
 </body>
 </html>`);
   } catch (e) {
@@ -1724,7 +1738,8 @@ app.get('/download', (req, res) => {
     (process.env.APP_ANDROID_STORE_URL ?? 'https://play.google.com/store/apps/details?id=com.viral_new').toString();
   const iosStoreUrl =
     (process.env.APP_IOS_STORE_URL ?? 'https://apps.apple.com/tr/app/viral-network/id6761623655').toString();
-  const androidIntentUrl = `intent://home#Intent;scheme=viral;package=com.viral_new;S.browser_fallback_url=${encodeURIComponent(androidStoreUrl)};end`;
+  const downloadUrl = `${getPublicBaseUrl(req)}/download`;
+  const androidIntentUrl = `intent://${downloadUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.viral_new;S.browser_fallback_url=${encodeURIComponent(androidStoreUrl)};end`;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -1739,7 +1754,7 @@ app.get('/download', (req, res) => {
   <meta property="og:site_name" content="Viral Network" />
   <meta property="og:title" content="Viral Network" />
   <meta property="og:description" content="Viral Network uygulamasını aç veya indir." />
-  <meta property="og:url" content="${escapeHtml(`${getPublicBaseUrl(req)}/download`)}" />
+  <meta property="og:url" content="${escapeHtml(downloadUrl)}" />
   <meta property="og:image" content="${escapeHtml(image)}" />
   <meta property="og:image:secure_url" content="${escapeHtml(image)}" />
   <meta property="og:image:type" content="image/png" />
@@ -1764,7 +1779,7 @@ app.get('/download', (req, res) => {
     <p><a id="openViral" href="${escapeHtml(appDeepLink)}" data-android-intent="${escapeHtml(androidIntentUrl)}" style="display:inline-block;background:#E50914;color:#fff;text-decoration:none;padding:12px 18px;border-radius:999px;font-weight:700;">Viral'i Aç</a></p>
     <p><a href="${escapeHtml(androidStoreUrl)}" style="color:#ff3b3b;">Android indir</a> &nbsp;|&nbsp; <a href="${escapeHtml(iosStoreUrl)}" style="color:#ff3b3b;">iOS indir</a></p>
   </main>
-  <script>(function(){var hidden=false;var isAndroid=/Android/i.test(navigator.userAgent||'');var openUrl=isAndroid?${JSON.stringify(androidIntentUrl)}:${JSON.stringify(appDeepLink)};var b=document.getElementById('openViral');if(b&&isAndroid)b.setAttribute('href',${JSON.stringify(androidIntentUrl)});document.addEventListener('visibilitychange',function(){hidden=document.hidden;});setTimeout(function(){if(!hidden)window.location.href=openUrl;},350);})();</script>
+  <script>(function(){var isAndroid=/Android/i.test(navigator.userAgent||'');var b=document.getElementById('openViral');if(b&&isAndroid)b.setAttribute('href',${JSON.stringify(androidIntentUrl)});})();</script>
 </body>
 </html>`);
 });

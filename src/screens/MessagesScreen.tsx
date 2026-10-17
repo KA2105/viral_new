@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   messageTextMine: { color: '#fff' },
   messageTime: { marginTop: 3, fontSize: 9, color: '#999', alignSelf: 'flex-end' },
   messageTimeMine: { color: '#ffdadd' },
-  composer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 10, paddingVertical: 9, gap: 8, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e5e5e5' },
+  composer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 10, paddingTop: 9, paddingBottom: 17, gap: 8, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e5e5e5' },
   input: { flex: 1, maxHeight: 120, minHeight: 42, borderWidth: 1, borderColor: '#ddd', borderRadius: 20, paddingHorizontal: 13, paddingTop: 10, paddingBottom: 9, color: '#111', backgroundColor: '#fafafa' },
   sendButton: { minHeight: 42, paddingHorizontal: 15, borderRadius: 21, backgroundColor: '#E50914', alignItems: 'center', justifyContent: 'center' },
   sendButtonPressed: { backgroundColor: '#c10710' },

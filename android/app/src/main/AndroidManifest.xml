@@ -46,6 +46,28 @@
         <data android:scheme="viral" />
       </intent-filter>
 
+      <!-- HTTPS App Links: Viral'in kendi Render alan adındaki linkleri doğrudan uygulamada aç. -->
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https" android:host="viral-new.onrender.com" android:pathPrefix="/p/" />
+      </intent-filter>
+
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https" android:host="viral-new.onrender.com" android:pathPrefix="/u/" />
+      </intent-filter>
+
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https" android:host="viral-new.onrender.com" android:path="/download" />
+      </intent-filter>
+
       <!-- ✅ SHARE TARGET: Diğer uygulamalardan Viral'e paylaşım -->
       <intent-filter>
         <action android:name="android.intent.action.SEND" />
