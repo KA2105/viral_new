@@ -3510,7 +3510,10 @@ return (posts || []).map(p => {
 
   return {
     ...p,
+    // Like tablosundan hesaplanan kanonik sayiyi iki alanla da don.
+    // Boylece eski p.likeCount degeri gercek DB sayisini ezemez.
     likes: nextLikes,
+    likeCount: nextLikes,
 
     // âœ… 3 isimle birden dÃ¶n (RNâ€™de farklÄ± yerler farklÄ± isim okuyabiliyor)
     commentCount: nextCommentCount,
@@ -4204,11 +4207,14 @@ app.get('/feed', async (req, res) => {
 
     // âœ… Like meta uyumu (senin eski â€œKRÄ°TÄ°K FIXâ€ davranÄ±ÅŸÄ±nÄ± koru)
     const final = (enriched || []).map((p: any) => {
+      // attachLikeCommentMetaToFeedPosts() gercek Like tablosu sayisini p.likes'a yazar.
+      // Oncelik p.likes olmali; aksi halde Post uzerindeki eski/stale likeCount
+      // diger cihazlarda gercek begeni sayisini tekrar 0'a (veya eski degere) dusurur.
       const likeFixed =
-        typeof p.likeCount === 'number' && Number.isFinite(p.likeCount)
-          ? p.likeCount
-          : typeof p.likes === 'number' && Number.isFinite(p.likes)
-            ? p.likes
+        typeof p.likes === 'number' && Number.isFinite(p.likes)
+          ? p.likes
+          : typeof p.likeCount === 'number' && Number.isFinite(p.likeCount)
+            ? p.likeCount
             : 0;
 
       const cc =
@@ -4223,6 +4229,7 @@ app.get('/feed', async (req, res) => {
       return {
         ...p,
         likes: likeFixed,
+        likeCount: likeFixed,
 
         // âœ… 3 isimle birden dÃ¶n
         commentCount: cc,
