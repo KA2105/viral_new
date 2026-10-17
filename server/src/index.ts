@@ -1188,17 +1188,29 @@ async function createNewPostNotifications(params: {
   actorUser: any;
   postId: number;
   fallbackName?: string | null;
+  excludeUserIds?: number[];
 }) {
-  const { actorUser, postId, fallbackName } = params;
+  const { actorUser, postId, fallbackName, excludeUserIds = [] } = params;
   const actorUserId = Number(actorUser?.id);
 
   if (!Number.isFinite(actorUserId) || actorUserId <= 0 || !isBroadcastPostAuthor(actorUser)) {
     return;
   }
 
+  const safeExcluded = Array.from(
+    new Set(
+      (Array.isArray(excludeUserIds) ? excludeUserIds : [])
+        .map(x => Number(x))
+        .filter(x => Number.isFinite(x) && x > 0 && x !== actorUserId),
+    ),
+  );
+
   const recipients = await prisma.user.findMany({
     where: {
-      id: { not: actorUserId },
+      id: {
+        not: actorUserId,
+        ...(safeExcluded.length ? { notIn: safeExcluded } : {}),
+      },
       email: { not: null },
     },
     select: { id: true },
@@ -1232,6 +1244,112 @@ async function createNewPostNotifications(params: {
     type: 'new-post',
     postId,
   });
+}
+
+
+function extractMentionHandles(textRaw: any): string[] {
+  const text = typeof textRaw === 'string' ? textRaw : '';
+  if (!text.trim()) return [];
+
+  const matches = text.match(/(^|[\s(])@([a-zA-Z0-9_.]{3,24})/g) || [];
+  const handles = matches
+    .map(m => {
+      const hit = m.match(/@([a-zA-Z0-9_.]{3,24})/);
+      return hit?.[1] ? hit[1].trim().toLowerCase() : '';
+    })
+    .filter(Boolean);
+
+  return Array.from(new Set(handles));
+}
+
+async function createMentionNotifications(params: {
+  actorUserId: number | null;
+  postId: number;
+  text: string;
+  fallbackActorName?: string | null;
+  type: 'mention-post' | 'mention-comment';
+  excludeUserIds?: number[];
+}): Promise<number[]> {
+  const {
+    actorUserId,
+    postId,
+    text,
+    fallbackActorName,
+    type,
+    excludeUserIds = [],
+  } = params;
+
+  const handles = extractMentionHandles(text);
+  if (!handles.length) return [];
+
+  const users = await prisma.user.findMany({
+    where: {
+      OR: handles.map(handle => ({
+        handle: {
+          equals: handle,
+          mode: 'insensitive',
+        } as any,
+      })),
+    },
+    select: { id: true, fullName: true, handle: true },
+  });
+
+  const excluded = new Set(
+    (Array.isArray(excludeUserIds) ? excludeUserIds : [])
+      .map(x => Number(x))
+      .filter(x => Number.isFinite(x) && x > 0),
+  );
+
+  if (actorUserId && Number.isFinite(actorUserId) && actorUserId > 0) {
+    excluded.add(actorUserId);
+  }
+
+  const recipients = users.filter(u => !excluded.has(Number(u.id)));
+  if (!recipients.length) return [];
+
+  const actorUser =
+    actorUserId && Number.isFinite(actorUserId) && actorUserId > 0
+      ? await prisma.user.findUnique({
+          where: { id: actorUserId },
+          select: { id: true, fullName: true, handle: true },
+        })
+      : null;
+
+  const actorName = displayNameForNotification(actorUser, fallbackActorName);
+  const message =
+    type === 'mention-comment'
+      ? `${actorName}, bir yorumda senden bahsetti.`
+      : `${actorName}, bir paylaşımda senden bahsetti.`;
+
+  await (prisma as any).notification.createMany({
+    data: recipients.map(recipient => ({
+      userId: recipient.id,
+      actorUserId,
+      postId,
+      type,
+      message,
+    })),
+  });
+
+  const recipientIds = recipients.map(recipient => Number(recipient.id));
+
+  console.log('[Notification][Mention] created', {
+    actorUserId,
+    postId,
+    type,
+    recipientIds,
+    handles,
+  });
+
+  await sendPushToUsers({
+    userIds: recipientIds,
+    title: 'Viral',
+    body: message,
+    type,
+    postId,
+  });
+
+  return recipientIds;
 }
 
 async function createCommentNotification(params: {
@@ -3138,7 +3256,27 @@ app.post('/posts', async (req, res) => {
       }
     }
 
+    let mentionedUserIds: number[] = [];
+
+    // @mention: paylaşım başlığı/açıklamasında @kullanıcı varsa o kişiye özel bildirim + push.
+    // Bildirim tarafındaki bir hata, paylaşım oluşturma işlemini bozmaz.
+    try {
+      mentionedUserIds = await createMentionNotifications({
+        actorUserId:
+          typeof effectiveUserId === 'number' && Number.isFinite(effectiveUserId) && effectiveUserId > 0
+            ? effectiveUserId
+            : null,
+        postId: Number((post as any).id),
+        text: [taskTitle, note].filter(x => typeof x === 'string' && x.trim().length).join('\n'),
+        fallbackActorName: author,
+        type: 'mention-post',
+      });
+    } catch (notifyErr) {
+      console.warn('[Notification][MentionPost] create failed:', notifyErr);
+    }
+
     // Kazım'ın yeni paylaşımı: kayıtlı kullanıcılara uygulama içi bildirim.
+    // Mention alan kullanıcıya aynı paylaşım için ikinci kez "new-post" bildirimi göndermiyoruz.
     // Bildirim tarafındaki bir hata, paylaşım oluşturma işlemini bozmaz.
     try {
       if (postingUser) {
@@ -3146,6 +3284,7 @@ app.post('/posts', async (req, res) => {
           actorUser: postingUser,
           postId: Number((post as any).id),
           fallbackName: author,
+          excludeUserIds: mentionedUserIds,
         });
       }
     } catch (notifyErr) {
@@ -3552,19 +3691,35 @@ const handleCreateComment = async (req: any, res: any) => {
       },
     });
 
+    const postOwnerUserId =
+      typeof (post as any).userId === 'number' && Number.isFinite((post as any).userId)
+        ? (post as any).userId
+        : null;
+
     // Gönderi sahibine yorum bildirimi.
     // Bildirim tarafındaki bir hata, yorum oluşturma işlemini bozmaz.
     try {
       await createCommentNotification({
-        postOwnerUserId:
-          typeof (post as any).userId === 'number' && Number.isFinite((post as any).userId)
-            ? (post as any).userId
-            : null,
+        postOwnerUserId,
         commenterUserId: userId,
         postId,
       });
     } catch (notifyErr) {
       console.warn('[Notification][Comment] create failed:', notifyErr);
+    }
+
+    // @mention: yorumda @kullanıcı varsa o kişiye özel bildirim + push.
+    // Gönderi sahibi zaten yorum bildirimi aldığı için aynı yorumdan ikinci bildirim almaz.
+    try {
+      await createMentionNotifications({
+        actorUserId: userId,
+        postId,
+        text,
+        type: 'mention-comment',
+        excludeUserIds: postOwnerUserId ? [postOwnerUserId] : [],
+      });
+    } catch (notifyErr) {
+      console.warn('[Notification][MentionComment] create failed:', notifyErr);
     }
 
     // âœ… FEED 304 kÄ±rmak iÃ§in: Postâ€™u â€œdeÄŸiÅŸtiâ€ saydÄ±r
@@ -3904,8 +4059,31 @@ app.get('/feed', async (req, res) => {
       if (!isNaN(n) && n > 0 && n <= 200) limit = n;
     }
 
+    const beforeCreatedAtRaw =
+      typeof req.query.beforeCreatedAt === 'string' ? req.query.beforeCreatedAt.trim() : '';
+    const beforeIdRaw = typeof req.query.beforeId === 'string' ? req.query.beforeId.trim() : '';
+
+    let cursorWhere: Prisma.PostWhereInput | undefined;
+    if (beforeCreatedAtRaw) {
+      const beforeCreatedAt = new Date(beforeCreatedAtRaw);
+      const beforeId = Number(beforeIdRaw);
+
+      if (!Number.isNaN(beforeCreatedAt.getTime())) {
+        cursorWhere =
+          Number.isFinite(beforeId) && beforeId > 0
+            ? {
+                OR: [
+                  { createdAt: { lt: beforeCreatedAt } },
+                  { createdAt: beforeCreatedAt, id: { lt: beforeId } },
+                ],
+              }
+            : { createdAt: { lt: beforeCreatedAt } };
+      }
+    }
+
     const posts = await prisma.post.findMany({
-      orderBy: { createdAt: 'desc' },
+      ...(cursorWhere ? { where: cursorWhere } : {}),
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
       include: {
         user: { select: { id: true, fullName: true, handle: true, avatarUri: true, role: true, isPro: true, isFeaturedCreator: true } },
