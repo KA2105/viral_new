@@ -1238,19 +1238,23 @@ async function performRemoteSync(set: any, get: any) {
     const likedByMe = (await storage.loadJson<LikedByMe>(STORAGE_LIKED_BY_ME_KEY)) || {};
 
     const normalizedRemote = remote.map(normalizePost);
-    const existingRemote = mergeRemoteBatchWithExisting({
-      freshRemote: normalizedRemote,
-      existingPosts: get().posts,
-      localPosts,
-    });
 
+    // ÖNCE local/temp post ID'lerini server'daki gerçek post ID'leriyle eşleştir.
+    // Pagination merge'i bundan önce çalışırsa gerçek server postu local kopya sanılıp eleniyor.
     const migrated = migrateLocalIdsToRemote({
-      remotePosts: existingRemote,
+      remotePosts: normalizedRemote,
       localPosts,
       likeOverrides,
       reshareOverrides,
       commentOverrides,
       likedByMe,
+    });
+
+    // Migration'dan sonra mevcut sayfaları koruyarak birleştir.
+    const existingRemote = mergeRemoteBatchWithExisting({
+      freshRemote: normalizedRemote,
+      existingPosts: get().posts,
+      localPosts: migrated.localPosts,
     });
 
     const merged = applyOverridesAndMerge({
@@ -1381,19 +1385,22 @@ export const useFeed = create<FeedState>((set, get) => ({
 
       if (remote && remote.length > 0) {
         const normalizedRemote = remote.map(normalizePost);
-        const existingRemote = mergeRemoteBatchWithExisting({
-          freshRemote: normalizedRemote,
-          existingPosts: get().posts,
-          localPosts,
-        });
 
+        // Çalışan eski sırayı koru: önce local ID -> gerçek server ID migration.
         const migrated = migrateLocalIdsToRemote({
-          remotePosts: existingRemote,
+          remotePosts: normalizedRemote,
           localPosts,
           likeOverrides,
           reshareOverrides,
           commentOverrides,
           likedByMe,
+        });
+
+        // Pagination için mevcut kayıtları ancak migration tamamlandıktan sonra birleştir.
+        const existingRemote = mergeRemoteBatchWithExisting({
+          freshRemote: normalizedRemote,
+          existingPosts: get().posts,
+          localPosts: migrated.localPosts,
         });
 
         const merged = applyOverridesAndMerge({
@@ -1545,19 +1552,31 @@ export const useFeed = create<FeedState>((set, get) => ({
       const likeOverrides = (await storage.loadJson<LikeOverrides>(STORAGE_LIKES_KEY)) || {};
       const reshareOverrides = (await storage.loadJson<ReshareOverrides>(STORAGE_RESHARES_KEY)) || {};
       const commentOverrides = (await storage.loadJson<CommentCountOverrides>(STORAGE_COMMENTCOUNTS_KEY)) || {};
+      const likedByMe = (await storage.loadJson<LikedByMe>(STORAGE_LIKED_BY_ME_KEY)) || {};
+
+      // Eski sayfalardaki bir local/temp kartın gerçek server karşılığı bu sayfada geldiyse
+      // onu da önce gerçek ID'ye taşı.
+      const migrated = migrateLocalIdsToRemote({
+        remotePosts: normalizedRemote,
+        localPosts,
+        likeOverrides,
+        reshareOverrides,
+        commentOverrides,
+        likedByMe,
+      });
 
       const combinedRemote = mergeRemoteBatchWithExisting({
         freshRemote: currentRemote,
         existingPosts: normalizedRemote,
-        localPosts,
+        localPosts: migrated.localPosts,
       });
 
       const merged = applyOverridesAndMerge({
         basePosts: combinedRemote,
-        likeOverrides,
-        reshareOverrides,
-        commentOverrides,
-        localPosts,
+        likeOverrides: migrated.likeOverrides,
+        reshareOverrides: migrated.reshareOverrides,
+        commentOverrides: migrated.commentOverrides,
+        localPosts: migrated.localPosts,
       });
 
       console.log('[Feed][Pagination DEBUG] merge result', { normalizedRemoteCount: normalizedRemote.length, combinedRemoteCount: combinedRemote.length, mergedCount: merged.length, nextHasMore: normalizedRemote.length >= REMOTE_FEED_PAGE_SIZE });
@@ -1569,6 +1588,17 @@ export const useFeed = create<FeedState>((set, get) => ({
       });
 
       storage.saveJson(STORAGE_KEY, merged);
+      storage.saveJson(STORAGE_LIKES_KEY, migrated.likeOverrides);
+      storage.saveJson(STORAGE_RESHARES_KEY, migrated.reshareOverrides);
+      storage.saveJson(STORAGE_COMMENTCOUNTS_KEY, migrated.commentOverrides);
+      storage.saveJson(STORAGE_LOCAL_POSTS_KEY, migrated.localPosts);
+      storage.saveJson(STORAGE_LIKED_BY_ME_KEY, migrated.likedByMe);
+
+      if (Array.isArray(migrated.pendingLikePostIds) && migrated.pendingLikePostIds.length > 0) {
+        migrated.pendingLikePostIds.forEach(postId => {
+          enqueuePendingAction({ type: 'like', postId, ts: Date.now() });
+        });
+      }
     } catch (e) {
       console.log('[Feed] loadMore failed:', e);
     } finally {
