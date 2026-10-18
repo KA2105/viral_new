@@ -5451,6 +5451,28 @@ return (
       {/* SharePanel */}
       <SharePanel
         visible={sharePanelVisible}
+        shareText={
+          sharePanelPost
+            ? String(
+                (sharePanelPost as any)?.note ??
+                  (sharePanelPost as any)?.body ??
+                  (sharePanelPost as any)?.title ??
+                  '',
+              ).trim()
+            : undefined
+        }
+        shareUrl={
+          sharePanelPost
+            ? (() => {
+                const explicit = String((sharePanelPost as any)?.shareUrl ?? '').trim();
+                if (/^https?:\/\//i.test(explicit)) return explicit;
+                const id = String((sharePanelPost as any)?.id ?? '').trim();
+                return id && /^\d+$/.test(id) && apiBase
+                  ? `${apiBase}/p/${encodeURIComponent(id)}`
+                  : `${apiBase}/download`;
+              })()
+            : undefined
+        }
         onClose={() => {
           setSharePanelVisible(false);
           setSharePanelPost(null);

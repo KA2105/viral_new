@@ -31,6 +31,7 @@ import LanguageSelector from '../components/LanguageSelector';
 
 // ✅ Backend ME entegrasyonu
 import { getMe, putMe, API_BASE_URL } from '../config/api';
+import { shareToInstagram, type InstagramShareMode } from '../services/instagramShare';
 
 // ✅ BRAND COLOR
 const VIRAL_RED = '#E50914';
@@ -722,13 +723,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
 
   const handleShareInvite = async (platformLabel: string) => {
     try {
+      const shareLine1 = t('profile.invite.shareLine1', "Beni Viral'de bul! 👋");
+      const shareUsername = t('profile.invite.shareUsername', 'Kullanıcı adı: {{username}}').replace(
+        '{{username}}',
+        inviteUsername.toString(),
+      );
+
       const message =
-        t('profile.invite.shareLine1', "Beni Viral'de bul! 👋") +
+        shareLine1 +
         '\n' +
-        t('profile.invite.shareUsername', 'Kullanıcı adı: {{username}}').replace(
-          '{{username}}',
-          inviteUsername.toString(),
-        ) +
+        shareUsername +
         '\n' +
         t('profile.invite.shareProfile', 'Profil: {{link}}').replace(
           '{{link}}',
@@ -744,6 +748,47 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ goToInstagramLogs }) => {
           '{{platform}}',
           platformLabel,
         );
+
+      if (platformLabel.trim().toLowerCase() === 'instagram') {
+        const runInstagramShare = async (mode: InstagramShareMode) => {
+          try {
+            await shareToInstagram({
+              mode,
+              title: 'Viral Network',
+              body: `${shareLine1}\n${shareUsername}`,
+              link: inviteProfileLink,
+              message,
+            });
+          } catch (e: any) {
+            console.warn('[Profile] Instagram invite share error:', e);
+            Alert.alert(
+              t('common.error', 'Hata'),
+              e?.message || t('feed.share.errorMessage', 'Instagram paylaşımı açılamadı.'),
+            );
+          }
+        };
+
+        Alert.alert(
+          'Instagram',
+          t('sharePanel.instagramQuestion', "Instagram'da nerede paylaşmak istersin?"),
+          [
+            {
+              text: t('sharePanel.instagramStory', 'Hikâye'),
+              onPress: () => { void runInstagramShare('story'); },
+            },
+            {
+              text: t('sharePanel.instagramFeed', 'Gönderi'),
+              onPress: () => { void runInstagramShare('feed'); },
+            },
+            {
+              text: t('sharePanel.instagramDirect', 'Mesaj'),
+              onPress: () => { void runInstagramShare('direct'); },
+            },
+          ],
+          { cancelable: true },
+        );
+        return;
+      }
 
       await Share.share({ message });
     } catch (e) {

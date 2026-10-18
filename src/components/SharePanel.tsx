@@ -16,6 +16,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useSocialAccounts } from '../store/useSocialAccounts';
 import { API_BASE_URL } from '../config/api';
+import { shareToInstagram, type InstagramShareMode } from '../services/instagramShare';
 
 // Dış paylaşım paneli
 type SharePanelProps = {
@@ -115,29 +116,78 @@ const SharePanel: React.FC<SharePanelProps> = ({
     );
   };
 
+  const buildSharePayload = () => {
+    const baseText =
+      (typeof shareText === 'string' && shareText.trim().length
+        ? shareText.trim()
+        : t('feed.share.defaultText', 'Shared from Viral')) + '';
+
+    const viralDownloadUrl = `${String(API_BASE_URL).replace(/\/+$/, '')}/download`;
+    const url = typeof shareUrl === 'string' && shareUrl.trim().length ? shareUrl.trim() : '';
+    const destinationUrl = url || viralDownloadUrl;
+    const message = `${baseText}\n\nCreated on Viral 🎯\n\nDiscover Viral:\n${destinationUrl}`;
+
+    return { baseText, viralDownloadUrl, url, destinationUrl, message };
+  };
+
+  const doInstagramShare = async (mode: InstagramShareMode) => {
+    try {
+      const payload = buildSharePayload();
+      await shareToInstagram({
+        mode,
+        title: 'Viral Network',
+        body: payload.baseText,
+        link: payload.destinationUrl,
+        message: payload.message,
+      });
+    } catch (e: any) {
+      console.warn('[SharePanel] Instagram share error:', e);
+      Alert.alert(
+        t('feed.share.errorTitle', 'Paylaşım'),
+        e?.message || t('feed.share.errorMessage', 'Instagram paylaşımı açılamadı.'),
+      );
+    }
+  };
+
+  const handleInstagramPress = () => {
+    onClose();
+    Alert.alert(
+      'Instagram',
+      t('sharePanel.instagramQuestion', "Instagram'da nerede paylaşmak istersin?"),
+      [
+        {
+          text: t('sharePanel.instagramStory', 'Hikâye'),
+          onPress: () => { void doInstagramShare('story'); },
+        },
+        {
+          text: t('sharePanel.instagramFeed', 'Gönderi'),
+          onPress: () => { void doInstagramShare('feed'); },
+        },
+        {
+          text: t('sharePanel.instagramDirect', 'Mesaj'),
+          onPress: () => { void doInstagramShare('direct'); },
+        },
+      ],
+      { cancelable: true },
+    );
+  };
+
   // ✅ Gerçek native paylaşım (Share API)
   const doNativeShare = async (platformLabel?: string) => {
     try {
       // Paneli kapatmak daha temiz (özellikle Android’de)
       onClose();
 
-      const baseText =
-        (typeof shareText === 'string' && shareText.trim().length
-          ? shareText.trim()
-          : t('feed.share.defaultText', 'Shared from Viral')) + '';
-
-      const viralDownloadUrl = `${String(API_BASE_URL).replace(/\/+$/, '')}/download`;
-      const promo = `\n\nCreated on Viral 🎯\n\nDiscover Viral:\n${viralDownloadUrl}`;
-
+      const payload = buildSharePayload();
       const message = platformLabel
         ? t('feed.share.shareText', {
             defaultValue: '{{platform}} paylaşımı:\n{{text}}',
             platform: platformLabel,
-            text: baseText + promo,
+            text: payload.message,
           })
-        : baseText + promo;
+        : payload.message;
 
-      const url = typeof shareUrl === 'string' && shareUrl.trim().length ? shareUrl.trim() : undefined;
+      const url = payload.url || undefined;
 
       // RN Share: Android’de url ayrı alan olarak gider, iOS’ta da destekli.
       // Video dosyasını “dosya olarak” paylaşmak istiyorsan ek native modül gerekir.
@@ -174,7 +224,13 @@ const SharePanel: React.FC<SharePanelProps> = ({
           return (
             <Pressable
               key={String(acc.id)}
-              onPress={() => doNativeShare(label)}
+              onPress={() => {
+                if (id === 'instagram') {
+                  handleInstagramPress();
+                  return;
+                }
+                void doNativeShare(label);
+              }}
               style={({ pressed }) => [styles.logoItem, pressed && styles.logoItemPressed]}
             >
               <Image source={iconSource} style={styles.logoIcon} resizeMode="contain" />
